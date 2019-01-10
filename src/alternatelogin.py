@@ -50,6 +50,22 @@ def login(connection, password):
 commands.add(login)
 
 
+def whois(connection, player):
+    """
+    Gets the user that a player is logged in as
+
+    usage: \whois playername
+    """
+    player = commands.get_player(connection.protocol, player)
+    username = player.username
+    if username is None:
+        message = ' is not logged in.'
+    else:
+        message = ' is logged in as ' + username
+    return player.name + message
+commands.add(whois)
+
+
 def apply_script(protocol, connection, config):
     class UserConnection(connection):
         username = None
