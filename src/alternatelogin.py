@@ -68,7 +68,9 @@ commands.add(whois)
 
 def apply_script(protocol, connection, config):
     class UserConnection(connection):
-        username = None
+        def __init__(self, *args, **kwargs):
+            connection.__init__(self, *args, **kwargs)
+            self.username = None
 
         def on_user_login(self, username, verbose=True):
             user_groups = []
