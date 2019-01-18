@@ -26,6 +26,15 @@ def apply_script(protocol, connection, config):
             connection.__init__(self, *args, **kwargs)
             self.infinite_blocks = False
 
+        def on_hit(self, hit_amount, player, type_, grenade):
+            if player.infinite_blocks:
+                self.send_chat("You can't hurt %s! That player is in *Infinite Blocks Mode*" % player.name)
+                return False
+            if self.infinite_blocks:
+                self.send_chat("You can't hurt people while you are in *Infinite Blocks Mode*")
+                return False
+            return connection.on_hit(self, hit_amount, player, type_, grenade)
+
         def on_block_build(self, x, y, z):
             if self.infinite_blocks:
                 self.refill()
