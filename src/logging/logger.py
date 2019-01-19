@@ -27,20 +27,32 @@ class MessageType(enum.Enum):
 
 
 def get_seconds(time_string):
-    hours, minutes = time_string.split(':')
-    return int(hours)*3600 + int(minutes)*60
-
-
-def get_from_to_seconds(time1, time2, day, month, year):
+    """
+    Returns the seconds past epoch when given a time string in local time
+    Should be in any of the following formats:
+        HH::MM, HH:MM::dd, HH::MM::dd::mm, HH::MM::dd::mm::yyyy
+    """
     current_time = time.localtime()
-    if day is None:
+    values = time_string.split(':')
+    if not 2 <= len(values) <= 5:
+        raise ValueError('Incorrect time_string format')
+    elif len(values) == 2:
+        hours, minutes = values
         day = current_time.tm_mday
-    if month is None:
         month = current_time.tm_mon
-    if year is None:
         year = current_time.tm_year
-    timestamp = time.mktime(time.gmtime(datetime(int(year), int(month), int(day)).timestamp()))
-    return timestamp + get_seconds(time1), timestamp + get_seconds(time2)
+    elif len(values) == 3:
+        hours, minutes, day = values
+        month = current_time.tm_mon
+        year = current_time.tm_year
+    elif len(values) == 4:
+        hours, minutes, day, month = values
+        year = current_time.tm_year
+    elif len(values) == 5:
+        hours, minutes, day, month, year = values
+
+    d_time = datetime(int(year), int(month), int(day), int(hours), int(minutes))
+    return time.mktime(time.gmtime(d_time.timestamp()))
 
 
 def current_timestamp():
@@ -55,8 +67,9 @@ def time_string(timestamp):
 
 
 @command('findusers', admin_only=True)
-def find_users(connection, time1, time2, day=None, month=None, year=None):
-    from_time, to_time = get_from_to_seconds(time1, time2, day, month, year)
+def find_users(connection, time1, time2):
+    from_time = get_seconds(time1)
+    to_time = get_seconds(time2)
     if from_time > current_timestamp():
         return "Time range hasn't happened yet"
     cur = connection.protocol.cursor
