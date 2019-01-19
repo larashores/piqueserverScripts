@@ -1,200 +1,160 @@
-'''
-#-------------------------------------------------------------------------------
-# Name:        userlogger
-# Purpose:     Logs when players are on and off the server. Can find what
-#              players were on the server during a specific time interval by
-#              using /findusers timeinterval1 timeinterval2 day month year
-#              Each time interval should be in the form hour:minute:second
-#              If the intervals are the same it finds the users logged on at
-#              that point in time. If day, month, or year is left out it will
-#              use the current day, month, or year at the time the command is
-#              used. Logs are saved on disconnect to the file specified at the
-#              beginning of this script.
-#
-#              WARNING: YOU MUST CTRL-C EXIT THE SERVER FOR THE LOG TO SAVE. IT
-#              WILL NOT SAVE IF YOU JUST EXIT THE WINDOW
-#
-# Author:      Gamemaster77
-#-------------------------------------------------------------------------------
-'''
-from commands import add, admin, alias, get_player
-from pyspades.constants import *
-import commands
-from twisted.internet import reactor
-from commands import name
+"""
+Logs when players are on and off the server. Can find what players were on the server during a specific time interval by
+using /findusers timeinterval1 timeinterval2 day month year. Each time interval should be in the form hour:minute:second
+If the intervals are the same it finds the users logged on at that point in time. If day, month, or year is left out it
+will use the current day, month, or year at the time the command is used. Logs are saved to logs\playerlog.db
+"""
+
+import sqlite3
 import os
 import time
-import pickle
+import datetime
+import commands
 
-log = r'\logs\playtime\log.dat'
+PATH = r'\logs\playerlog.db'
 
-@admin
-def writelog(connection):
-    connection.send_chat('Saving log...')
-    connection.protocol.write_log()
-    return 'Done Saving'
-add(writelog)
+COMMANDS_CREATE_TABLES = [
+    ''' CREATE TABLE IF NOT EXISTS display_names (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        )''',
+    ''' CREATE TABLE IF NOT EXISTS connections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip TEXT NOT NULL,
+            name_id INTEGER NOT NULL REFERENCES display_names(id)
+        )''',
+    ''' CREATE TABLE IF NOT EXISTS events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            time INTEGER NOT NULL
+        )''',
+    ''' CREATE TABLE IF NOT EXISTS connection_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER UNIQUE NOT NULL REFERENCES events(id),
+            connection_id INTEGER UNIQUE NOT NULL REFERENCES connections(id)
+        )''',
+    ''' CREATE TABLE IF NOT EXISTS disconnection_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER UNIQUE NOT NULL REFERENCES events(id),
+            connection_id INTEGER UNIQUE NOT NULL REFERENCES connections(id)
+        )'''
+]
 
-def calculateseconds(connection,hour,minute,seconds):
-    totalseconds=(int(hour)*3600)+(int(minute)*60)+(int(seconds))
-    return totalseconds
+COMMAND_SELECT_NAME = '''\
+    SELECT id
+    FROM display_names
+    WHERE name == ?'''
 
-@admin
+COMMAND_INSERT_NAME = '''\
+    INSERT INTO display_names (name)
+    VALUES (?)'''
+
+COMMAND_INSERT_CONNECTION = '''\
+    INSERT INTO connections (ip, name_id)
+    values (?, ?)'''
+
+COMMAND_INSERT_EVENT = '''\
+    INSERT INTO events (time)
+    VALUES (?)'''
+
+COMMAND_INSERT_CONNECTION_EVENT = '''
+    INSERT INTO connection_events (event_id, connection_id)
+    values (?, ?)'''
+
+COMMAND_INSERT_DISCONNECTION_EVENT = '''
+    INSERT INTO disconnection_events (event_id, connection_id)
+    values (?, ?)'''
+
+COMMAND_SELECT_CONNECTION_EVENTS = '''\
+    SELECT connection_id
+    FROM events INNER JOIN connection_events 
+        ON connection_events.event_id == events.event_id
+    WHERE time <= ?'''
+
+COMMAND_SELECT_DISCONNECTION_EVENTS = '''\
+    SELECT connection_id
+    FROM events INNER JOIN disconnection_events 
+        ON disconnection_events.event_id == events.event_id
+    WHERE time >= ?'''
+
+COMMAND_SELECT_CONNECTION_NAME = '''\
+    SELECT name
+    FROM connections INNER JOIN display_names
+        ON connections.name_id == display_names.id
+    WHERE connections.id == ?'''
+
+
+def get_seconds(time_string):
+    hours, minutes, seconds = time_string.split(':')
+    return int(hours)*3600 + int(minutes)*60 + seconds
+
+
+def get_from_to_seconds(time1, time2, day, month, year):
+    current_time = time.localtime()
+    if day is None:
+        day = current_time.tm_mday
+    if month is None:
+        month = current_time.tm_mon
+    if year is None:
+        year = current_time.tm_year
+    timestamp = time.mktime(time.gmtime(datetime.datetime(int(year), int(month), int(day)).timestamp()))
+    return timestamp + get_seconds(time1), timestamp + get_seconds(time2)
+
+
+@commands.admin
 def findusers(connection, time1, time2, day=None, month=None, year=None):
-    playerlog = connection.protocol.playerlog
-    seconds = getseconds()
-    curyear, curmonth, curday = getdate()
-    if year==None:
-        year = curyear
-    if month==None:
-        month = curmonth
-    if day==None:
-        day = curday
-    day = int(day)
-    month = int(month)
-    year = int(year)
-    if not attemptlog(connection,year,month,day):
-        return 'No logs for that day'
-    if time1.find(':') and time2.find(':'):
-        split1=time1.split(':')
-        split2=time2.split(':')
-        time1 = calculateseconds(connection,int(split1[0]),int(split1[1]),int(split1[2]))
-        time2 = calculateseconds(connection,int(split2[0]),int(split2[1]),int(split2[2]))
-        if time2<time1:
-            raise TypeError()
-    else:
-        raise TypeError()
-    players = []
-    #print playerlog[year][month][day]
-    for name,ip,rights,times in playerlog[year][month][day]:
-        start = times['logon']
-        end =times['disconnect']
-        if time1<start:
-            if time2>start:
-                ininterval=True
-            else:
-                ininterval=False
-        else:
-            if time1<end:
-                ininterval=True
-            else:
-                ininterval=False
-        if ininterval:
-            string ='('+name+ ' => ' + ip+')'
-            if not string in players:
-                players.append(string)
-    if players:
-        message = ' , '.join(players)
+    from_time, to_time = get_from_to_seconds(time1, time2, day, month, year)
+    cur = connection.protocol.cursor
+    cur.execute(COMMAND_SELECT_CONNECTION_EVENTS, [to_time])
+    before_end_connections = set(cur.fetchall())
+    cur.execute(COMMAND_SELECT_DISCONNECTION_EVENTS, [from_time])
+    after_beginning_disconnections = set(cur.fetchall())
+    logged_in_ids = before_end_connections.intersection(after_beginning_disconnections)
+    cur.execute(COMMAND_SELECT_CONNECTION_NAME, [logged_in_ids])
+    names = cur.fetchall()
+    if names:
+        message = ' , '.join(names)
         message += ' were logged on'
     else:
         message = 'No one logged on at that time'
     return message
-add(findusers)
+commands.add(findusers)
 
-def collectplayers(connection):
-    players=[]
-    for player in connection.protocol.players.values():
-        types = []
-        types_ = player.user_types
-        if types_:
-            for usertype in player.user_types:
-                types.append(usertype)
-        info = (player.name,player.address[0],types)
-        players.append(info)
-    return players
-
-def attemptlog(connection,year,month,day):
-    playerlog = connection.protocol.playerlog
-    try:
-        playerlog[year][month][day]
-        return True
-    except KeyError:
-        try:
-            playerlog[year][month]
-            playerlog[year][month][day] = []
-        except KeyError:
-            try:
-                playerlog[year]
-                playerlog[year][month] = {}
-                playerlog[year][month][day] = []
-            except KeyError:
-                playerlog[year] = {}
-                playerlog[year][month] = {}
-                playerlog[year][month][day] = []
-        if (year, month, day) == getdate():
-            players = collectplayers(connection)
-            for player in players:
-                if player[0] == connection.name:
-                    continue
-                playerlog[year][month][day].append(player+({'logon':0,'login':-1,'disconnect': 86500},))
-            return True
-
-def getdate():
-    curtime = time.localtime()
-    year = curtime[0]
-    month = curtime[1]
-    day = curtime[2]
-    return (year,month,day)
-
-def getseconds():
-    curtime = time.localtime()
-    seconds = (curtime[3]*3600)+(curtime[4]*60)+curtime[5]
-    return seconds
 
 def apply_script(protocol, connection, config):
-    logname = os.getcwd()+log
-    if os.path.exists(logname):
-        print('Loading playerlog')
-        logfile = open(logname, 'rb')
-        player_log=pickle.load(logfile)
-        logfile.close()
-    else:
-        print('Creating new playerlog')
-        player_log = {}
-    class userLogConnection(connection):
+    class UserLogConnection(connection):
+        def __init__(self, *args, **kwargs):
+            connection.__init__(*args, **kwargs)
+            self.connection_id = None
+
         def on_login(self, name):
-            seconds = getseconds()
-            year, month, day = getdate()
-            attemptlog(self,year,month,day)
-            self.protocol.playerlog[year][month][day].append((name,self.address[0],[],{'logon':seconds,'login':-1,'disconnect': 86500}))
+            cur = self.protocol.cursor
+            cur.execute(COMMAND_SELECT_NAME, [name])
+            result = cur.fetchone()
+            if result is None:
+                cur.execute(COMMAND_INSERT_NAME, [name])
+                name_id = cur.lastrowid
+            else:
+                name_id = result[0]
+            cur.execute(COMMAND_INSERT_CONNECTION, [self.address[0], name_id])
+            self.connection_id = cur.lastrowid
+            cur.execute(COMMAND_INSERT_EVENT, [time.time()])
+            event_id = cur.lastrowid
+            cur.execute(COMMAND_INSERT_CONNECTION_EVENT, [event_id, self.connection_id])
+            self.protocol.log_connection.commit()
             return connection.on_login(self, name)
 
         def on_disconnect(self):
-            seconds = getseconds()
-            year, month, day = getdate()
-            attemptlog(self,year, month, day)
-            run = 0
-            for name,ip,rights,times in self.protocol.playerlog[year][month][day]:
-                if (self.name == name) and (self.address[0] == ip):
-                    disconnecttime = int(self.protocol.playerlog[year][month][day][run][3]['disconnect'])
-                    if disconnecttime == 86500:
-                       self.protocol.playerlog[year][month][day][run][3]['disconnect'] = seconds
-                run += 1
+            cur = self.protcol.cursor
+            cur.execute(COMMAND_INSERT_EVENT, [time.time()])
+            event_id = cur.lastrowid
+            cur.execute(COMMAND_INSERT_DISCONNECTION_EVENT, [event_id, self.connection_id])
+            self.protocol.log_connection.commit()
             return connection.on_disconnect(self)
 
-    class loggerProtocol(protocol):
-        playerlog = player_log
-        def __init__(self, *args, **kargs):
-            protocol.__init__(self, *args, **kargs)
-            reactor.addSystemEventTrigger('before', 'shutdown', self.write_log)
-        def create_file(self, filename):
-            path = os.path.split(filename)[0]
-            if os.path.exists(path):
-                pass
-            else:
-                os.makedirs(path)
-            fileobj = open(filename, 'wb')
-            fileobj.close()
-        def endgame(self):
-            players = self.players.values().copy()
-            for player in players:
-                player.on_disconnect()
-        def write_log(self):
-            self.endgame()
-            logname = os.getcwd()+log
-            self.create_file(logname)
-            logfile = open(logname, 'wb')
-            pickle.dump(self.playerlog, logfile)
-            logfile.close()
+    class LoggerProtocol(protocol):
+        def __init__(self, *args, **kwargs):
+            protocol.__init__(self, *args, **kwargs)
+            self.log_connection = sqlite3.connect(os.path.join(os.getcwd(), PATH))
+            self.cursor = self.log_connection.cursor()
 
-    return loggerProtocol, userLogConnection
+    return LoggerProtocol, UserLogConnection
