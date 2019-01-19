@@ -1,2 +1,2 @@
-# PySnipScripts
-Some scripts for the PySnip server running Ace of Spades classic 
+# piqueserverScripts
+Some scripts for the piqueserver server running Ace of Spades classic 
