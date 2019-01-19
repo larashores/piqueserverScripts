@@ -8,11 +8,12 @@ will use the current day, month, or year at the time the command is used. Logs a
 import sqlite3
 import os
 import time
+import enum
 from datetime import datetime, timezone
 
 from piqueserver.commands import command
 
-PATH = r'logs\playerlog.db'
+PATH = r'logs\log.db'
 
 COMMANDS_CREATE_TABLES = [
     ''' CREATE TABLE IF NOT EXISTS display_names (
@@ -24,6 +25,8 @@ COMMANDS_CREATE_TABLES = [
             ip TEXT NOT NULL,
             kills INTEGER NOT NULL,
             deaths INTEGER NOT NULL,
+            damage_given INTEGER NOT NULL,
+            damage_taken INTEGER NOT NULL,
             name_id INTEGER NOT NULL REFERENCES display_names(id)
         )''',
     ''' CREATE TABLE IF NOT EXISTS events (
@@ -39,6 +42,22 @@ COMMANDS_CREATE_TABLES = [
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             event_id INTEGER UNIQUE NOT NULL REFERENCES events(id),
             connection_id INTEGER UNIQUE NOT NULL REFERENCES connections(id)
+        )''',
+    ''' CREATE TABLE IF NOT EXISTS text_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER UNIQUE NOT NULL REFERENCES events(id),
+            text TEXT NOT NULL
+        )''',
+    ''' CREATE TABLE IF NOT EXISTS chat_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text_event_id INTEGER UNIQUE NOT NULL REFERENCES text_events(id),
+            connection_id INTEGER NOT NULL REFERENCES connections(id),
+            team INTEGER NOT NULL
+        )''',
+    ''' CREATE TABLE IF NOT EXISTS command_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text_event_id INTEGER UNIQUE NOT NULL REFERENCES text_events(id),
+            connection_id INTEGER NOT NULL REFERENCES connections(id)
         )'''
 ]
 
@@ -52,8 +71,8 @@ COMMAND_INSERT_NAME = '''\
     VALUES (?)'''
 
 COMMAND_INSERT_CONNECTION = '''\
-    INSERT INTO connections (ip, name_id, kills, deaths)
-    values (?, ?, 0, 0)'''
+    INSERT INTO connections (ip, name_id, kills, deaths, damage_given, damage_taken)
+    values (?, ?, 0, 0, 0, 0)'''
 
 COMMAND_INSERT_EVENT = '''\
     INSERT INTO events (time)
@@ -97,27 +116,46 @@ COMMAND_SELECT_DISCONNECTION_TIME = '''\
         ON disconnection_events.event_id == events.id
     WHERE connection_id == ?'''
 
-COMMAND_SELECT_KILLS = '''\
-    SELECT kills
+COMMAND_SELECT_FROM_CONNECTION = '''\
+    SELECT {}
     FROM connections
     WHERE id == ?'''
 
-COMMAND_SELECT_DEATHS = '''\
-    SELECT deaths
-    FROM connections
+COMMAND_UPDATE_CONNECTION = '''\
+    UPDATE connections
+    SET {} = ?
     WHERE id == ?'''
 
-COMMAND_UPDATE_KILLS = '''\
-    UPDATE connections
-    SET kills = ?
-    WHERE id == ?'''
+COMMAND_INSERT_TEXT_EVENT = '''
+    INSERT INTO text_events (event_id, text)
+    values (?, ?)'''
 
-COMMAND_UPDATE_DEATHS = '''\
-    UPDATE connections
-    SET kills = ?
-    WHERE id == ?'''
+COMMAND_INSERT_CHAT_EVENT = '''
+    INSERT INTO chat_events (text_event_id, team, connection_id)
+    values (?, ?, ?)'''
+
+COMMAND_INSERT_COMMAND_EVENT = '''
+    INSERT INTO command_events (text_event_id, connection_id)
+    values (?, ?)'''
+
+COMMAND_SELECT_KILLS = COMMAND_SELECT_FROM_CONNECTION.format('kills')
+COMMAND_SELECT_DEATHS = COMMAND_SELECT_FROM_CONNECTION.format('deaths')
+COMMAND_SELECT_DAMAGE_TAKEN = COMMAND_SELECT_FROM_CONNECTION.format('damage_taken')
+COMMAND_SELECT_DAMAGE_GIVEN = COMMAND_SELECT_FROM_CONNECTION.format('damage_given')
+
+COMMAND_UPDATE_KILLS = COMMAND_UPDATE_CONNECTION.format('kills')
+COMMAND_UPDATE_DEATHS = COMMAND_UPDATE_CONNECTION.format('deaths')
+COMMAND_UPDATE_DAMAGE_TAKEN = COMMAND_UPDATE_CONNECTION.format('damage_taken')
+COMMAND_UPDATE_DAMAGE_GIVEN = COMMAND_UPDATE_CONNECTION.format('damage_given')
 
 STRING_LOGGED_ON_MESSAGE = '{}({}) was logged on from {} to {}\n'
+
+
+class MessageType(enum.Enum):
+    BLUE = 0
+    GREEN = 1
+    GLOBAL = 2
+    UNKNOWN = 3
 
 
 def get_seconds(time_string):
@@ -217,7 +255,7 @@ def apply_script(protocol, connection, config):
             self.protocol.log_connection.commit()
             return connection.on_disconnect(self)
 
-        def on_kill(self, killer, *args):
+        def on_kill(self, killer, *args, **kwargs):
             cur = self.protocol.cursor
             cur.execute(COMMAND_SELECT_DEATHS, self.connection_id)
             deaths = cur.fetchone()[0]
@@ -227,6 +265,50 @@ def apply_script(protocol, connection, config):
                 kills = cur.fetchone()[0]
                 cur.execute(COMMAND_UPDATE_KILLS, kills + 1, killer.connection_id)
             self.protocol.log_connection.commit()
-            return connection.on_kill(self, killer, *args)
+            return connection.on_kill(self, killer, *args, **kwargs)
+
+        def set_hp(self, hp, player=None, **kwargs):
+            if hp <= self.hp:
+                hp = max(0, hp)
+                hit_amount = self.hp - hp
+                cur = self.protocol.cursor
+                cur.execute(COMMAND_SELECT_DAMAGE_TAKEN, [self.connection_id])
+                damage_taken = cur.fetchone()[0]
+                cur.execute(COMMAND_UPDATE_DAMAGE_TAKEN, [damage_taken + hit_amount, self.connection_id])
+                if player is not None:
+                    cur.execute(COMMAND_SELECT_DAMAGE_GIVEN, [player.connection_id])
+                    damage_given = cur.fetchone()[0]
+                    cur.execute(COMMAND_UPDATE_DAMAGE_GIVEN, [damage_given + hit_amount, player.connection_id])
+                self.protocol.log_connection.commit()
+            return connection.set_hp(self, hp, player, **kwargs)
+
+        def on_chat_sent(self, value, global_message):
+            if global_message:
+                msg_type = MessageType.GLOBAL
+            elif self.team.id == 0:
+                msg_type = MessageType.BLUE
+            elif self.team.id == 1:
+                msg_type = MessageType.GREEN
+            else:
+                msg_type = MessageType.UNKNOWN
+            cur = self.protocol.cursor
+            cur.execute(COMMAND_INSERT_EVENT, [current_timestamp()])
+            event_id = cur.lastrowid
+            cur.execute(COMMAND_INSERT_TEXT_EVENT, [event_id, value])
+            text_event_id = cur.lastrowid
+            cur.execute(COMMAND_INSERT_CHAT_EVENT, [text_event_id, msg_type.value, self.connection_id])
+            self.protocol.log_connection.commit()
+            return connection.on_chat_sent(self, value, global_message)
+
+        def on_command(self, command, parameters):
+            text = chr(92) + command + ' ' + ' '.join(parameters)
+            cur = self.protocol.cursor
+            cur.execute(COMMAND_INSERT_EVENT, [current_timestamp()])
+            event_id = cur.lastrowid
+            cur.execute(COMMAND_INSERT_TEXT_EVENT, [event_id, text])
+            text_event_id = cur.lastrowid
+            cur.execute(COMMAND_INSERT_COMMAND_EVENT, [text_event_id, self.connection_id])
+            self.protocol.log_connection.commit()
+            return connection.on_command(self, command, parameters)
 
     return LoggerProtocol, LoggerConnection
