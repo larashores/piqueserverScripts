@@ -22,6 +22,8 @@ COMMANDS_CREATE_TABLES = [
     ''' CREATE TABLE IF NOT EXISTS connections (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ip TEXT NOT NULL,
+            kills INTEGER NOT NULL,
+            deaths INTEGER NOT NULL,
             name_id INTEGER NOT NULL REFERENCES display_names(id)
         )''',
     ''' CREATE TABLE IF NOT EXISTS events (
@@ -50,8 +52,8 @@ COMMAND_INSERT_NAME = '''\
     VALUES (?)'''
 
 COMMAND_INSERT_CONNECTION = '''\
-    INSERT INTO connections (ip, name_id)
-    values (?, ?)'''
+    INSERT INTO connections (ip, name_id, kills, deaths)
+    values (?, ?, 0, 0)'''
 
 COMMAND_INSERT_EVENT = '''\
     INSERT INTO events (time)
@@ -94,6 +96,26 @@ COMMAND_SELECT_DISCONNECTION_TIME = '''\
     FROM events INNER JOIN disconnection_events 
         ON disconnection_events.event_id == events.id
     WHERE connection_id == ?'''
+
+COMMAND_SELECT_KILLS = '''\
+    SELECT kills
+    FROM connections
+    WHERE id == ?'''
+
+COMMAND_SELECT_DEATHS = '''\
+    SELECT deaths
+    FROM connections
+    WHERE id == ?'''
+
+COMMAND_UPDATE_KILLS = '''\
+    UPDATE connections
+    SET kills = ?
+    WHERE id == ?'''
+
+COMMAND_UPDATE_DEATHS = '''\
+    UPDATE connections
+    SET kills = ?
+    WHERE id == ?'''
 
 STRING_LOGGED_ON_MESSAGE = '{}({}) was logged on from {} to {}\n'
 
@@ -194,5 +216,17 @@ def apply_script(protocol, connection, config):
             cur.execute(COMMAND_INSERT_DISCONNECTION_EVENT, [event_id, self.connection_id])
             self.protocol.log_connection.commit()
             return connection.on_disconnect(self)
+
+        def on_kill(self, killer, *args):
+            cur = self.protocol.cursor
+            cur.execute(COMMAND_SELECT_DEATHS, self.connection_id)
+            deaths = cur.fetchone()[0]
+            cur.execute(COMMAND_UPDATE_DEATHS, deaths + 1, self.connection_id)
+            if killer is not None:
+                cur.execute(COMMAND_SELECT_KILLS, killer.connection_id)
+                kills = cur.fetchone()[0]
+                cur.execute(COMMAND_UPDATE_KILLS, kills + 1, killer.connection_id)
+            self.protocol.log_connection.commit()
+            return connection.on_kill(self, killer, *args)
 
     return LoggerProtocol, LoggerConnection
