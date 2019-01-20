@@ -1,18 +1,17 @@
 """
 Redefines god to build mode, and only allows changing other's build status if admin. Only blue team can be build mode
-unless build mode set with /fg
+unless build mode set with /fb
 """
 
-import commands
+from piqueserver.commands import command, get_player
 
 
-@commands.name('bm')
-@commands.admin
+@command('buildmode', 'bm')
 def god(connection, name=None):
     if name is not None:
         if not connection.admin:
             return 'No administrator rights!'
-        player = commands.get_player(connection.protocol, name)
+        player = get_player(connection.protocol, name)
     else:
         player = connection
     if player not in player.protocol.players:
@@ -20,46 +19,39 @@ def god(connection, name=None):
     player.infinite_blocks = False
     player.god = not player.god
     if player.god:
-        message = '%s entered BUILD MODE!'
+        message = '{} entered BUILD MODE!'
         player.set_team(player.protocol.blue_team)
         player.respawn_time = 0
     else:
-        message = '%s returned to being a mere sightseer'
+        message = '{} returned to being a mere sightseer'
         player.set_team(player.protocol.green_team)
         player.respawn_time = player.protocol.respawn_time
-    player.protocol.send_chat(message % connection.name, irc=True)
-commands.add(god)
+    player.protocol.send_chat(message.format(connection.name), irc=True)
 
 
-def setlocation(connection, x, y, z):
-    connection.set_location((int(x), int(y), int(z)))
-commands.add(setlocation)
-
-
-@commands.admin
-@commands.name('fg')
-def forcegod(connection):
+@command('forcebuild', 'fb')
+def force_build(connection):
     if connection not in connection.protocol.players:
         raise ValueError()
     connection.infinite_blocks = False
     connection.god = not connection.god
-    if connection.god:
-        message = 'You entered build mode'
-    else:
-        message = 'You exited build mode'
+    message = "You've entered build mode" if connection.god else "You've exited build mode"
     connection.send_chat(message)
-commands.add(forcegod)
 
 
 def apply_script(protocol, connection, config):
 
     class BuildModeConnection(connection):
         def on_hit(self, hit_amount, player, type, grenade):
-            if player.god:
-                self.send_chat("You can't hurt %s! That player is in *Build Mode*" % player.name)
+            def check_god(check_player, msg):
+                if check_player.god:
+                    if not player.invisible:
+                        self.send_chat(msg)
+                    return False
+                return True
+            if not check_god(self, "You can't hurt people while you are in *Build Mode*"):
                 return False
-            if self.god:
-                self.send_chat("You can't hurt people while you are in *Build Mode*")
+            if not check_god(player, "You can't hurt %s! That player is in *Build Mode*" % player.name):
                 return False
             return connection.on_hit(self, hit_amount, player, type, grenade)
 

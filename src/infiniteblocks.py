@@ -26,13 +26,16 @@ def apply_script(protocol, connection, config):
             self.infinite_blocks = False
 
         def on_hit(self, hit_amount, player, type_, grenade):
-            if not player.invisible:
-                if player.infinite_blocks:
-                    self.send_chat("You can't hurt %s! That player is in *Infinite Blocks Mode*" % player.name)
+            def check_infinite(check_player, msg):
+                if check_player.infinite_blocks:
+                    if not player.invisible:
+                        self.send_chat(msg)
                     return False
-                if self.infinite_blocks:
-                    self.send_chat("You can't hurt people while you are in *Infinite Blocks Mode*")
-                    return False
+                return True
+            if not check_infinite(self, "You can't hurt people while you are in *Infinite Blocks Mode*"):
+                return False
+            if not check_infinite(player, "You can't hurt %s! That player is in *Infinite Blocks Mode*" % player.name):
+                return False
             return connection.on_hit(self, hit_amount, player, type_, grenade)
 
         def on_block_build(self, x, y, z):
