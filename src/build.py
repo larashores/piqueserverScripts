@@ -2,24 +2,22 @@
 Starts build mode for build server. Protects areas, changes team names and locks
 builder team.
 """
-
 from pyspades.common import coordinates
-import commands
+from piqueserver.commands import command
 
 DONT_PROTECT = ['g7', 'g8', 'h7', ' h8']
 
 
-@commands.admin
-def protectall(connection):
+@command('protectall')
+def protect_all(connection):
     connection.protocol.init_protect()
     connection.send_chat('Build areas protected')
-commands.add(protectall)
 
 
 def apply_script(protocol, connection, config):
     class BuildProtocol(protocol):
-        def __init__(self, *args, **kargs):
-            protocol.__init__(self, *args, **kargs)
+        def __init__(self, *args, **kwargs):
+            protocol.__init__(self, *args, **kwargs)
             self.blue_team.locked = True
             self.blue_team.name = 'Builders'
             self.green_team.name = 'Others'
