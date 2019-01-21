@@ -1,9 +1,5 @@
 from piqueserver.commands import command
-from cbc import cbc, buildbox
-
-
-def sign(x):
-    return (x > 0) - (x < 0)
+from cbc import cbc, buildbox, util
 
 
 @command('wall')
@@ -30,7 +26,7 @@ def apply_script(protocol, connection, config):
         
         def on_block_build(self, x, y, z):
             if self.walling is not None:
-                z2 = min(61, max(0, z - self.walling + sign(self.walling)))
+                z2 = min(61, max(0, z - self.walling + util.sign(self.walling)))
                 buildbox.build_filled(self.protocol, x, y, z, x, y, z2, self.color, self.god, self.god_build)
             return connection.on_block_build(self, x, y, z)
     
