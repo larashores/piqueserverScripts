@@ -15,8 +15,8 @@ def apply_script(protocol, connection, config):
             if parameters[-1].lower() == 'silent':
                 if 'silent' not in self.rights:
                     self.send_chat("You can't do that silently")
-                    log_message = '<%s> /%s %s' % (self.name, command, ' '.join(parameters))
-                    log_message += ' -> %s' % 'No Permission for silent'
+                    log_message = '<{}> /{} {}'.format(self.name, command, ' '.join(parameters))
+                    log_message += ' -> {}'.format('No Permission for silent')
                     print(log_message.encode('ascii', 'replace'))
                     return
                 parameters.pop(-1)
@@ -25,21 +25,22 @@ def apply_script(protocol, connection, config):
                 old_connection_send = connection.send_chat
                 old_protocol_send = self.protocol.send_chat
                 old_irc_say = self.protocol.irc_say
+                old_send_chat = self.send_chat
 
                 # Set new methods
-                connection.send_chat = lambda conn, msg, **kwargs:  \
-                    self.send_chat('Silently to ' + conn.name + ': ' + msg)
+                connection.send_chat = lambda conn, msg, **kwargs: self.send_chat('To {}: {}'.format(conn.name, msg))
                 self.protocol.send_chat = lambda msg, **kwargs: self.send_chat('Silently: ' + msg)
                 self.protocol.irc_say = lambda msg: None
-                self.send_chat = old_connection_send
+                self.send_chat = lambda msg, **kwargs: old_connection_send(self, msg, **kwargs)
 
+                # Run command
                 connection.on_command(self, command, parameters)
 
                 # Reset methods
-                del self.send_chat
-                self.protocol.send_chat = old_protocol_send
                 connection.send_chat = old_connection_send
+                self.protocol.send_chat = old_protocol_send
                 self.protocol.irc_say = old_irc_say
+                self.send_chat = old_send_chat
             else:
                 connection.on_command(self, command, parameters)
 
