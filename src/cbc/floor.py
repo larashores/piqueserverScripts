@@ -26,6 +26,6 @@ def apply_script(protocol, connection, config):
                                       self.color, self.god, self.god_build)
 
         def on_block_build(self, x, y, z):
-            return self.handle_block(x, y, z)
+            return connection.on_block_build(self, x, y, z)
 
     return two_block_protocol(protocol), FloorMakerConnection

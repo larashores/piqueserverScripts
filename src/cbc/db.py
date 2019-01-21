@@ -23,6 +23,7 @@ def apply_script(protocol, connection, config):
                            self.god)
 
         def on_block_removed(self, x, y, z):
-            return self.handle_block(x, y, z)
+            self.handle_block(x, y, z)
+            return connection.on_block_removed(self, x, y, z)
 
     return two_block_protocol(protocol), ClearBoxMakerConnection

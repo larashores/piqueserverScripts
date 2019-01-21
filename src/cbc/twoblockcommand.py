@@ -57,6 +57,5 @@ def two_block_connection(connection):
                 self._first_point = point
                 self.send_chat(self.second_message)
                 self._choosing = ChooseStatus.CHOOSING_SECOND_BLOCK
-            return connection.on_block_removed(self, x, y, z)
 
     return TwoBlockConnection
