@@ -1,39 +1,28 @@
 from piqueserver.commands import command
+from cbc.wallcommand import wall_command, wall_connection
 from cbc import cbc, clearbox
-
-# requires clearbox.py in the /scripts directory
-
-
-def sign(x):
-    return (x > 0) - (x < 0)
 
 
 @command('dw')
 def dw(connection, value=''):
-    try:
-        value = int(value)
-    except ValueError:
-        value = 0
-    if value < 65 and value > -65 and abs(value) > 1:
-        connection.dewalling = value
-        return 'DeWalling %s block high wall. "/dw" to cancel.' % connection.dewalling
-    else:
-        connection.dewalling = None
-        return 'No longer DeWalling. Activate with `/dw 64` to `/dw -64`'
+    return wall_command(connection, value,
+                        'DeWalling {} block high wall. "/dw" to cancel.',
+                        'No longer DeWalling. Activate with `/dw 64` to `/dw -64`')
 
 
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
-    
-    class DeWallMakerConnection(connection):
+
+    class DeWallMakerConnection(wall_connection(connection)):
         def __init__(self, *args, **kwargs):
             connection.__init__(self, *args, **kwargs)
-            self.dewalling = None
-        
+            self.walling = None
+
+        def wall_func(self, x1, y1, z1, x2, y2, z2):
+            clearbox.clear_solid(self.protocol, x1, y1, z1, x2, y2, z2, self.god)
+
         def on_block_removed(self, x, y, z):
-            if self.dewalling is not None:
-                z2 = min(61, max(0, z - self.dewalling + sign(self.dewalling)))
-                clearbox.clear_solid(self.protocol, x, y, z, x, y, z2, self.god)
+            self.handle_block(x, y, z)
             return connection.on_block_removed(self, x, y, z)
-    
+
     return protocol, DeWallMakerConnection
