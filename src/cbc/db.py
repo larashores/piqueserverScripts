@@ -13,17 +13,11 @@ def db(connection):
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
 
-    class ClearBoxMakerConnection(two_block_connection(connection)):
+    class ClearBoxMakerConnection(two_block_connection(connection, False)):
         second_message = 'Now break opposite corner block'
         finished_message = 'Destroying box!'
 
-        def chosen_func(self, point1, point2):
-            clearbox.clear(self.protocol,
-                           point1.x, point1.y, point1.z, point2.x, point2.y, point1.z,
-                           self.god)
-
-        def on_block_removed(self, x, y, z):
-            self.handle_block(x, y, z)
-            return connection.on_block_removed(self, x, y, z)
+        def on_apply(self, point1, point2):
+            clearbox.clear(self.protocol, point1.x, point1.y, point1.z, point2.x, point2.y, point1.z, self.god)
 
     return two_block_protocol(protocol), ClearBoxMakerConnection

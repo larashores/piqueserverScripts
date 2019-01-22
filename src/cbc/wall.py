@@ -13,17 +13,9 @@ def wall(connection, value=''):
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
 
-    class WallMakerConnection(wall_connection(connection)):
-        def __init__(self, *args, **kwargs):
-            connection.__init__(self, *args, **kwargs)
-            self.walling = None
-
-        def wall_func(self, x1, y1, z1, x2, y2, z2):
+    class WallMakerConnection(wall_connection(connection, True)):
+        def on_apply(self, x1, y1, z1, x2, y2, z2):
             buildbox.build_filled(self.protocol, x1, y1, z1, x2, y2, z2,
                                   self.color, self.god, self.god_build)
-
-        def on_block_build(self, x, y, z):
-            self.handle_block(x, y, z)
-            return connection.on_block_build(self, x, y, z)
 
     return protocol, WallMakerConnection

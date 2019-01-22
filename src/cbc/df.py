@@ -17,15 +17,11 @@ def apply_script(protocol, connection, config):
         second_message = 'Now break opposite corner block'
         finished_message = 'Floor destroyed!'
 
-        def chosen_func(self, point1, point2):
+        def on_apply(self, point1, point2):
             if point1.z != point2.z:
                 self.send_chat('Surface is uneven! Using first height.')
                 clearbox.clear_solid(self.protocol,
                                      point1.x, point1.y, point1.z,
                                      point2.x, point2.y, point1.z, self.god)
-
-        def on_block_removed(self, x, y, z):
-            self.handle_block(x, y, z)
-            return connection.on_block_removed(self, x, y, z)
 
     return two_block_protocol(protocol), ClearFloorMakerConnection

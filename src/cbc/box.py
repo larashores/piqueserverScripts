@@ -14,11 +14,11 @@ def box(connection, filled=""):
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
 
-    class BoxMakerConnection(two_block_connection(connection)):
+    class BoxMakerConnection(two_block_connection(connection, True)):
         second_message = 'Now break opposite corner block'
         finished_message = 'Destroying box!'
 
-        def chosen_func(self, point1, point2):
+        def on_apply(self, point1, point2):
             if not self.boxing_filled:
                 buildbox.build_filled(self.protocol,
                                       point1.x, point1.y, point1.z, point2.x, point2.y, point2.z,
@@ -27,9 +27,5 @@ def apply_script(protocol, connection, config):
                 buildbox.build_empty(self.protocol,
                                      point1.x, point1.y, point1.z, point2.x, point2.y, point2.z,
                                      self.color, self.god, self.god_build)
-
-        def on_block_build(self, x, y, z):
-            self.handle_block(x, y, z)
-            return connection.on_block_build(self, x, y, z)
 
     return two_block_protocol(protocol), BoxMakerConnection

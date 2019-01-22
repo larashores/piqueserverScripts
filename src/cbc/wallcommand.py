@@ -1,4 +1,5 @@
 from piqueserver.commands import command
+from cbc.buildorclearcommand import build_or_clear_connection
 from cbc import cbc, buildbox, clearbox, util
 from abc import abstractmethod, ABCMeta
 
@@ -23,19 +24,19 @@ def wall_command(connection, height, string_on, string_off):
         return string_off
 
 
-def wall_connection(connection):
-    class WallConnection(connection, metaclass=ABCMeta):
+def wall_connection(connection, build):
+    class WallConnection(build_or_clear_connection(connection, build), metaclass=ABCMeta):
         def __init__(self, *args, **kwargs):
             connection.__init__(self, *args, **kwargs)
             self._walling = None
 
         @abstractmethod
-        def wall_func(self, x1, y1, z1, x2, y2, z2):
+        def on_apply(self, x1, y1, z1, x2, y2, z2):
             pass
 
-        def handle_block(self, x, y, z):
+        def on_block(self, x, y, z):
             if self._walling is not None:
                 z2 = min(61, max(0, z - self._walling + util.sign(self._walling)))
-                self.wall_func(x, y, z, x, y, z2)
+                self.on_apply(x, y, z, x, y, z2)
 
     return WallConnection

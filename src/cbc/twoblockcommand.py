@@ -1,5 +1,6 @@
 from enum import IntEnum
 from abc import abstractmethod, ABCMeta
+from cbc.buildorclearcommand import build_or_clear_connection
 
 
 class _Point:
@@ -33,8 +34,8 @@ def two_block_protocol(protocol):
     return TwoBlockProtocol
 
 
-def two_block_connection(connection):
-    class TwoBlockConnection(connection, metaclass=ABCMeta):
+def two_block_connection(connection, build):
+    class TwoBlockConnection(build_or_clear_connection(connection, build), metaclass=ABCMeta):
         second_message = ''
         finished_message = ''
 
@@ -44,14 +45,14 @@ def two_block_connection(connection):
             self._first_point = _Point(0, 0, 0)
 
         @abstractmethod
-        def chosen_func(self, point1, point2):
+        def on_apply(self, point1, point2):
             pass
 
-        def handle_block(self, x, y, z):
+        def on_block(self, x, y, z):
             point = _Point(x, y, z)
             if self._choosing == ChooseStatus.CHOOSING_SECOND_BLOCK:
                 self._choosing = ChooseStatus.NOT_CHOOSING
-                self.chosen_func(self._first_point, point)
+                self.on_apply(self._first_point, point)
                 self.send_chat(self.finished_message)
             if self._choosing == ChooseStatus.CHOOSING_FIRST_BLOCK:
                 self._first_point = point
