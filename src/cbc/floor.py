@@ -9,18 +9,19 @@ def floor(connection):
 
 
 class FloorState(SelectTwoState):
-    ENTER_MESSAGE = 'You are now flooring. Place first corner block'
-    EXIT_MESSAGE = 'Flooring canceled'
+    START_MESSAGE = 'You are now flooring. Place first corner block'
+    FINISH_MESSAGE = 'Floor complete'
+    CANCEL_MESSAGE = 'Flooring canceled'
     CHOOSE_SECOND_MESSAGE = 'Now place opposite corner block'
 
     def on_apply(self, point1, point2):
+        player = self.player
         if point1.z != point2.z:
-            player = self.player
             player.send_chat('Surface is uneven! Using first height.')
-            buildbox.build_filled(player.protocol,
-                                  point1.x, point1.y, point1.z,
-                                  point2.x, point2.y, point1.z,
-                                  player.color, player.god, player.god_build)
+        buildbox.build_filled(player.protocol,
+                              point1.x, point1.y, point1.z,
+                              point2.x, point2.y, point1.z,
+                              player.color, player.god, player.god_build)
 
 
 def apply_script(protocol, connection, config):
