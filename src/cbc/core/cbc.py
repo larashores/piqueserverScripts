@@ -34,7 +34,7 @@ Author: infogulch
 
 from twisted.internet.task import LoopingCall
 import time
-import random
+from enum import IntEnum
 
 
 class _CbcInfo:
@@ -58,11 +58,11 @@ class ServerPlayer(object):
     server_players = set()
     
     def __init__(self):
-        id = 33
-        while id in ServerPlayer.server_players:
-            id += 1
-        self.player_id = id
-        ServerPlayer.server_players.add(id)
+        id_ = 33
+        while id_ in ServerPlayer.server_players:
+            id_ += 1
+        self.player_id = id_
+        ServerPlayer.server_players.add(id_)
     
     def __del__(self):
         ServerPlayer.server_players.discard(self.player_id)
@@ -79,7 +79,10 @@ def apply_script(protocol, connection, config):
         return protocol, connection
     
     class CycleBlockCoiteratorProtocol(protocol):
-        CBC_UPDATE, CBC_CANCELLED, CBC_FINISHED = range(3)
+        class CbcStatus(IntEnum):
+            UPDATE = 0
+            CANCELLED = 1
+            FINISHED = 2
         
         def __init__(self, *args, **kwargs):
             protocol.__init__(self, *args, **kwargs)
@@ -88,9 +91,9 @@ def apply_script(protocol, connection, config):
             self._cbc_generators = {}
             self._cbc_call = LoopingCall(self._cbc_cycle)
         
-        def cbc_add(self, generator, update_time = 10.0, callback = None, *args):
+        def cbc_add(self, generator, update_time=10.0, callback=None, *args):
             info = _CbcInfo(generator, update_time, callback, args)
-            handle = max(self._cbc_generators.keys() + [0]) + 1
+            handle = max(list(self._cbc_generators.keys()) + [0]) + 1
             self._cbc_generators[handle] = info
             if not self._cbc_running:
                 self._cbc_running = True
@@ -98,10 +101,10 @@ def apply_script(protocol, connection, config):
             return handle   # this handle lets you cancel in the middle later
         
         def cbc_cancel(self, handle):
-            if self._cbc_generators.has_key(handle):
+            if handle in self._cbc_generators:
                 info = self._cbc_generators[handle]
                 if info.callback is not None:
-                    info.callback(CANCELLED, info.progress, time.time() - info.start, *info.callback_args)
+                    info.callback(self.CbcStatus.CANCELLED, info.progress, time.time() - info.start, *info.callback_args)
                 del self._cbc_generators[handle]
         
         def _cbc_cycle(self):
@@ -110,36 +113,35 @@ def apply_script(protocol, connection, config):
             cycle_time = time.time()
             while self._cbc_generators:
                 try:
-                    for handle, info in self._cbc_generators.iteritems():
-                        if sent_unique > MAX_UNIQUE_PACKETS:
-                            return
-                        if sent_total > MAX_PACKETS:
-                            return
-                        if time.time() - cycle_time > MAX_TIME:
+                    for handle, info in self._cbc_generators.items():
+                        if (sent_unique > MAX_UNIQUE_PACKETS) or \
+                           (sent_total > MAX_PACKETS) or \
+                           (time.time() - cycle_time > MAX_TIME):
                             return
                         current_handle = handle
                         sent, progress = info.generator.next()
                         sent_unique += sent
-                        sent_total  += sent * len(self.players)
-                        if (time.time() - info.last_update > info.update_interval):
+                        sent_total += sent * len(self.players)
+                        if time.time() - info.last_update > info.update_interval:
                             info.last_update = time.time()
                             info.progress = progress
-                            if not info.callback is None:
-                                info.callback(self.CBC_UPDATE, progress, time.time() - info.start, *info.callback_args)
+                            if info.callback is not None:
+                                info.callback(self.CbcStatus.UPDATE, progress, time.time() - info.start,
+                                              *info.callback_args)
                 except StopIteration:
                     info = self._cbc_generators[current_handle]
                     if info.callback is not None:
-                        info.callback(self.CBC_FINISHED, progress, time.time() - info.start, *info.callback_args)
+                        info.callback(self.CbcStatus.FINISHED, progress, time.time() - info.start, *info.callback_args)
                     del self._cbc_generators[current_handle]
             else:
                 self._cbc_call.stop()
                 self._cbc_running = False
         
-        def on_map_change(self, map):
+        def on_map_change(self, map_):
             if hasattr(self, '_cbc_generators'):
                 for handle in self._cbc_generators.keys():
                     self.cbc_cancel(handle)
-            protocol.on_map_change(self, map)
+            protocol.on_map_change(self, map_)
         
         def on_map_leave(self):
             if hasattr(self, '_cbc_generators'):

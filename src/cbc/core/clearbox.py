@@ -16,18 +16,18 @@ def clear_solid_generator(protocol, x1, y1, z1, x2, y2, z2, god=False, destroy=T
     x1, x2 = sorted((x1, x2))
     y1, y2 = sorted((y1, y2))
     z1, z2 = sorted((z1, z2))
-    clear = map_.destroy_point if destroy else map_.remove_point
+    clear_ = map_.destroy_point if destroy else map_.remove_point
     get_solid = map_.get_solid
     for x, y, z in product(range(x1, x2+1), range(y1, y2+1), range(z1, z2+1)):
         packets = 0
-        if get_solid(x, y, z) and (god or 
+        if get_solid(x, y, z) and (god or
                     not (check_protected and protocol.is_protected(x, y, z))  # not protected
                 and not (protocol.god_blocks is not None and (x, y, z) in protocol.god_blocks)):  # not a god block
             block_action.x = x
             block_action.y = y
             block_action.z = z
-            protocol.send_contained(block_action, save = True)
-            clear(x, y, z)
+            protocol.send_contained(block_action, save=True)
+            clear_(x, y, z)
             packets = 1
         yield packets, 0
 
@@ -42,13 +42,12 @@ def clear(protocol, x1, y1, z1, x2, y2, z2, god=False):
     x1, x2 = sorted((x1, x2))
     y1, y2 = sorted((y1, y2))
     z1, z2 = sorted((z1, z2))
-    lst = (
-        clear_solid_generator(protocol, x1, y1, z2, x2, y2, z2, god, False)
-      , clear_solid_generator(protocol, x1, y1, z1, x1, y2, z2, god, False)
-      , clear_solid_generator(protocol, x2, y1, z1, x2, y2, z2, god, False)
-      , clear_solid_generator(protocol, x1, y1, z1, x2, y1, z2, god, False)
-      , clear_solid_generator(protocol, x1, y2, z1, x2, y2, z2, god, False)
-      , clear_solid_generator(protocol, x1, y1, z1, x2, y2, z1, god, False)
-      , clear_solid_generator(protocol, x1, y1, z1, x2, y2, z2, god, True))
+    lst = (clear_solid_generator(protocol, x1, y1, z2, x2, y2, z2, god, False),
+           clear_solid_generator(protocol, x1, y1, z1, x1, y2, z2, god, False),
+           clear_solid_generator(protocol, x2, y1, z1, x2, y2, z2, god, False),
+           clear_solid_generator(protocol, x1, y1, z1, x2, y1, z2, god, False),
+           clear_solid_generator(protocol, x1, y2, z1, x2, y2, z2, god, False),
+           clear_solid_generator(protocol, x1, y1, z1, x2, y2, z1, god, False),
+           clear_solid_generator(protocol, x1, y1, z1, x2, y2, z2, god, True))
     
     protocol.cbc_add(chain.from_iterable(lst))

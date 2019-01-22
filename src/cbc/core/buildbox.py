@@ -33,9 +33,8 @@ def build_filled_generator(protocol, x1, y1, z1, x2, y2, z2, color, god=False, g
     set_color.value = make_color(*color)
     set_color.player_id = splayer.player_id
     protocol.send_contained(set_color, save=True)
-    packets = 1
 
-    #check_protected = hasattr(protocol, 'protected')
+    # check_protected = hasattr(protocol, 'protected')
     check_protected = False
     if god_build and protocol.god_blocks is None:
         protocol.god_blocks = set()
@@ -86,7 +85,7 @@ def build_filled(protocol, x1, y1, z1, x2, y2, z2, color, god=False, god_build=F
     protocol.cbc_add(build_filled_generator(protocol, x1, y1, z1, x2, y2, z2, color))
 
 
-def build_empty(protocol, x1, y1, z1, x2, y2, z2, color, god = False, god_build = False):
+def build_empty(protocol, x1, y1, z1, x2, y2, z2, color, god=False, god_build=False):
     build_filled(protocol, x1, y1, z1, x1, y2, z2, color, god, god_build)
     build_filled(protocol, x2, y1, z1, x2, y2, z2, color, god, god_build)
     build_filled(protocol, x1, y1, z1, x2, y1, z2, color, god, god_build)
