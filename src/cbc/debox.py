@@ -9,10 +9,10 @@ def debox(connection):
 
 
 class DeBoxState(SelectTwoState):
-    START_MESSAGE = 'You are now deboxing. Break first corner block'
+    START_MESSAGE = 'You are now *De-Box* mode. Break first corner block'
     FINISH_MESSAGE = 'Destroying box!'
-    CANCEL_MESSAGE = 'Boxing canceled'
-    CHOOSE_SECOND_MESSAGE = 'Now break opposite corner block'
+    CANCEL_MESSAGE = 'Box destruction canceled.'
+    CHOOSE_SECOND_MESSAGE = 'Now break opposite corner block.'
     BUILD_STATE = False
 
     def __init__(self, player, filled):

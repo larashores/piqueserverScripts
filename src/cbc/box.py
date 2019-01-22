@@ -9,10 +9,10 @@ def box(connection, filled=""):
 
 
 class BoxState(SelectTwoState):
-    START_MESSAGE = 'You are now boxing. Place first corner block'
-    FINISH_MESSAGE = 'Destroying box!'
-    CANCEL_MESSAGE = 'Boxing canceled'
-    CHOOSE_SECOND_MESSAGE = 'Now place opposite corner block'
+    START_MESSAGE = 'You are now in *Box* mode. Place first corner block.'
+    FINISH_MESSAGE = 'Creating box!'
+    CANCEL_MESSAGE = 'Box creation canceled.'
+    CHOOSE_SECOND_MESSAGE = 'Now place opposite corner block.'
     BUILD_STATE = True
 
     def __init__(self, player, filled):

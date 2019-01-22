@@ -9,9 +9,9 @@ def floor(connection):
 
 
 class FloorState(SelectTwoState):
-    START_MESSAGE = 'You are now flooring. Place first corner block'
-    FINISH_MESSAGE = 'Floor complete'
-    CANCEL_MESSAGE = 'Flooring canceled'
+    START_MESSAGE = 'You are now in *Floor* mode. Place first corner block.'
+    FINISH_MESSAGE = 'Creating floor!'
+    CANCEL_MESSAGE = 'Floor creation canceled.'
     CHOOSE_SECOND_MESSAGE = 'Now place opposite corner block'
     BUILD_STATE = True
 

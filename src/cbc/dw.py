@@ -4,13 +4,13 @@ from cbc.core import cbc, clearbox, buildingstate
 
 
 @command('dw')
-def dw(connection, value=''):
+def dewall(connection, value=''):
     return wall_command(connection, value, DeWallState)
 
 
 class DeWallState(WallState):
-    START_MESSAGE = 'Destroying walls. "/wall" to cancel.'
-    CANCEL_MESSAGE = 'No longer destroying walls. Activate with `/dw 64` to `/dw -64`'
+    START_MESSAGE = 'You are now in *De-Wall* mode. "/dw" to cancel.'
+    CANCEL_MESSAGE = 'You are no longer in *De-Wall* mode.'
     BUILD_STATE = False
 
     def on_apply(self, x1, y1, z1, x2, y2, z2):

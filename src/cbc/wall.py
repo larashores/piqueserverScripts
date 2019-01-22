@@ -9,8 +9,8 @@ def wall(connection, height=''):
 
 
 class BuildWallState(WallState):
-    START_MESSAGE = 'Building wall. "/wall" to cancel.'
-    CANCEL_MESSAGE = 'No longer building wall. Activate with `/wall 64` to `/wall -64`'
+    START_MESSAGE = 'You are now in *Wall* mode. "/wall" to cancel.'
+    CANCEL_MESSAGE = 'You are no longer in *Wall* mode.'
     BUILD_STATE = True
 
     def on_apply(self, x1, y1, z1, x2, y2, z2):

@@ -9,11 +9,11 @@ def defloor(connection):
 
 
 class DeFloorState(SelectTwoState):
-    START_MESSAGE = 'You are now deflooring. Place first corner block'
-    FINISH_MESSAGE = 'Floor destroyed'
-    CANCEL_MESSAGE = 'Deflooring canceled'
-    CHOOSE_SECOND_MESSAGE = 'Now break opposite corner block'
-    BUILD_STATE = True
+    START_MESSAGE = 'You are now in *De-Floor* mode. Break first corner block.'
+    FINISH_MESSAGE = 'Destroying floor!'
+    CANCEL_MESSAGE = 'Floor destruction canceled.'
+    CHOOSE_SECOND_MESSAGE = 'Now break opposite corner block.'
+    BUILD_STATE = False
 
     def on_apply(self, point1, point2):
         player = self.player
