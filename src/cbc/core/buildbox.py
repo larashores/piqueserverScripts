@@ -82,7 +82,7 @@ def build_filled_generator(protocol, x1, y1, z1, x2, y2, z2, color, god=False, g
 def build_filled(protocol, x1, y1, z1, x2, y2, z2, color, god=False, god_build=False):
     if util.invalid_range(x1, y1, z1) or util.invalid_range(x2, y2, z2):
         raise ValueError('Invalid coordinates: ({}, {}, {}):({}, {}, {})'.format(x1, y1, z1, x2, y2, z2))
-    protocol.cbc_add(build_filled_generator(protocol, x1, y1, z1, x2, y2, z2, color))
+    protocol.cbc_add(build_filled_generator(protocol, x1, y1, z1, x2, y2, z2, color, god, god_build))
 
 
 def build_empty(protocol, x1, y1, z1, x2, y2, z2, color, god=False, god_build=False):
