@@ -3,9 +3,6 @@ from piqueserver.commands import command
 from cbc.core import buildbox, clearbox, cbc, util, buildingstate
 
 S_PLANE_USAGE = 'Usage: /plane <-x> <+x> <-y> <+y>'
-S_PLANE_CANCEL = 'No longer plane-building'
-S_PLANE = 'Dig or build to make or remove slabs, with the block as center. ' \
-    'Abort with /plane'
 
 
 @command('plane')
@@ -49,8 +46,8 @@ def plane_operation(player, x, y, z, size, value):
 
 
 class CuboidState(buildingstate.BuildingState):
-    START_MESSAGE = S_PLANE
-    CANCEL_MESSAGE = S_PLANE_CANCEL
+    START_MESSAGE = 'You are now in *Plane* mode. Abort with /plane'
+    CANCEL_MESSAGE = 'You are no longer in *Plane* mode'
 
     def __init__(self, player, x1, x2, y1, y2):
         buildingstate.BuildingState.__init__(self, player)
