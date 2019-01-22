@@ -7,7 +7,6 @@ S_PLANE_USAGE = 'Usage: /plane <-x> <+x> <-y> <+y>'
 S_PLANE_CANCEL = 'No longer plane-building'
 S_PLANE = 'Dig or build to make or remove slabs, with the block as center. ' \
     'Abort with /plane'
-S_EXIT_BLOCKING_STATE = "You must first leave {state} mode!"
 S_TOO_MANY_PARAMETERS = 'ERROR: too many parameters'
 S_NOT_ENOUGH_PARAMETERS = 'ERROR: not enough parameters'
 S_WRONG_PARAMETER_TYPE = 'ERROR: wrong parameter type'
@@ -19,11 +18,11 @@ def parseargs(signature, args):
         raise ValueError(S_TOO_MANY_PARAMETERS)
     result = []
     optional = False
-    for i, s in enumerate(signature):
-        func_name = s.strip('[]')
-        optional = optional or func_name != s
+    for i, type_desc in enumerate(signature):
+        type_name = type_desc.strip('[]')
+        optional = optional or type_name != type_desc
         try:
-            typecast = getattr(builtins, func_name)
+            typecast = getattr(builtins, type_name)
             result.append(typecast(args[i]))
         except ValueError:
             raise ValueError(S_WRONG_PARAMETER_TYPE)
@@ -40,27 +39,17 @@ def plane(connection, *args):
     if connection not in protocol.players:
         raise ValueError()
     player = connection
-    state = player.states.top()
 
-    if state:
-        if state.get_parent().name == 'plane' and not args:
-            # cancel plane command
-            player.states.exit()
-            return
-        elif state.blocking:
-            # can't switch from a blocking mode
-            return S_EXIT_BLOCKING_STATE.format(state = state.name)
-
-    usage = S_PLANE_USAGE
+    if player.plane_coordinates and not args:
+        player.plane_coordinates = None
+        return S_PLANE_CANCEL
     try:
         x1, x2, y1, y2 = parseargs('int int int int', args)
-        player.states.exit()
-        player.states.enter(PlaneState(x1, y1, x2, y2))
+        connection.plane_coordinates = (x1, y1, x2, y2)
+        return S_PLANE
     except ValueError as err:
-        player.send_chat(usage)
+        player.send_chat(S_PLANE_USAGE)
         return str(err)
-    except IndexError:
-        return usage
 
 
 def plane_operation(player, x, y, z, size, value):
@@ -86,109 +75,40 @@ def plane_operation(player, x, y, z, size, value):
         buildbox.build_filled(player.protocol, u1, v1, w1, u2-1, v2-1, w2-1, player.color, player.god)
 
 
-class State(object):
-    name = None
-    blocking = False
-    parent_state = None
-
-    def on_enter(self, protocol, player):
-        pass
-
-    def on_exit(self, protocol, player):
-        pass
-
-    def get_parent(self):
-        return self.parent_state if self.parent_state else self
-
-
-class PlaneState(State):
-    name = 'plane'
-
-    def __init__(self, x1, y1, x2, y2):
-        self.size = (x1, y1, x2, y2)
-
-    def on_enter(self, protocol, player):
-        return S_PLANE
-
-    def on_exit(self, protocol, player):
-        return S_PLANE_CANCEL
-
-
-class StateStack:
-    stack = None
-    protocol = None
-    connection = None
-
-    def __init__(self, connection):
-        self.stack = []
-        self.connection = connection
-        self.protocol = connection.protocol
-
-    def top(self):
-        return self.stack[-1] if self.stack else None
-
-    def enter(self, state):
-        self.stack.append(state)
-        result = state.on_enter(self.protocol, self.connection)
-        if result:
-            self.connection.send_chat(result)
-
-    def push(self, state):
-        self.stack.append(state)
-
-    def pop(self):
-        state = self.stack.pop()
-        result = state.on_exit(self.protocol, self.connection)
-        if result:
-            self.connection.send_chat(result)
-        state = self.top()
-        if state:
-            result = state.on_enter(self.protocol, self.connection)
-            if result:
-                self.connection.send_chat(result)
-
-    def exit(self):
-        while self.stack:
-            self.pop()
-
-
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
 
     class CuboidConnection(connection):
-        states = None
+        def __init__(self, *args, **kwargs):
+            self.plane_coordinates = None
+            connection.__init__(self, *args, **kwargs)
 
         def on_reset(self):
-            if self.states:
-                self.states.stack = []
+            self.plane_coordinates = None
             connection.on_reset(self)
 
         def on_login(self, name):
-            if self.states is None:
-                self.states = StateStack(self)
+            self.plane_coordinates = None
             connection.on_login(self, name)
 
         def on_disconnect(self):
-            self.states = None
+            self.plane_coordinates = None
             connection.on_disconnect(self)
 
         def on_block_removed(self, x, y, z):
-            state = self.states.top()
-            if state and state.name == 'plane':
-                plane_operation(self, x, y, z, state.size, DESTROY_BLOCK)
+            if self.plane_coordinates:
+                plane_operation(self, x, y, z, self.plane_coordinates, DESTROY_BLOCK)
             connection.on_block_removed(self, x, y, z)
 
         def on_block_build(self, x, y, z):
-            state = self.states.top()
-            if state and state.name == 'plane':
-                plane_operation(self, x, y, z, state.size, BUILD_BLOCK)
+            if self.plane_coordinates:
+                plane_operation(self, x, y, z, self.plane_coordinates, BUILD_BLOCK)
             connection.on_block_build(self, x, y, z)
 
         def on_line_build(self, points):
-            state = self.states.top()
-            if state and state.name == 'plane':
+            if self.plane_coordinates:
                 for x, y, z in points:
-                    plane_operation(self, x, y, z, state.size, BUILD_BLOCK)
+                    plane_operation(self, x, y, z, self.plane_coordinates, BUILD_BLOCK)
             connection.on_line_build(self, points)
 
     return protocol, CuboidConnection
