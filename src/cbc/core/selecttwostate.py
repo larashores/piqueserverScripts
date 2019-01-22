@@ -3,11 +3,11 @@ from abc import abstractmethod, ABCMeta
 from cbc.core.buildorremovestate import BuildOrRemoveState
 
 
-def select_two_command(connection, select_two_state_type):
+def select_two_command(connection, select_two_state_type, *extra_args):
     if type(connection.state) == select_two_state_type:
         connection.state = None
         return
-    connection.state = select_two_state_type(connection)
+    connection.state = select_two_state_type(connection, *extra_args)
 
 
 class SelectTwoState(BuildOrRemoveState, metaclass=ABCMeta):
