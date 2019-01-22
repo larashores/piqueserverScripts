@@ -13,6 +13,7 @@ class FloorState(SelectTwoState):
     FINISH_MESSAGE = 'Floor complete'
     CANCEL_MESSAGE = 'Flooring canceled'
     CHOOSE_SECOND_MESSAGE = 'Now place opposite corner block'
+    BUILD_STATE = True
 
     def on_apply(self, point1, point2):
         player = self.player
