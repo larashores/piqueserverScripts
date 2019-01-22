@@ -13,44 +13,35 @@ from pyspades.contained import BlockAction, SetColor
 from pyspades.constants import *
 from piqueserver.commands import command
 
+from cbc.core import buildingstate
 import cbc
 
 
 @command('gradient', 'gr')
 def gradient(connection, *colors):
-    if len(colors) != 6:
-        if not connection.gradient_colors:
+    if len(colors) == 0:
+        connection.state = GradientState(connection)
+        return
+    elif len(colors) != 6:
             return 'Usage: /gradient r g b r g b, OR choose from & to colors with /grf /grt'
-        if not connection.gradient_enabled:
-            connection.gradient_enabled = True
-            return 'Gradient enabled. Colors are: (%i, %i, %i) (%i, %i, %i)' % (
-                connection.gradient_colors[0] + connection.gradient_colors[1])
-        else:
-            connection.gradient_enabled = False
-            return 'No longer making gradients.'
     try:
         colors = tuple(int(c) for c in colors)
         connection.gradient_colors = colors[:3], colors[3:]
-        connection.gradient_enabled = True
-        return 'The next line you build will create a gradient from (%i,%i,%i) to (%i,%i,%i).' % colors
+        connection.state = GradientState(connection)
     except ValueError:
         return 'All args must be integers.'
 
 
 @command('gradientfrom', 'grf')
-def gradientfrom(connection):
-    if not connection.gradient_colors:
-        connection.gradient_colors = [(0,0,0), (0,0,0)]
+def gradient_from(connection):
     connection.gradient_colors[0] = connection.color
-    return 'Gradient from color is now: (%i %i %i)' % connection.color
+    return 'Gradient from color is now: ({}, {}, {})'.format(*connection.color)
 
 
 @command('gradientto', 'grt')
-def gradientto(connection):
-    if not connection.gradient_colors:
-        connection.gradient_colors = [(0,0,0), (0,0,0)]
+def gradient_to(connection):
     connection.gradient_colors[1] = connection.color
-    return 'Gradient to color is now: (%i %i %i)' % connection.color
+    return 'Gradient to color is now: ({}, {}, {})'.format(*connection.color)
 
 
 def build_gradient_line(protocol, colors, points):
@@ -84,18 +75,21 @@ def build_gradient_line(protocol, colors, points):
         protocol.send_contained(block_action, save=True)
 
 
+class GradientState(buildingstate.BuildingState):
+    START_MESSAGE = 'You are now in *Gradient* mode'
+    CANCEL_MESSAGE = 'You are now longer in *Gradient* mode'
+
+    def on_line_build_attempt(self, points):
+        build_gradient_line(self.player.protocol, self.player.gradient_colors, points)
+        return False
+
+
 def apply_script(protocol, connection, config):
+    protocol, connection = buildingstate.apply_script(protocol, connection, config)
+
     class GradientConnection(connection):
         def __init__(self, *args, **kwargs):
             connection.__init__(self, *args, **kwargs)
-            self.gradient_colors = []
-            self.gradient_enabled = False
-        
-        def on_line_build_attempt(self, points):
-            if connection.on_line_build_attempt(self, points) is False:
-                return False
-            if self.gradient_enabled:
-                build_gradient_line(self.protocol, self.gradient_colors, points)
-                return False
+            self.gradient_colors = [(0, 0, 0), (0, 0, 0)]
     
     return protocol, GradientConnection

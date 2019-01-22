@@ -15,6 +15,9 @@ class BuildingState:
     def on_line_build(self, points):
         pass
 
+    def on_line_build_attempt(self, points):
+        return True
+
 
 def apply_script(protocol, connection, config):
     class StateProtocol(protocol):
@@ -61,5 +64,10 @@ def apply_script(protocol, connection, config):
             if self._current_state:
                 self._current_state.on_line_build(points)
             connection.on_line_build(self, points)
+
+        def on_line_build_attempt(self, points):
+            if connection.on_line_build_attempt(self, points) is False:
+                return False
+            return self._current_state.on_line_build_attempt(points)
 
     return StateProtocol, StateConnection
