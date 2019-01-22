@@ -20,15 +20,6 @@ ease_out = quadratic = lambda t: t * t
 ease_in = quadratic_inverse = lambda t: 1.0 - ((1.0 - t) ** 2)
 
 
-def wrap_if_necessary(func_or_value):
-    try:
-        func_or_value()
-    except TypeError:
-        return lambda: func_or_value
-    else:
-        return func_or_value
-
-
 @command('lightning')
 def lightning(connection, name=None):
     # And I will strike down upon thee with great vengeance and furious anger
@@ -105,18 +96,22 @@ class FogEffect(metaclass=ABCMeta):
     def stop(self):
         pass
 
+    @staticmethod
+    def wrap_if_necessary(func_or_value):
+        return func_or_value if callable(func_or_value) else lambda: func_or_value
+
 
 class FogHold(FogEffect):
     def __init__(self, protocol, duration, color):
         FogEffect.__init__(self, protocol)
         self.duration = duration
-        self.color = wrap_if_necessary(color)
+        self.color = self.wrap_if_necessary(color)
         self.call = None
     
     def start(self):
         if not self.call or not self.call.active():
             self.call = callLater(self.duration, self.end)
-        self.protocol.fog_effects_color = self.color()
+        self.protocol.fog_effects_on_color = self.color()
     
     def stop(self):
         if self.call and self.call.active():
@@ -127,10 +122,10 @@ class FogHold(FogEffect):
 class FogSimple(FogEffect):
     def __init__(self, protocol, color):
         FogEffect.__init__(self, protocol)
-        self.color = wrap_if_necessary(color)
+        self.color = self.wrap_if_necessary(color)
     
     def start(self):
-        self.protocol.fog_effects_color = self.color()
+        self.protocol.fog_effects_on_color = self.color()
         self.end()
 
 
@@ -138,8 +133,8 @@ class FogGradient(FogEffect):
     def __init__(self, protocol, duration, begin, end, interpolator=linear):
         FogEffect.__init__(self, protocol)
         self.duration = duration
-        self.begin = wrap_if_necessary(begin)
-        self.end = wrap_if_necessary(end)
+        self.begin = self.wrap_if_necessary(begin)
+        self.end = self.wrap_if_necessary(end)
         self.interpolator = interpolator
         self.loop = LoopingCall(self.apply)
         self.complete = False
@@ -163,7 +158,7 @@ class FogGradient(FogEffect):
         if self.complete:
             self.end()
             return
-        self.protocol.fog_effects_color = self.get_color()
+        self.protocol.fog_effects_on_color = self.get_color()
         self.complete = seconds() >= self.final_time
 
 
@@ -175,21 +170,23 @@ def apply_script(protocol, connection, config):
             self._fog_effects_on_color = protocol.fog_color
 
         @property
-        def fog_effects_color(self):
+        def fog_effects_on_color(self):
             return self._fog_effects_on_color
 
-        @fog_effects_color.setter
-        def fog_effects_color(self, color):
+        @fog_effects_on_color.setter
+        def fog_effects_on_color(self, color):
             self._fog_effects_on_color = color
             if self._fog_effects:
                 fog_color.color = make_color(*color)
                 self.protocol.send_contained(fog_color, save=True)
 
         @property
-        def fog_color(self):
-            if self._fog_effects:
-                return self._fog_effects_on_color
+        def fog_effects_off_color(self):
             return self._fog_effects_off_color
+
+        @property
+        def fog_color(self):
+            return self._fog_effects_on_color if self._fog_effects else self._fog_effects_off_color
 
         @fog_color.setter
         def fog_color(self, value):
