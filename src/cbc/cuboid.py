@@ -34,20 +34,19 @@ def plane_operation(player, x, y, z, size, value):
         return
     x, y, z = int(x), int(y), int(z)
     x1, z1, x2, z2 = size
-    y1, y2 = 0, 0
-    u1 = y1 * th_cos - x1 * th_sin + x
-    v1 = y1 * th_sin + x1 * th_cos + y
+    u1 = - x1 * th_sin + x
+    v1 = + x1 * th_cos + y
     w1 = z1 + z
-    u2 = y2 * th_cos - x2 * th_sin + x
-    v2 = y2 * th_sin + x2 * th_cos + y
+    u2 = - x2 * th_sin + x
+    v2 = + x2 * th_cos + y
     w2 = z2 + z
-    u1, u2 = max(0, min(u1, u2)), min(511, max(u1, u2, 0) + 1)
-    v1, v2 = max(0, min(v1, v2)), min(511, max(v1, v2, 0) + 1)
-    w1, w2 = max(0, min(w1, w2) + 1), min(63, max(w1, w2) + 1)
+    u1, u2 = max(0, min(u1, u2)), min(511, max(u1, u2, 0))
+    v1, v2 = max(0, min(v1, v2)), min(511, max(v1, v2, 0))
+    w1, w2 = max(0, min(w1, w2) + 1), min(63, max(w1, w2))
     if value == DESTROY_BLOCK:
-        clearbox.clear_solid(player.protocol, u1, v1, w1, u2-1, v2-1, w2-1, player.god)
+        clearbox.clear_solid(player.protocol, u1, v1, w1, u2, v2, w2, player.god)
     elif value == BUILD_BLOCK:
-        buildbox.build_filled(player.protocol, u1, v1, w1, u2-1, v2-1, w2-1, player.color, player.god)
+        buildbox.build_filled(player.protocol, u1, v1, w1, u2, v2, w2, player.color, player.god)
 
 
 def apply_script(protocol, connection, config):
