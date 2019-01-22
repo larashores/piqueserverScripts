@@ -2,7 +2,7 @@ from pyspades.contained import BlockLine, SetColor
 from pyspades.common import make_color
 from pyspades.constants import *
 from itertools import product
-from cbc import cbc, util
+from cbc.core import cbc, util
 
 # this file must be in the /scripts folder, but it is NOT included in config.txt
 

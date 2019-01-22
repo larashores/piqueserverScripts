@@ -1,7 +1,7 @@
 from pyspades.contained import BlockAction
 from pyspades.constants import *
 from itertools import product, chain
-from cbc import cbc, util
+from cbc.core import cbc, util
 
 # this file must be in the /scripts folder, but it is NOT included in config.txt
 

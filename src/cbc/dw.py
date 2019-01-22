@@ -1,6 +1,6 @@
 from piqueserver.commands import command
-from cbc.wallcommand import wall_command, wall_connection
-from cbc import cbc, clearbox
+from cbc.core.wallcommand import wall_command, wall_connection
+from cbc.core import cbc, clearbox
 
 
 @command('dw')

@@ -1,6 +1,6 @@
 from enum import IntEnum
 from abc import abstractmethod, ABCMeta
-from cbc.buildorclearcommand import build_or_clear_connection
+from cbc.core.buildorclearcommand import build_or_clear_connection
 
 
 class _Point:

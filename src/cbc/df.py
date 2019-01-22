@@ -1,6 +1,6 @@
 from piqueserver.commands import command
-from cbc.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
-from cbc import clearbox, cbc
+from cbc.core.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
+from cbc.core import clearbox, cbc
 
 
 @command('df')
@@ -13,7 +13,7 @@ def df(connection):
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
 
-    class ClearFloorMakerConnection(two_block_connection(connection)):
+    class ClearFloorMakerConnection(two_block_connection(connection, False)):
         second_message = 'Now break opposite corner block'
         finished_message = 'Floor destroyed!'
 

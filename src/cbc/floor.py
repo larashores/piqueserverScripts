@@ -1,6 +1,6 @@
 from piqueserver.commands import command
-from cbc.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
-from cbc import buildbox, cbc
+from cbc.core.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
+from cbc.core import buildbox, cbc
 
 
 @command('floor')
@@ -13,7 +13,7 @@ def floor(connection):
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
 
-    class FloorMakerConnection(two_block_connection(connection)):
+    class FloorMakerConnection(two_block_connection(connection, True)):
         second_message = 'Now place opposite corner block'
         finished_message = 'Floor created!'
 

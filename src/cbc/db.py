@@ -1,6 +1,6 @@
 from piqueserver.commands import command
-from cbc.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
-from cbc import cbc, clearbox
+from cbc.core.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
+from cbc.core import cbc, clearbox
 
 
 @command('db')

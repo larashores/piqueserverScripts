@@ -1,9 +1,7 @@
 from piqueserver.commands import command
-from cbc.buildorclearcommand import build_or_clear_connection
-from cbc import cbc, buildbox, clearbox, util
+from cbc.core.buildorclearcommand import build_or_clear_connection
+from cbc.core import util
 from abc import abstractmethod, ABCMeta
-
-STRING_NO_WALL = 'No longer {} wall. Activate with `/wall 64` to `/wall -64`'
 
 
 @command('wall')
