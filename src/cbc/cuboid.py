@@ -1,9 +1,7 @@
 import builtins
-from itertools import product
-from pyspades.world import cube_line
-from pyspades.contained import BlockAction, BlockLine
 from pyspades.constants import *
 from piqueserver.commands import command
+from cbc.core import buildbox, clearbox, cbc
 
 S_PLANE_USAGE = 'Usage: /plane <-x> <+x> <-y> <+y>'
 S_PLANE_CANCEL = 'No longer plane-building'
@@ -65,25 +63,6 @@ def plane(connection, *args):
         return usage
 
 
-def prism(x1, y1, z1, x2, y2, z2):
-    return product(range(x1, x2), range(y1, y2), range(z1, z2))
-
-def prism_lines(x1, y1, z1, x2, y2, z2):
-    u, v, w = x2 - x1, y2 - y1, z2 - z1
-    if u > max(v, w):
-        for y in range(y1, y2):
-            for z in range(z1, z2):
-                yield x1, y, z, x2 - 1, y, z
-    elif v > max(w, u):
-        for z in range(z1, z2):
-            for x in range(x1, x2):
-                yield x, y1, z, x, y2 - 1, z
-    else:
-        for x in range(x1, x2):
-            for y in range(y1, y2):
-                yield x, y, z1, x, y, z2 - 1
-
-
 def plane_operation(player, x, y, z, size, value):
     theta = player.world_object.orientation
     th_cos, th_sin = int(round(theta.x)), int(round(theta.y))
@@ -101,31 +80,10 @@ def plane_operation(player, x, y, z, size, value):
     u1, u2 = max(0, min(u1, u2)), min(511, max(u1, u2, 0) + 1)
     v1, v2 = max(0, min(v1, v2)), min(511, max(v1, v2, 0) + 1)
     w1, w2 = max(0, min(w1, w2) + 1), min(63, max(w1, w2) + 1)
-    protocol = player.protocol
     if value == DESTROY_BLOCK:
-        block_action = BlockAction()
-        block_action.value = value
-        block_action.player_id = player.player_id
-        for i, j, k in prism(u1, v1, w1, u2, v2, w2):
-            if protocol.map.destroy_point(i, j, k):
-                block_action.x = i
-                block_action.y = j
-                block_action.z = k
-                protocol.send_contained(block_action, save = True)
+        clearbox.clear_solid(player.protocol, u1, v1, w1, u2-1, v2-1, w2-1, player.god)
     elif value == BUILD_BLOCK:
-        block_line = BlockLine()
-        block_line.player_id = player.player_id
-        for i1, j1, k1, i2, j2, k2 in prism_lines(u1, v1, w1, u2, v2, w2):
-            line = cube_line(i1, j1, k1, i2, j2, k2)
-            for i, j, k in line:
-                protocol.map.set_point(i, j, k, player.color)
-            block_line.x1 = i1
-            block_line.y1 = j1
-            block_line.z1 = k1
-            block_line.x2 = i2
-            block_line.y2 = j2
-            block_line.z2 = k2
-            protocol.send_contained(block_line, save = True)
+        buildbox.build_filled(player.protocol, u1, v1, w1, u2-1, v2-1, w2-1, player.color, player.god)
 
 
 class State(object):
@@ -195,6 +153,8 @@ class StateStack:
 
 
 def apply_script(protocol, connection, config):
+    protocol, connection = cbc.apply_script(protocol, connection, config)
+
     class CuboidConnection(connection):
         states = None
 
