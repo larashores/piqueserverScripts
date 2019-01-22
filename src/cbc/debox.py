@@ -4,7 +4,7 @@ from cbc.core import cbc, clearbox
 
 
 @command('db')
-def db(connection):
+def debox(connection):
     return two_block_command(connection,
                              'Break first corner block',
                              'DeBox cancelled')
