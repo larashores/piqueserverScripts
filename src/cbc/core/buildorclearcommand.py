@@ -2,7 +2,7 @@ from abc import abstractmethod, ABCMeta
 from cbc.core import state
 
 
-class BuildOrClearState(state.BuildingState, metaclass=ABCMeta):
+class BuildOrRemoveState(state.BuildingState, metaclass=ABCMeta):
     def __init__(self, player, build=True):
         state.BuildingState.__init__(self, player)
         if build:
