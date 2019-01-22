@@ -3,8 +3,6 @@ from pyspades.constants import *
 from itertools import product, chain
 from cbc.core import cbc, util
 
-# this file must be in the /scripts folder, but it is NOT included in config.txt
-
 
 def clear_solid_generator(protocol, x1, y1, z1, x2, y2, z2, god=False, destroy=True):
     block_action = BlockAction()
@@ -19,17 +17,17 @@ def clear_solid_generator(protocol, x1, y1, z1, x2, y2, z2, god=False, destroy=T
     clear_ = map_.destroy_point if destroy else map_.remove_point
     get_solid = map_.get_solid
     for x, y, z in product(range(x1, x2+1), range(y1, y2+1), range(z1, z2+1)):
-        packets = 0
-        if get_solid(x, y, z) and (god or
-                    not (check_protected and protocol.is_protected(x, y, z))  # not protected
-                and not (protocol.god_blocks is not None and (x, y, z) in protocol.god_blocks)):  # not a god block
-            block_action.x = x
-            block_action.y = y
-            block_action.z = z
-            protocol.send_contained(block_action, save=True)
-            clear_(x, y, z)
-            packets = 1
-        yield packets, 0
+        solid = get_solid(x, y, z)
+        protected = (check_protected and protocol.is_protected(x, y, z))
+        is_god_block = (protocol.god_blocks is not None and (x, y, z) in protocol.god_blocks)
+        if not solid or (not god and (protected or is_god_block)):
+            continue
+        block_action.x = x
+        block_action.y = y
+        block_action.z = z
+        protocol.send_contained(block_action, save=True)
+        clear_(x, y, z)
+        yield 1, 0
 
 
 def clear_solid(protocol, x1, y1, z1, x2, y2, z2, god=False):

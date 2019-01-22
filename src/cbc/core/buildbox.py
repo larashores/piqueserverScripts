@@ -11,7 +11,7 @@ MAX_LINE_BLOCKS = 64
 
 def ordered_product(ranges, order):
     """
-    Iterates through ranges in the order specified in order, but each yeild returns in the original order of the ranges
+    Iterates through ranges in the order specified in order, but each yield returns in the original order of the ranges
     """
 
     order_inv = zip(*sorted(zip(order, sorted(order))))[1]
@@ -64,7 +64,7 @@ def build_filled_generator(protocol, x1, y1, z1, x2, y2, z2, color, god=False, g
         changed = (line.x1 != x or line.x2 != x) + (line.y1 != y or line.y2 != y) + (line.z1 != z or line.z2 != z)
         dist = abs(line.x1 - x) + abs(line.y1 - y) + abs(line.z1 - z)
         if changed > 1 or dist >= MAX_LINE_BLOCKS:
-            protocol.send_contained(line, save = True)
+            protocol.send_contained(line, save=True)
             packets += 2
             line.x1 = x
             line.y1 = y
@@ -73,9 +73,9 @@ def build_filled_generator(protocol, x1, y1, z1, x2, y2, z2, color, god=False, g
         line.y2 = y
         line.z2 = z
         map_.set_point(x, y, z, color)
-
         yield packets, 0
-    protocol.send_contained(line, save = True)
+
+    protocol.send_contained(line, save=True)
     yield 1, 0
 
 

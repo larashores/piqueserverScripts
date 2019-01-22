@@ -33,24 +33,25 @@ Author: infogulch
 """
 
 from twisted.internet.task import LoopingCall
-import time
 from enum import IntEnum
+import time
+
+
+TIME_BETWEEN_CYCLES = 0.06
+MAX_UNIQUE_PACKETS = 30  # per 'cycle', each block op is at least 1
+MAX_PACKETS = 300        # per 'cycle' cap for (unique packets * players)
+MAX_TIME = 0.03          # max time each cycle takes
 
 
 class _CbcInfo:
-    generator = None
-    update_interval = 0.0
-    callback = None
-    callback_args = None
-    last_update = time.time()
-    start = time.time()
-    progress = 0.0
-    
     def __init__(self, generator, update_interval, callback, callback_args):
         self.generator = generator
         self.update_interval = update_interval
         self.callback = callback
         self.callback_args = callback_args
+        self.last_update = time.time()
+        self.start = time.time()
+        self.progress = 0
 
 
 # note: client crashes when this goes over ~50
@@ -66,12 +67,6 @@ class ServerPlayer(object):
     
     def __del__(self):
         ServerPlayer.server_players.discard(self.player_id)
-
-
-TIME_BETWEEN_CYCLES = 0.06
-MAX_UNIQUE_PACKETS = 30  # per 'cycle', each block op is at least 1
-MAX_PACKETS = 300        # per 'cycle' cap for (unique packets * players)
-MAX_TIME = 0.03          # max time each cycle takes
 
 
 def apply_script(protocol, connection, config):
@@ -104,7 +99,8 @@ def apply_script(protocol, connection, config):
             if handle in self._cbc_generators:
                 info = self._cbc_generators[handle]
                 if info.callback is not None:
-                    info.callback(self.CbcStatus.CANCELLED, info.progress, time.time() - info.start, *info.callback_args)
+                    info.callback(self.CbcStatus.CANCELLED, info.progress,
+                                  time.time() - info.start, *info.callback_args)
                 del self._cbc_generators[handle]
         
         def _cbc_cycle(self):
