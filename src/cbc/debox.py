@@ -1,23 +1,31 @@
 from piqueserver.commands import command
-from cbc.core.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
-from cbc.core import cbc, clearbox
+from cbc.core.selecttwostate import SelectTwoState, select_two_command
+from cbc.core import cbc, clearbox, buildingstate
 
 
 @command('db')
 def debox(connection):
-    return two_block_command(connection,
-                             'Break first corner block',
-                             'DeBox cancelled')
+    return select_two_command(connection, DeBoxState)
+
+
+class DeBoxState(SelectTwoState):
+    START_MESSAGE = 'You are now deboxing. Break first corner block'
+    FINISH_MESSAGE = 'Destroying box!'
+    CANCEL_MESSAGE = 'Boxing canceled'
+    CHOOSE_SECOND_MESSAGE = 'Now break opposite corner block'
+    BUILD_STATE = False
+
+    def __init__(self, player, filled):
+        SelectTwoState.__init__(self, player)
+        self._filled = filled
+
+    def on_apply(self, point1, point2):
+        player = self.player
+        clearbox.clear(player.protocol, point1.x, point1.y, point1.z, point2.x, point2.y, point1.z, player.god)
 
 
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
+    protocol, connection = buildingstate.apply_script(protocol, connection, config)
 
-    class ClearBoxMakerConnection(two_block_connection(connection, False)):
-        second_message = 'Now break opposite corner block'
-        finished_message = 'Destroying box!'
-
-        def on_apply(self, point1, point2):
-            clearbox.clear(self.protocol, point1.x, point1.y, point1.z, point2.x, point2.y, point1.z, self.god)
-
-    return two_block_protocol(protocol), ClearBoxMakerConnection
+    return protocol, connection
