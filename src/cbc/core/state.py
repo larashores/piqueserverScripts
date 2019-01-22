@@ -2,13 +2,16 @@ class BuildingState:
     ENTER_MESSAGE = ''
     EXIT_MESSAGE = ''
 
-    def on_block_removed(self, player, x, y, z):
+    def __init__(self, player=None):
+        self.player = player
+
+    def on_block_removed(self, x, y, z):
         pass
 
-    def on_block_build(self, player, x, y, z):
+    def on_block_build(self, x, y, z):
         pass
 
-    def on_line_build(self, player, points):
+    def on_line_build(self, points):
         pass
 
 
@@ -33,17 +36,17 @@ def apply_script(protocol, connection, config):
 
         def on_block_removed(self, x, y, z):
             if self._current_state:
-                self._current_state.on_block_removed(self, x, y, z)
+                self._current_state.on_block_removed(x, y, z)
             connection.on_block_removed(self, x, y, z)
 
         def on_block_build(self, x, y, z):
             if self._current_state:
-                self._current_state.on_block_build(self, x, y, z)
+                self._current_state.on_block_build(x, y, z)
             connection.on_block_build(self, x, y, z)
 
         def on_line_build(self, points):
             if self._current_state:
-                self._current_state.on_line_build(self, points)
+                self._current_state.on_line_build(points)
             connection.on_line_build(self, points)
 
     return protocol, StateConnection

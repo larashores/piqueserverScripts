@@ -20,7 +20,7 @@ def plane(connection, *args):
         return
     try:
         x1, x2, y1, y2 = util.parseargs('int int int int', args)
-        player.state = CuboidState(x1, y1, x2, y2)
+        player.state = CuboidState(connection, x1, y1, x2, y2)
     except ValueError as err:
         player.send_chat(S_PLANE_USAGE)
         return str(err)
@@ -52,18 +52,19 @@ class CuboidState(state.BuildingState):
     ENTER_MESSAGE = S_PLANE
     EXIT_MESSAGE = S_PLANE_CANCEL
 
-    def __init__(self, x1, x2, y1, y2):
+    def __init__(self, player, x1, x2, y1, y2):
+        state.BuildingState.__init__(self, player)
         self.coordinates = (x1, x2, y1, y2)
 
-    def on_block_removed(self, player, x, y, z):
-        plane_operation(player, x, y, z, self.coordinates, DESTROY_BLOCK)
+    def on_block_removed(self, x, y, z):
+        plane_operation(self.player, x, y, z, self.coordinates, DESTROY_BLOCK)
 
-    def on_block_build(self, player, x, y, z):
-        plane_operation(player, x, y, z, self.coordinates, BUILD_BLOCK)
+    def on_block_build(self, x, y, z):
+        plane_operation(self.player, x, y, z, self.coordinates, BUILD_BLOCK)
 
-    def on_line_build(self, player, points):
+    def on_line_build(self, points):
         for x, y, z in points:
-            plane_operation(player, x, y, z, self.coordinates, BUILD_BLOCK)
+            plane_operation(self.player, x, y, z, self.coordinates, BUILD_BLOCK)
 
 
 def apply_script(protocol, connection, config):
