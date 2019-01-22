@@ -20,7 +20,13 @@ class BuildingState:
 
 
 def apply_script(protocol, connection, config):
+
+    if hasattr(protocol, '__building_state_script_applied__'):
+        return protocol, connection
+
     class StateProtocol(protocol):
+        __building_state_script_applied__ = True
+
         def on_map_change(self, map_):
             for connection in self.connections.values():
                 connection.state = None
