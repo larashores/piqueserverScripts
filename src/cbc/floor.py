@@ -1,28 +1,30 @@
 from piqueserver.commands import command
-from cbc.core.twoblockcommand import two_block_command, two_block_protocol, two_block_connection
-from cbc.core import buildbox, cbc
+from cbc.core.selecttwostate import SelectTwoState, select_two_command
+from cbc.core import buildbox, cbc, buildingstate
 
 
 @command('floor')
 def floor(connection):
-    return two_block_command(connection,
-                             'Place first corner block',
-                             'Floor generator cancelled')
+    return select_two_command(connection, FloorState)
+
+
+class FloorState(SelectTwoState):
+    ENTER_MESSAGE = 'You are now flooring. Place first corner block'
+    EXIT_MESSAGE = 'Flooring canceled'
+    CHOOSE_SECOND_MESSAGE = 'Now place opposite corner block'
+
+    def on_apply(self, point1, point2):
+        if point1.z != point2.z:
+            player = self.player
+            player.send_chat('Surface is uneven! Using first height.')
+            buildbox.build_filled(player.protocol,
+                                  point1.x, point1.y, point1.z,
+                                  point2.x, point2.y, point1.z,
+                                  player.color, player.god, player.god_build)
 
 
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
+    protocol, connection = buildingstate.apply_script(protocol, connection, config)
 
-    class FloorMakerConnection(two_block_connection(connection, True)):
-        second_message = 'Now place opposite corner block'
-        finished_message = 'Floor created!'
-
-        def on_apply(self, point1, point2):
-            if point1.z != point2.z:
-                self.send_chat('Surface is uneven! Using first height.')
-                buildbox.build_filled(self.protocol,
-                                      point1.x, point1.y, point1.z,
-                                      point2.x, point2.y, point1.z,
-                                      self.color, self.god, self.god_build)
-
-    return two_block_protocol(protocol), FloorMakerConnection
+    return protocol, connection
