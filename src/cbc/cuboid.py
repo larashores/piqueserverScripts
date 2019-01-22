@@ -49,8 +49,8 @@ def plane_operation(player, x, y, z, size, value):
 
 
 class CuboidState(buildingstate.BuildingState):
-    ENTER_MESSAGE = S_PLANE
-    EXIT_MESSAGE = S_PLANE_CANCEL
+    START_MESSAGE = S_PLANE
+    CANCEL_MESSAGE = S_PLANE_CANCEL
 
     def __init__(self, player, x1, x2, y1, y2):
         buildingstate.BuildingState.__init__(self, player)

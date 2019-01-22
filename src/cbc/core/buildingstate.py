@@ -1,6 +1,7 @@
 class BuildingState:
-    ENTER_MESSAGE = ''
-    EXIT_MESSAGE = ''
+    START_MESSAGE = ''
+    FINISH_MESSAGE = ''
+    CANCEL_MESSAGE = ''
 
     def __init__(self, player=None):
         self.player = player
@@ -39,6 +40,12 @@ def apply_script(protocol, connection, config):
             if new_state and new_state.ENTER_MESSAGE:
                 self.send_chat(new_state.ENTER_MESSAGE)
             self._current_state = new_state
+
+        def state_finished(self):
+            old_state = self._current_state
+            if old_state and old_state.FINISH_MESSAGE:
+                self.send_chat(self._current_state.FINISH_MESSAGE)
+            self._current_state = None
 
         def on_block_removed(self, x, y, z):
             if self._current_state:
