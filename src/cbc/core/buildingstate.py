@@ -74,6 +74,9 @@ def apply_script(protocol, connection, config):
         def on_line_build_attempt(self, points):
             if connection.on_line_build_attempt(self, points) is False:
                 return False
-            return self._current_state.on_line_build_attempt(points)
+            if self._current_state:
+                return self._current_state.on_line_build_attempt(points)
+            else:
+                return True
 
     return StateProtocol, StateConnection

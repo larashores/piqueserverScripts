@@ -54,18 +54,14 @@ def build_gradient_line(protocol, colors, points):
     set_color = SetColor()
     set_color.player_id = sp.player_id
     
-    color_range = zip(*colors)
+    color_range = list(zip(*colors))
     
     lp = len(points) - 1
     map_ = protocol.map
     for i in range(len(points)):
-        if lp:
-            pct = 1 - (i+0.0) / lp, (i+0.0) / lp
-        else:
-            pct = (1, 0)
-        
-        color = tuple(int(round(sum(c*p for c,p in zip(crng, pct)))) for crng in color_range)
-        
+        pct = 1 - (i+0.0) / lp, (i+0.0) / lp if lp else (1, 0)
+        color = tuple(int(round(sum(c*p for c, p in zip(crng, pct)))) for crng in color_range)
+
         map_.set_point(*points[i], color=color)
         
         set_color.value = make_color(*color)
