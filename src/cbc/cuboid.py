@@ -1,36 +1,11 @@
-import builtins
 from pyspades.constants import *
 from piqueserver.commands import command
-from cbc.core import buildbox, clearbox, cbc
+from cbc.core import buildbox, clearbox, cbc, util
 
 S_PLANE_USAGE = 'Usage: /plane <-x> <+x> <-y> <+y>'
 S_PLANE_CANCEL = 'No longer plane-building'
 S_PLANE = 'Dig or build to make or remove slabs, with the block as center. ' \
     'Abort with /plane'
-S_TOO_MANY_PARAMETERS = 'ERROR: too many parameters'
-S_NOT_ENOUGH_PARAMETERS = 'ERROR: not enough parameters'
-S_WRONG_PARAMETER_TYPE = 'ERROR: wrong parameter type'
-
-
-def parseargs(signature, args):
-    signature = signature.split()
-    if len(args) > len(signature):
-        raise ValueError(S_TOO_MANY_PARAMETERS)
-    result = []
-    optional = False
-    for i, type_desc in enumerate(signature):
-        type_name = type_desc.strip('[]')
-        optional = optional or type_name != type_desc
-        try:
-            typecast = getattr(builtins, type_name)
-            result.append(typecast(args[i]))
-        except ValueError:
-            raise ValueError(S_WRONG_PARAMETER_TYPE)
-        except IndexError:
-            if not optional:
-                raise ValueError(S_NOT_ENOUGH_PARAMETERS)
-            result.append(None)
-    return result
 
 
 @command('plane')
@@ -44,7 +19,7 @@ def plane(connection, *args):
         player.plane_coordinates = None
         return S_PLANE_CANCEL
     try:
-        x1, x2, y1, y2 = parseargs('int int int int', args)
+        x1, x2, y1, y2 = util.parseargs('int int int int', args)
         connection.plane_coordinates = (x1, y1, x2, y2)
         return S_PLANE
     except ValueError as err:
