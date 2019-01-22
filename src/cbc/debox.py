@@ -15,10 +15,6 @@ class DeBoxState(SelectTwoState):
     CHOOSE_SECOND_MESSAGE = 'Now break opposite corner block.'
     BUILD_STATE = False
 
-    def __init__(self, player, filled):
-        SelectTwoState.__init__(self, player)
-        self._filled = filled
-
     def on_apply(self, point1, point2):
         player = self.player
         clearbox.clear(player.protocol, point1.x, point1.y, point1.z, point2.x, point2.y, point1.z, player.god)
