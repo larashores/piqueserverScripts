@@ -4,7 +4,7 @@ from cbc.core.buildorremovestate import BuildOrRemoveState
 
 
 def select_two_command(connection, select_two_state_type):
-    if type(select_two_state_type) == select_two_state_type:
+    if type(connection.state) == select_two_state_type:
         connection.state = None
         return
     connection.state = select_two_state_type(connection)
@@ -24,13 +24,13 @@ class SelectTwoState(BuildOrRemoveState, metaclass=ABCMeta):
 
     def on_block(self, x, y, z):
         point = _Point(x, y, z)
+        if self._choosing == _ChooseStatus.CHOOSING_SECOND_BLOCK:
+            self.on_apply(self._first_point, point)
+            self.player.state_finished()
         if self._choosing == _ChooseStatus.CHOOSING_FIRST_BLOCK:
             self._first_point = point
             self.player.send_chat(self.CHOOSE_SECOND_MESSAGE)
             self._choosing = _ChooseStatus.CHOOSING_SECOND_BLOCK
-        if self._choosing == _ChooseStatus.CHOOSING_SECOND_BLOCK:
-            self.on_apply(self._first_point, point)
-            self.player.state = None
 
 
 class _ChooseStatus(IntEnum):

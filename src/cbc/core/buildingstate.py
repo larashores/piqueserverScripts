@@ -35,10 +35,10 @@ def apply_script(protocol, connection, config):
         @state.setter
         def state(self, new_state):
             old_state = self._current_state
-            if old_state and old_state.EXIT_MESSAGE:
-                self.send_chat(old_state.EXIT_MESSAGE)
-            if new_state and new_state.ENTER_MESSAGE:
-                self.send_chat(new_state.ENTER_MESSAGE)
+            if old_state and old_state.CANCEL_MESSAGE:
+                self.send_chat(old_state.CANCEL_MESSAGE)
+            if new_state and new_state.START_MESSAGE:
+                self.send_chat(new_state.START_MESSAGE)
             self._current_state = new_state
 
         def state_finished(self):
