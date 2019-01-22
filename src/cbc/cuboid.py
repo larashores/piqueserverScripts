@@ -1,6 +1,6 @@
 from pyspades.constants import *
 from piqueserver.commands import command
-from cbc.core import buildbox, clearbox, cbc, util, state
+from cbc.core import buildbox, clearbox, cbc, util, buildingstate
 
 S_PLANE_USAGE = 'Usage: /plane <-x> <+x> <-y> <+y>'
 S_PLANE_CANCEL = 'No longer plane-building'
@@ -48,12 +48,12 @@ def plane_operation(player, x, y, z, size, value):
         buildbox.build_filled(player.protocol, u1, v1, w1, u2, v2, w2, player.color, player.god)
 
 
-class CuboidState(state.BuildingState):
+class CuboidState(buildingstate.BuildingState):
     ENTER_MESSAGE = S_PLANE
     EXIT_MESSAGE = S_PLANE_CANCEL
 
     def __init__(self, player, x1, x2, y1, y2):
-        state.BuildingState.__init__(self, player)
+        buildingstate.BuildingState.__init__(self, player)
         self.coordinates = (x1, x2, y1, y2)
 
     def on_block_removed(self, x, y, z):
@@ -69,6 +69,6 @@ class CuboidState(state.BuildingState):
 
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
-    protocol, connection = state.apply_script(protocol, connection, config)
+    protocol, connection = buildingstate.apply_script(protocol, connection, config)
 
     return protocol, connection

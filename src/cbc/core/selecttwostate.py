@@ -1,16 +1,16 @@
 from enum import IntEnum
 from abc import abstractmethod, ABCMeta
-from cbc.core.buildorclearcommand import BuildOrRemoveState
+from cbc.core.buildorremovestate import BuildOrRemoveState
 
 
-def two_block_command(connection, two_block_state_type):
-    if isinstance(connection.state, TwoBlockState):
+def select_two_command(connection, select_two_state_type):
+    if type(select_two_state_type) == select_two_state_type:
         connection.state = None
         return
-    connection.state = two_block_state_type(connection)
+    connection.state = select_two_state_type(connection)
 
 
-class TwoBlockState(BuildOrRemoveState, metaclass=ABCMeta):
+class SelectTwoState(BuildOrRemoveState, metaclass=ABCMeta):
     CHOOSE_SECOND_MESSAGE = ''
 
     def __init__(self, *args, **kwargs):

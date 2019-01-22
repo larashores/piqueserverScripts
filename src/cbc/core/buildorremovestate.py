@@ -1,10 +1,10 @@
 from abc import abstractmethod, ABCMeta
-from cbc.core import state
+from cbc.core import buildingstate
 
 
-class BuildOrRemoveState(state.BuildingState, metaclass=ABCMeta):
+class BuildOrRemoveState(buildingstate.BuildingState, metaclass=ABCMeta):
     def __init__(self, player, build=True):
-        state.BuildingState.__init__(self, player)
+        buildingstate.BuildingState.__init__(self, player)
         if build:
             self.on_block_build = self.on_block
         else:
