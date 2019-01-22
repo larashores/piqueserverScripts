@@ -1,6 +1,6 @@
 from pyspades.constants import *
 from piqueserver.commands import command
-from cbc.core import buildbox, clearbox, cbc, util
+from cbc.core import buildbox, clearbox, cbc, util, state
 
 S_PLANE_USAGE = 'Usage: /plane <-x> <+x> <-y> <+y>'
 S_PLANE_CANCEL = 'No longer plane-building'
@@ -15,13 +15,12 @@ def plane(connection, *args):
         raise ValueError()
     player = connection
 
-    if player.plane_coordinates and not args:
-        player.plane_coordinates = None
-        return S_PLANE_CANCEL
+    if isinstance(player.state, CuboidState) and not args:
+        player.state = None
+        return
     try:
         x1, x2, y1, y2 = util.parseargs('int int int int', args)
-        connection.plane_coordinates = (x1, y1, x2, y2)
-        return S_PLANE
+        player.state = CuboidState(x1, y1, x2, y2)
     except ValueError as err:
         player.send_chat(S_PLANE_USAGE)
         return str(err)
@@ -49,40 +48,26 @@ def plane_operation(player, x, y, z, size, value):
         buildbox.build_filled(player.protocol, u1, v1, w1, u2, v2, w2, player.color, player.god)
 
 
+class CuboidState(state.BuildingState):
+    ENTER_MESSAGE = S_PLANE
+    EXIT_MESSAGE = S_PLANE_CANCEL
+
+    def __init__(self, x1, x2, y1, y2):
+        self.coordinates = (x1, x2, y1, y2)
+
+    def on_block_removed(self, player, x, y, z):
+        plane_operation(player, x, y, z, self.coordinates, DESTROY_BLOCK)
+
+    def on_block_build(self, player, x, y, z):
+        plane_operation(player, x, y, z, self.coordinates, BUILD_BLOCK)
+
+    def on_line_build(self, player, points):
+        for x, y, z in points:
+            plane_operation(player, x, y, z, self.coordinates, BUILD_BLOCK)
+
+
 def apply_script(protocol, connection, config):
     protocol, connection = cbc.apply_script(protocol, connection, config)
+    protocol, connection = state.apply_script(protocol, connection, config)
 
-    class CuboidConnection(connection):
-        def __init__(self, *args, **kwargs):
-            self.plane_coordinates = None
-            connection.__init__(self, *args, **kwargs)
-
-        def on_reset(self):
-            self.plane_coordinates = None
-            connection.on_reset(self)
-
-        def on_login(self, name):
-            self.plane_coordinates = None
-            connection.on_login(self, name)
-
-        def on_disconnect(self):
-            self.plane_coordinates = None
-            connection.on_disconnect(self)
-
-        def on_block_removed(self, x, y, z):
-            if self.plane_coordinates:
-                plane_operation(self, x, y, z, self.plane_coordinates, DESTROY_BLOCK)
-            connection.on_block_removed(self, x, y, z)
-
-        def on_block_build(self, x, y, z):
-            if self.plane_coordinates:
-                plane_operation(self, x, y, z, self.plane_coordinates, BUILD_BLOCK)
-            connection.on_block_build(self, x, y, z)
-
-        def on_line_build(self, points):
-            if self.plane_coordinates:
-                for x, y, z in points:
-                    plane_operation(self, x, y, z, self.plane_coordinates, BUILD_BLOCK)
-            connection.on_line_build(self, points)
-
-    return protocol, CuboidConnection
+    return protocol, connection
