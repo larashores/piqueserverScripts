@@ -115,7 +115,7 @@ def apply_script(protocol, connection, config):
                            (time.time() - cycle_time > MAX_TIME):
                             return
                         current_handle = handle
-                        sent, progress = info.generator.next()
+                        sent, progress = next(info.generator)
                         sent_unique += sent
                         sent_total += sent * len(self.players)
                         if time.time() - info.last_update > info.update_interval:
