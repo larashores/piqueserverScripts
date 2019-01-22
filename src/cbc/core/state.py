@@ -16,6 +16,12 @@ class BuildingState:
 
 
 def apply_script(protocol, connection, config):
+    class StateProtocol(protocol):
+        def on_map_change(self, map_):
+            for connection in self.connections.values():
+                connection.state = None
+            protocol.on_map_change(self, map_)
+
     class StateConnection(connection):
         def __init__(self, *args, **kwargs):
             connection.__init__(self, *args, **kwargs)
@@ -49,4 +55,4 @@ def apply_script(protocol, connection, config):
                 self._current_state.on_line_build(points)
             connection.on_line_build(self, points)
 
-    return protocol, StateConnection
+    return StateProtocol, StateConnection
