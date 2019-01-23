@@ -1,5 +1,5 @@
 from pyspades.types import MultikeyDict
-from piqueserver import cfg
+from piqueserver.config import config
 
 from platform.commands.trigger.presstrigger import PressTrigger
 from platform.commands.trigger.tracktrigger import TrackTrigger
@@ -14,7 +14,7 @@ import json
 import os
 from twisted.internet.reactor import LoopingCall
 
-DEFAULT_LOAD_DIR = os.path.join(cfg.config_dir, 'maps')
+DEFAULT_LOAD_DIR = os.path.join(config.config_dir, 'maps')
 SAVE_ON_MAP_CHANGE = True
 AUTOSAVE_EVERY = 0.0  # minutes, 0 = disabled
 
