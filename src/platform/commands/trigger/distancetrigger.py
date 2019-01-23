@@ -1,4 +1,6 @@
+from pyspades.collision import collision_3d
 from platform.commands.trigger.trigger import Trigger
+from platform.strings import *
 
 
 class DistanceTrigger(Trigger):
@@ -37,11 +39,11 @@ class DistanceTrigger(Trigger):
 
     def serialize(self):
         return {
-            'type' : self.type,
-            'negate' : self.negate,
-            'radius' : self.radius
+            'type': self.type,
+            'negate': self.negate,
+            'radius': self.radius
         }
 
     def __str__(self):
-        s = 'player distance=%s' % self.radius
+        s = 'player distance={}'.format(self.radius)
         return S_TRIGGER_LIST_NOT + s if self.negate else s

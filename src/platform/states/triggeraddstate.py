@@ -1,4 +1,11 @@
 from platform.states.state import State
+from platform.commands.trigger.presstrigger import PressTrigger
+from platform.commands.trigger.distancetrigger import DistanceTrigger
+from platform.commands.trigger.tracktrigger import TrackTrigger
+from platform.commands.trigger.heighttrigger import HeightTrigger
+from platform.strings import S_COMMAND_CANCEL
+
+S_TRIGGER_ADDED = "Added {trigger} trigger to button '{label}'"
 
 
 class TriggerAddState(State):
@@ -31,5 +38,4 @@ class TriggerAddState(State):
         if not self.add:
             button.clear_triggers()
         button.add_trigger(new_trigger)
-        return S_TRIGGER_ADDED.format(trigger = self.trigger,
-            label = button.label)
+        return S_TRIGGER_ADDED.format(trigger = self.trigger,label = button.label)

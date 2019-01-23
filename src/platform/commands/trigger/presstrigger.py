@@ -1,4 +1,5 @@
 from platform.commands.trigger.trigger import Trigger
+from platform.strings import *
 
 
 class PressTrigger(Trigger):

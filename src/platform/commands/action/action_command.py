@@ -1,7 +1,32 @@
-from piqueserver.commands import command
+from piqueserver.commands import command, join_arguments
+from pyspades.constants import WEAPON_KILL, FALL_KILL
+
 from platform.parseargs import parseargs
+from platform.states.actionaddstate import ActionAddState
+from platform.states.actioncommandstate import ActionCommandState
+from platform.states.selectbuttonstate import SelectButtonState
+from platform.states.selectplatformstate import SelectPlatformState
+from platform.strings import *
+
 
 S_ACTION_USAGE = 'Usage: /action <{commands}>'
+
+ACTION_COMMAND_USAGES = {
+    'add': 'Usage: /action add <{actions}>',
+    'del': 'Usage: /action del <#|all>'
+}
+ACTION_COMMANDS = ('add', 'set', 'list', 'del')
+ACTION_ADD_USAGES = {
+    'height': 'Usage: /action add height <height> [speed=0.15] [delay]',
+    'raise': 'Usage: /action add raise <amount> [speed=0.15] [delay]',
+    'lower': 'Usage: /action add lower <amount> [speed=0.15] [delay]',
+    'elevator': 'Usage: /action add elevator <height> [speed=0.25] [delay] [wait=3.0]',
+    'output': 'Usage: /action add output [delay]',
+    'teleport': 'Usage: /action add teleport <x y z|where>',
+    'chat': 'Usage: /action add chat <text>',
+    'damage': 'Usage: /action add damage <amount>',
+}
+ACTION_ADD_ACTIONS = ('height', 'raise', 'lower', 'elevator', 'output', 'teleport', 'chat', 'damage')
 
 
 @command('action', 'ac')
@@ -19,10 +44,10 @@ def action_command(connection, *args):
             return
         elif state.blocking:
             # can't switch from a blocking mode
-            return S_EXIT_BLOCKING_STATE.format(state = state.name)
+            return S_EXIT_BLOCKING_STATE.format(state=state.name)
 
     available = '|'.join(ACTION_COMMANDS)
-    usage = S_ACTION_USAGE.format(commands = available)
+    usage = S_ACTION_USAGE.format(commands=available)
     try:
         command = args[0].lower()
         if command not in ACTION_COMMANDS:
@@ -31,7 +56,7 @@ def action_command(connection, *args):
         if command in ('add', 'set'):
             add = command == 'add'
             available = '|'.join(ACTION_ADD_ACTIONS)
-            usage = S_ACTION_ADD_USAGE.format(actions = available)
+            usage = ACTION_COMMAND_USAGES['add'].format(actions=available)
             if not add:
                 usage = usage.replace('add', 'set')
 
@@ -61,19 +86,19 @@ def action_command(connection, *args):
                 kwargs['speed'] = speed
                 kwargs['delay'] = delay or 0.0
                 # validate parameters
-                for parameter, value in kwargs.iteritems():
+                for parameter, value in kwargs.items():
                     if type(value) in (int, float) and value < 0:
-                        message = S_NOT_POSITIVE.format(parameter = parameter)
+                        message = S_NOT_POSITIVE.format(parameter=parameter)
                         raise ValueError(message)
                 new_state.kwargs = kwargs
                 new_states.append(SelectPlatformState(new_state))
             elif action == 'output':
                 delay, = parseargs('[float]', args[2:])
                 new_state.kwargs = {
-                    'mode' : 'height',
-                    'speed' : 0.0,
-                    'delay' : delay or 0.0,
-                    'force' : True
+                    'mode': 'height',
+                    'speed': 0.0,
+                    'delay': delay or 0.0,
+                    'force': True
                 }
                 new_states.append(SelectPlatformState(new_state))
             elif action == 'teleport':
@@ -87,22 +112,22 @@ def action_command(connection, *args):
                 else:
                     x, y, z = parseargs('float float float', args[2:])
                 if x <= 0.0 or x > 511.0:
-                    raise ValueError(S_OUT_OF_BOUNDS.format(parameter = 'x'))
+                    raise ValueError(S_OUT_OF_BOUNDS.format(parameter='x'))
                 if y <= 0.0 or y > 511.0:
-                    raise ValueError(S_OUT_OF_BOUNDS.format(parameter = 'y'))
+                    raise ValueError(S_OUT_OF_BOUNDS.format(parameter='y'))
                 if z <= 0.0 or z > 62.0:
-                    raise ValueError(S_OUT_OF_BOUNDS_Z.format(parameter = 'z'))
+                    raise ValueError(S_OUT_OF_BOUNDS_Z.format(parameter='z'))
                 z = max(0.5, z)
-                new_state.kwargs = {'location' : (x, y, z)}
+                new_state.kwargs = {'location': (x, y, z)}
             elif action == 'chat':
                 text = join_arguments(args[2:])
                 if not text:
                     return usage
-                new_state.kwargs = {'value' : text}
+                new_state.kwargs = {'value': text}
             elif action == 'damage':
                 amount, = parseargs('int', args[2:])
                 damage_type = WEAPON_KILL if amount > 0 else FALL_KILL
-                new_state.kwargs = {'value' : amount, 'type' : damage_type}
+                new_state.kwargs = {'value': amount, 'type': damage_type}
         else:
             usage = ACTION_COMMAND_USAGES.get(command, usage)
             new_state = ActionCommandState(command)

@@ -1,4 +1,11 @@
 from platform.states.state import State
+from platform.commands.trigger.presstrigger import PressTrigger
+from platform.wordobjects.button import Button
+
+S_BUTTON_PLACEMENT = 'Put down a block where you want the new button to be'
+S_BUTTON_CREATED = "Button '{label}' created"
+S_BUTTON_CANCEL = 'Aborting button placement'
+S_BUTTON_OVERLAPS = 'There is already another button here!'
 
 
 class NewButtonState(State):
@@ -6,7 +13,7 @@ class NewButtonState(State):
     location = None
     label = None
 
-    def __init__(self, label = None):
+    def __init__(self, label=None):
         self.label = label
 
     def on_enter(self, protocol, player):
@@ -26,4 +33,4 @@ class NewButtonState(State):
         button.add_trigger(PressTrigger(protocol))
         protocol.buttons[(id, (x, y, z))] = button
         player.previous_button = button
-        return S_BUTTON_CREATED.format(label = button.label)
+        return S_BUTTON_CREATED.format(label=button.label)

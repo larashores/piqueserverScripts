@@ -1,7 +1,17 @@
-from piqueserver.commands import command
+from piqueserver.commands import command, join_arguments
 from platform.parseargs import parseargs
+from platform.states.newplatformstate import NewPlatformState
+from platform.states.selectplatformstate import SelectPlatformState
+from platform.states.platformcommandstate import PlatformCommandState
+from platform.strings import *
 
 S_PLATFORM_USAGE = 'Usage: /platform [{commands}]'
+PLATFORM_COMMAND_USAGES = {
+    'new': 'Usage: /platform new <label>',
+    'name': 'Usage: /platform name <label>',
+    'height': 'Usage: /platform height <height>'
+}
+PLATFORM_COMMANDS = ('new', 'name', 'height', 'freeze', 'destroy',  'last')
 
 
 @command('platform', 'p')
@@ -20,11 +30,11 @@ def platform_command(connection, *args):
             return
         elif state.blocking:
             # can't switch from a blocking mode
-            return S_EXIT_BLOCKING_STATE.format(state = state.name)
+            return S_EXIT_BLOCKING_STATE.format(state=state.name)
     if args:
         # enter new mode
         available = '|'.join(PLATFORM_COMMANDS)
-        usage = S_PLATFORM_USAGE.format(commands = available)
+        usage = S_PLATFORM_USAGE.format(commands=available)
         try:
             command = args[0]
             if command not in PLATFORM_COMMANDS:
@@ -35,7 +45,7 @@ def platform_command(connection, *args):
             if command == 'height':
                 new_state.height, = parseargs('int', args[1:])
                 if new_state.height < 0:
-                    message = S_NOT_POSITIVE.format(parameter = 'height')
+                    message = S_NOT_POSITIVE.format(parameter='height')
                     raise ValueError(message)
             elif command in ('new', 'name'):
                 new_state.label = join_arguments(args[1:], '').strip()

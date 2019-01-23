@@ -1,4 +1,11 @@
 from platform.states.state import State
+from platform.strings import S_COMMAND_CANCEL
+
+S_ACTION_LIST_EMPTY = "Button '{label}' has no actions"
+S_ACTION_LIST_HEADER = "Actions in '{label}': "
+S_ACTION_DELETED = "{action} action {number} deleted from button '{label}'"
+S_ACTION_DELETED_ALL = "Deleted all actions in button '{label}'"
+S_ACTION_INVALID_NUMBER = "Invalid action number! Use '/action list' to check"
 
 
 class ActionCommandState(State):
@@ -17,9 +24,8 @@ class ActionCommandState(State):
             if not button.actions:
                 return S_ACTION_LIST_EMPTY.format(label = button.label)
 
-            items = ' -- '.join('#%s %s' % (i, action) for i, action in
-                enumerate(button.actions))
-            return S_ACTION_LIST_HEADER.format(label = button.label) + items
+            items = ' -- '.join('#{} {}'.format(i, action) for i, action in enumerate(button.actions))
+            return S_ACTION_LIST_HEADER.format(label=button.label) + items
         elif self.command == 'del':
             if self.number == 'all':
                 button.actions = []
@@ -32,5 +38,4 @@ class ActionCommandState(State):
                     return S_ACTION_INVALID_NUMBER
 
                 action_type = action.type.capitalize()
-                return S_ACTION_DELETED.format(action = action_type,
-                    number = index, label = button.label)
+                return S_ACTION_DELETED.format(action=action_type, number=index, label=button.label)

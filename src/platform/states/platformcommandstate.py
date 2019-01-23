@@ -1,4 +1,10 @@
 from platform.states.state import State
+from platform.strings import S_COMMAND_CANCEL
+
+S_PLATFORM_RENAMED = "Platform '{old_label}' renamed to '{label}'"
+S_PLATFORM_DESTROYED = "Platform '{label}' destroyed"
+S_FROZEN = "Platform '{label}' frozen"
+S_UNFROZEN = "Platform '{label}' unfrozen"
 
 
 class PlatformCommandState(State):
@@ -11,12 +17,12 @@ class PlatformCommandState(State):
     def on_exit(self, protocol, player):
         platform = self.platform
         if not platform:
-            return S_COMMAND_CANCEL.format(command = 'platform ' + self.command)
+            return S_COMMAND_CANCEL.format(command='platform ' + self.command)
 
         command = self.command
         if command == 'name':
             old, platform.label = platform.label, self.label
-            return S_PLATFORM_RENAMED.format(old_label = old, label = self.label)
+            return S_PLATFORM_RENAMED.format(old_label=old, label=self.label)
         elif command == 'height':
             platform.start(self.height, 'once', 0.1, 0.0, None, force = True)
         elif command == 'freeze':
@@ -29,7 +35,7 @@ class PlatformCommandState(State):
             # remove actions affecting this platform
             for button in protocol.buttons.itervalues():
                 button.actions = [action for action in button.actions
-                    if getattr(action, 'platform', None) is not platform]
+                                  if getattr(action, 'platform', None) is not platform]
             # cancel any ongoing commands targeting this platform
             for player in protocol.players.itervalues():
                 state = player.states.top()
@@ -41,4 +47,4 @@ class PlatformCommandState(State):
             for player in protocol.players.itervalues():
                 if player.previous_platform is platform:
                     player.previous_platform = None
-            return S_PLATFORM_DESTROYED.format(label = platform.label)
+            return S_PLATFORM_DESTROYED.format(label=platform.label)

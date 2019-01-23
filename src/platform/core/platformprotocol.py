@@ -1,3 +1,26 @@
+from pyspades.types import MultikeyDict
+from piqueserver import cfg
+
+from platform.commands.trigger.presstrigger import PressTrigger
+from platform.commands.trigger.tracktrigger import TrackTrigger
+from platform.commands.trigger.distancetrigger import DistanceTrigger
+from platform.commands.trigger.heighttrigger import HeightTrigger
+from platform.commands.action.platformaction import PlatformAction
+from platform.commands.action.playeraction import PlayerAction
+from platform.wordobjects.platform import Platform
+from platform.wordobjects.button import Button
+
+import json
+import os
+from twisted.internet.reactor import LoopingCall
+
+DEFAULT_LOAD_DIR = os.path.join(cfg.config_dir, 'maps')
+SAVE_ON_MAP_CHANGE = True
+AUTOSAVE_EVERY = 0.0  # minutes, 0 = disabled
+
+TRIGGER_CLASSES = {cls.type: cls for cls in (PressTrigger, TrackTrigger, DistanceTrigger, HeightTrigger)}
+ACTION_CLASSES = {cls.type: cls for cls in (PlatformAction, PlayerAction)}
+
 
 def platform_protocol(protocol):
     class PlatformProtocol(protocol):
@@ -74,7 +97,6 @@ def platform_protocol(protocol):
                 platform.label = platform_data['label']
                 platform.frozen = platform_data['frozen']
                 self.platforms[id] = platform
-            stored_actions = {}
             for button_data in data['buttons']:
                 x, y, z = button_data['location']
                 color = tuple(button_data['color'])
@@ -125,3 +147,5 @@ def platform_protocol(protocol):
 
         def is_platform(self, x, y, z):
             return self.get_platform(x, y, z) or (x, y, z) in self.buttons
+
+    return PlatformProtocol

@@ -1,4 +1,6 @@
+from pyspades.collision import collision_3d
 from platform.commands.trigger.trigger import Trigger
+from platform.strings import *
 
 
 class TrackTrigger(Trigger):
@@ -49,11 +51,11 @@ class TrackTrigger(Trigger):
 
     def serialize(self):
         return {
-            'type' : self.type,
-            'negate' : self.negate,
-            'radius' : self.radius
+            'type': self.type,
+            'negate': self.negate,
+            'radius': self.radius
         }
 
     def __str__(self):
-        s = 'track distance=%s' % self.radius
+        s = 'track distance={}'.format(self.radius)
         return S_TRIGGER_LIST_NOT + s if self.negate else s

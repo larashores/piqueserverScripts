@@ -1,5 +1,8 @@
 from platform.states.state import State
 
+S_SELECT_PLATFORM = 'Select a platform by hitting it with the spade'
+S_PLATFORM_SELECTED = "Platform '{label}' selected"
+
 
 class SelectPlatformState(State):
     name = 'select platform'

@@ -1,3 +1,16 @@
+from twisted.internet.reactor import callLater, seconds
+from pyspades.constants import SPADE_TOOL, GRENADE_DESTROY, DESTROY_BLOCK, SPADE_DESTROY
+from platform.states.statestack import StateStack
+from platform.util.geometry import prism
+
+ACTION_RAY_LENGTH = 8.0
+ACTION_RAY_LENGTH_LONG = 32.0
+ACTION_COOLDOWN = 0.25
+
+S_PLATFORM_INFO = "Platform '{label}', height {height}"
+S_NOT_A_PLATFORM = 'This is not a platform!'
+S_BUTTON_INFO = "Button '{label}', cooldown {cooldown:.2f}s"
+
 
 def player_action(player, select, inspect):
     if not select and not inspect:
@@ -25,8 +38,7 @@ def player_action(player, select, inspect):
                 player.states.pop()
                 return
             elif inspect and 'button' in state.name:
-                info = S_BUTTON_INFO.format(label = button.label,
-                    cooldown = button.cooldown)
+                info = S_BUTTON_INFO.format(label=button.label, cooldown=button.cooldown)
                 player.send_chat(info)
                 return
         if not inspect:
@@ -43,8 +55,7 @@ def player_action(player, select, inspect):
             else:
                 player.send_chat(S_NOT_A_PLATFORM)
         elif inspect:
-            info = S_PLATFORM_INFO.format(label = platform.label,
-                height = platform.height)
+            info = S_PLATFORM_INFO.format(label=platform.label, height=platform.height)
             player.send_chat(info)
 
 
@@ -101,9 +112,7 @@ def platform_connection(connection):
                 if is_platform(x, y, z):
                     return False
             elif mode == SPADE_DESTROY:
-                if (is_platform(x, y, z) or
-                    is_platform(x, y, z + 1) or
-                    is_platform(x, y, z - 1)):
+                if is_platform(x, y, z) or is_platform(x, y, z + 1) or is_platform(x, y, z - 1):
                     return False
             elif mode == GRENADE_DESTROY:
                 for i, j, k in prism(x - 1, y - 1, z - 1, x + 2, y + 2, z + 2):
@@ -136,11 +145,12 @@ def platform_connection(connection):
             if self.tool == SPADE_TOOL:
                 inspect = not self.world_object.sneak and sneak
                 player_action(self, self.world_object.primary_fire, inspect)
-            return connection.on_animation_update(self, jump, crouch, sneak,
-                sprint)
+            return connection.on_animation_update(self, jump, crouch, sneak, sprint)
 
         def on_command(self, command, parameters):
             if command == 'where' and not parameters:
                 self.where_location = self.world_object.position.get()
                 self.where_orientation = self.world_object.orientation.get()
             connection.on_command(self, command, parameters)
+
+    return PlatformConnection

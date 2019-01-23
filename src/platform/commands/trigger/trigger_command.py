@@ -1,6 +1,27 @@
 from piqueserver.commands import command
+from platform.parseargs import parseargs
+from platform.states.triggeraddstate import TriggerAddState
+from platform.states.triggercommandstate import TriggerCommandState
+from platform.states.selectbuttonstate import SelectButtonState
+from platform.states.selectplatformstate import SelectPlatformState
+from platform.strings import *
+
+MAX_DISTANCE = 64.0
 
 S_TRIGGER_USAGE = 'Usage: /trigger <{commands}>'
+TRIGGER_COMMAND_USAGES = {
+    'add': 'Usage: /trigger add [not] <{triggers}>',
+    'del': 'Usage: /trigger del <#|all>',
+    'logic': 'Usage: /trigger logic <and|or>'
+}
+TRIGGER_COMMANDS = ('add', 'set', 'list', 'del', 'logic', 'quiet')
+TRIGGER_ADD_USAGES = {
+    'distance': 'Usage: /trigger add [not] distance [radius=3]',
+    'track': 'Usage: /trigger add [not] track [radius=3]',
+    'height': 'Usage: /trigger add [not] height <height>',
+}
+TRIGGER_ADD_TRIGGERS = ('press', 'distance', 'track', 'height')
+
 
 @command('trigger', 't')
 def trigger_command(connection, *args):
@@ -17,10 +38,10 @@ def trigger_command(connection, *args):
             return
         elif state.blocking:
             # can't switch from a blocking mode
-            return S_EXIT_BLOCKING_STATE.format(state = state.name)
+            return S_EXIT_BLOCKING_STATE.format(state=state.name)
 
     available = '|'.join(TRIGGER_COMMANDS)
-    usage = S_TRIGGER_USAGE.format(commands = available)
+    usage = S_TRIGGER_USAGE.format(commands=available)
     try:
         command = args[0].lower()
         if command not in TRIGGER_COMMANDS:
@@ -29,7 +50,7 @@ def trigger_command(connection, *args):
         if command in ('add', 'set'):
             add = command == 'add'
             available = '|'.join(TRIGGER_ADD_TRIGGERS)
-            usage = S_TRIGGER_ADD_USAGE.format(triggers = available)
+            usage = TRIGGER_COMMAND_USAGES['add'].format(triggers=available)
             if not add:
                 usage = usage.replace('add', 'set')
 
@@ -52,16 +73,15 @@ def trigger_command(connection, *args):
                 if new_state.radius is None:
                     new_state.radius = 3.0
                 if new_state.radius < 0.0:
-                    message = S_NOT_POSITIVE.format(parameter = 'radius')
+                    message = S_NOT_POSITIVE.format(parameter='radius')
                     raise ValueError(message)
                 if new_state.radius > MAX_DISTANCE:
-                    message = S_MAXIMUM.format(parameter = 'radius',
-                        value = MAX_DISTANCE)
+                    message = S_MAXIMUM.format(parameter='radius', value=MAX_DISTANCE)
                     raise ValueError(message)
             elif trigger == 'height':
                 new_state.height, = parseargs('int', args[2:])
                 if new_state.height < 0:
-                    message = S_NOT_POSITIVE.format(parameter = 'height')
+                    message = S_NOT_POSITIVE.format(parameter='height')
                     raise ValueError(message)
                 new_states.append(SelectPlatformState(new_state))
         else:

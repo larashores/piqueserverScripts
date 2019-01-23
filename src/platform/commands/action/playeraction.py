@@ -1,8 +1,11 @@
+from platform.strings import S_NICE_LOCATION
+
 PLAYER_ACTION_FUNCTIONS = {
-    'teleport' : 'set_location',
-    'chat' : 'send_chat',
-    'damage' : 'hit'
+    'teleport': 'set_location',
+    'chat': 'send_chat',
+    'damage': 'hit'
 }
+
 
 class PlayerAction:
     type = 'player'
@@ -30,7 +33,7 @@ class PlayerAction:
         if self.action == 'teleport':
             info = S_NICE_LOCATION.format(*self.kwargs['location'])
         elif self.action == 'chat':
-            info = '"%s"' % self.kwargs['value'].strip()
+            info = '"{}"'.format(self.kwargs['value'].strip())
         elif self.action == 'damage':
             info = self.kwargs['value']
-        return "player %s(%s)" % (self.action, info)
+        return "player {}({})".format(self.action, info)

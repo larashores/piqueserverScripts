@@ -1,11 +1,12 @@
 PLATFORM_ACTION_FUNCTIONS = {
-    'start' : 'start',
-    'height' : 'start',
-    'raise' : 'start',
-    'lower' : 'start',
-    'elevator' : 'start',
-    'output' : 'start'
+    'start': 'start',
+    'height': 'start',
+    'raise': 'start',
+    'lower': 'start',
+    'elevator': 'start',
+    'output': 'start'
 }
+
 
 class PlatformAction:
     type = 'platform'
@@ -19,18 +20,17 @@ class PlatformAction:
 
     def run(self, value, objects):
         if self.action == 'output':
-            self.callback(height = int(value), **self.kwargs)
+            self.callback(height=int(value), **self.kwargs)
         elif value:
             self.callback(**self.kwargs)
 
     def serialize(self):
         return {
-            'type' : self.type,
-            'platform_id' : self.platform.id,
-            'action' : self.action,
-            'kwargs' : self.kwargs
+            'type': self.type,
+            'platform_id': self.platform.id,
+            'action': self.action,
+            'kwargs': self.kwargs
         }
 
     def __str__(self):
-        return "platform '%s' %s(%s)" % (self.platform.label,
-            self.kwargs['mode'], self.kwargs['height'])
+        return "platform '{}' {}({})" .format(self.platform.label, self.kwargs['mode'], self.kwargs['height'])

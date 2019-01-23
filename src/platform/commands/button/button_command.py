@@ -1,12 +1,19 @@
-from piqueserver.commands import command
+from piqueserver.commands import command, join_arguments
 from platform.parseargs import parseargs
+from platform.states.newbuttonstate import NewButtonState
+from platform.states.buttoncommandstate import ButtonCommandState
+from platform.states.selectbuttonstate import SelectButtonState
+from platform.strings import *
 
 MIN_COOLDOWN = 0.1  # seconds
 
-
 BUTTON_COMMANDS = ('new', 'name', 'destroy', 'toggle', 'cooldown', 'last')
-
 S_BUTTON_USAGE = 'Usage: /button [{commands}]'
+BUTTON_COMMAND_USAGES = {
+    'new': 'Usage: /button new <label>',
+    'name': 'Usage: /button name <label>',
+    'cooldown': 'Usage: /button cooldown <seconds>'
+}
 
 
 @command('button', 'b')
@@ -25,11 +32,11 @@ def button_command(connection, *args):
             return
         elif state.blocking:
             # can't switch from a blocking mode
-            return S_EXIT_BLOCKING_STATE.format(state = state.name)
+            return S_EXIT_BLOCKING_STATE.format(state=state.name)
     if args:
         # enter new mode
         available = '|'.join(BUTTON_COMMANDS)
-        usage = S_BUTTON_USAGE.format(commands = available)
+        usage = S_BUTTON_USAGE.format(commands=available)
         try:
             command = args[0]
             if command not in BUTTON_COMMANDS:
@@ -44,11 +51,10 @@ def button_command(connection, *args):
             elif command == 'cooldown':
                 new_state.cooldown, = parseargs('float', args[1:])
                 if new_state.cooldown < 0.0:
-                    message = S_NOT_POSITIVE.format(parameter = 'cooldown')
+                    message = S_NOT_POSITIVE.format(parameter='cooldown')
                     raise ValueError(message)
                 if new_state.cooldown < MIN_COOLDOWN:
-                    message = S_MINIMUM.format(parameter = 'cooldown',
-                        value = MIN_COOLDOWN)
+                    message = S_MINIMUM.format(parameter='cooldown', value=MIN_COOLDOWN)
                     raise ValueError(message)
             elif command == 'last' and state:
                 if state.name == 'select button' and player.previous_button:

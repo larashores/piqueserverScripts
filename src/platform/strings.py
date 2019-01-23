@@ -1,0 +1,10 @@
+S_EXIT_BLOCKING_STATE = "You must first leave {state} mode!"
+S_COMMAND_CANCEL = "Aborting {command} command"
+S_TRIGGER_LIST_NOT = 'NOT '
+S_NOT_POSITIVE = 'ERROR: {parameter} must be a positive number'
+S_OUT_OF_BOUNDS = 'ERROR: {parameter} must be in the range [0..512)'
+S_OUT_OF_BOUNDS_Z = 'ERROR: {parameter} must be in the range [0..62]'
+S_WHERE_FIRST = 'ERROR: use /where first to remember your position'
+S_MINIMUM = 'ERROR: Minimum {parameter} is {value}'
+S_MAXIMUM = 'ERROR: Maximum {parameter} is {value}'
+S_NICE_LOCATION = '{:.4g}, {:.4g}, {:.4g}'

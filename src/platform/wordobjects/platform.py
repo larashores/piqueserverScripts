@@ -1,4 +1,11 @@
+from pyspades.constants import DESTROY_BLOCK, UPDATE_FREQUENCY
+from pyspades.contained import BlockLine, PositionData
+from pyspades.world import cube_line
 from platform.wordobjects.baseobject import BaseObject
+from platform.util.geometry import aabb_colision, prism, plane_least_rows
+from platform.util.packets import send_block, send_color
+
+from twisted.internet.task import callLater
 
 
 class Platform(BaseObject):
@@ -23,12 +30,11 @@ class Platform(BaseObject):
             protocol.map.set_point(x, y, z, color)
 
     def contains(self, x, y, z):
-        return aabb(x, y, z, self.x1, self.y1, self.z, self.x2, self.y2,
-            self.start_z)
+        return aabb_colision(x, y, z, self.x1, self.y1, self.z, self.x2, self.y2, self.start_z)
 
     def overlaps(self, p):
         return (self.x1 <= p.x2 and self.y1 <= p.y2 and self.z <= p.start_z and
-            self.x2 >= p.x1 and self.y2 >= p.y1 and self.start_z >= p.z)
+                self.x2 >= p.x1 and self.y2 >= p.y1 and self.start_z >= p.z)
 
     def destroy(self):
         self.destroy_z(self.z, self.start_z + 1)
@@ -95,14 +101,14 @@ class Platform(BaseObject):
                     continue
                 looking_up = obj.orientation.get()[2] < 0.4 # 0.5 (allow lag)
                 x, y, z = obj.position.get()
-                if aabb(x, y, z, self.x1, self.y1, self.z - 2,
-                    self.x2, self.y2, self.start_z):
+                if aabb_colision(x, y, z, self.x1, self.y1, self.z - 2, self.x2, self.y2, self.start_z):
                     if looking_up and not obj.crouch and not z > self.z:
                         # player is looking up, no need to readjust
                         continue
                     z = self.z - 2.4
                     if player.world_object.crouch:
                         z += 1.0
+                    position_data = PositionData()
                     position_data.x = x
                     position_data.y = y
                     position_data.z = z
@@ -128,6 +134,7 @@ class Platform(BaseObject):
         line = cube_line(x1, y1, z1, x2, y2, z2)
         for x, y, z in line:
             self.protocol.map.set_point(x, y, z, self.color)
+        block_line = BlockLine()
         block_line.player_id = 32
         block_line.x1 = x1
         block_line.y1 = y1
@@ -135,7 +142,7 @@ class Platform(BaseObject):
         block_line.x2 = x2
         block_line.y2 = y2
         block_line.z2 = z2
-        self.protocol.send_contained(block_line, save = True)
+        self.protocol.send_contained(block_line, save=True)
 
     def build_plane(self, z):
         send_color(self.protocol, self.color)
@@ -147,7 +154,7 @@ class Platform(BaseObject):
             z2 = z1 + 1
         protocol = self.protocol
         overlaps = [platform for platform in protocol.platforms.itervalues() if
-            platform is not self and platform.overlaps(self)]
+                    platform is not self and platform.overlaps(self)]
         for x, y, z in prism(self.x1, self.y1, z1, self.x2, self.y2, z2):
             if any(platform.contains(x, y, z) for platform in overlaps):
                 continue

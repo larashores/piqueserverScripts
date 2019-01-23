@@ -1,4 +1,16 @@
+from pyspades.constants import DESTROY_BLOCK, BUILD_BLOCK
 from platform.wordobjects.baseobject import BaseObject
+from platform.util.packets import send_block, send_color
+
+from collections import defaultdict
+from itertools import chain
+from twisted.internet.reactor import callLater
+
+S_NOT_WORKING = 'This button is disabled'
+
+
+def flatten(iterables):
+    return chain.from_iterable(iterables)
 
 
 class Button(BaseObject):
@@ -89,14 +101,14 @@ class Button(BaseObject):
 
     def serialize(self):
         return {
-            'id' : self.id,
-            'location' : (self.x, self.y, self.z),
-            'label' : self.label,
-            'color' : self.color,
-            'actions' : [action.serialize() for action in self.actions],
-            'triggers' : [trigger.serialize() for trigger in self.triggers],
-            'logic' : self.logic,
-            'cooldown' : self.cooldown,
-            'disabled' : self.disabled,
-            'silent' : self.silent
+            'id': self.id,
+            'location': (self.x, self.y, self.z),
+            'label': self.label,
+            'color': self.color,
+            'actions': [action.serialize() for action in self.actions],
+            'triggers': [trigger.serialize() for trigger in self.triggers],
+            'logic': self.logic,
+            'cooldown': self.cooldown,
+            'disabled': self.disabled,
+            'silent': self.silent
         }

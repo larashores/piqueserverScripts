@@ -1,4 +1,11 @@
 from platform.states.state import State
+from platform.strings import S_COMMAND_CANCEL
+
+S_BUTTON_RENAMED = "Button '{old_label}' renamed to '{label}'"
+S_BUTTON_DESTROYED = "Button '{label}' removed"
+S_BUTTON_COOLDOWN = "Cooldown for button '{label}' set to {cooldown:.2f} seconds"
+S_DISABLED = "Button '{label}' disabled"
+S_ENABLED = "Button '{label}' enabled"
 
 
 class ButtonCommandState(State):
@@ -11,12 +18,12 @@ class ButtonCommandState(State):
     def on_exit(self, protocol, player):
         button = self.button
         if not button:
-            return S_COMMAND_CANCEL.format(command = 'button ' + self.command)
+            return S_COMMAND_CANCEL.format(command='button ' + self.command)
 
         command = self.command
         if command == 'name':
             old, button.label = button.label, self.label
-            return S_BUTTON_RENAMED.format(old_label = old, label = self.label)
+            return S_BUTTON_RENAMED.format(old_label=old, label=self.label)
         elif command == 'destroy':
             button.destroy()
             del protocol.buttons[button]
@@ -28,8 +35,7 @@ class ButtonCommandState(State):
         elif command == 'toggle':
             button.disabled = not button.disabled
             result = S_DISABLED if button.disabled else S_ENABLED
-            return result.format(label = button.label)
+            return result.format(label=button.label)
         elif command == 'cooldown':
             button.cooldown = self.cooldown
-            return S_BUTTON_COOLDOWN.format(label = button.label,
-                cooldown = self.cooldown)
+            return S_BUTTON_COOLDOWN.format(label = button.label, cooldown = self.cooldown)

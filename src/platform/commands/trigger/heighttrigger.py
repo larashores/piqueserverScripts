@@ -1,10 +1,11 @@
 from platform.commands.trigger.trigger import Trigger
+from platform.strings import *
 
 
 class HeightTrigger(Trigger):
     type = 'height'
 
-    def __init__(self, protocol, platform_id, height, negate = False):
+    def __init__(self, protocol, platform_id, height, negate=False):
         Trigger.__init__(self, protocol, negate)
         platform = protocol.platforms[platform_id]
         self.platform = platform
@@ -27,13 +28,12 @@ class HeightTrigger(Trigger):
 
     def serialize(self):
         return {
-            'type' : self.type,
-            'negate' : self.negate,
-            'platform_id' : self.platform.id,
-            'height' : self.target_height
+            'type': self.type,
+            'negate': self.negate,
+            'platform_id': self.platform.id,
+            'height': self.target_height
         }
 
     def __str__(self):
-        s = "platform '%s' height=%s" % (self.platform.label,
-            self.target_height)
+        s = "platform '{}' height={}".format(self.platform.label, self.target_height)
         return S_TRIGGER_LIST_NOT + s if self.negate else s

@@ -1,5 +1,8 @@
 from platform.states.state import State
 
+S_SELECT_BUTTON = 'Select a button by hitting it with the spade'
+S_BUTTON_SELECTED = "Button '{label}' selected"
+
 
 class SelectButtonState(State):
     name = 'select button'

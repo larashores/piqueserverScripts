@@ -1,4 +1,14 @@
+from pyspades.contained import BlockAction
+from pyspades.constants import DESTROY_BLOCK
 from platform.states.state import State
+from platform.wordobjects.platform import Platform
+
+import operator
+
+S_PLATFORM_STARTED = 'Platform construction started. Build then type /platform when done'
+S_PLATFORM_NOT_FLAT = 'Bad platform. Floor can be incomplete but must be flat'
+S_PLATFORM_CREATED = "Platform '{label}' created"
+S_PLATFORM_CANCEL = 'Platform construction cancelled'
 
 
 class NewPlatformState(State):
@@ -23,6 +33,7 @@ class NewPlatformState(State):
         z1, z2 = min(zipped[2]), max(zipped[2])
         if z1 != z2:
             # undo placed blocks if the design is invalid
+            block_action = BlockAction()
             block_action.value = DESTROY_BLOCK
             block_action.player_id = player.player_id
             for x, y, z in self.blocks:
@@ -38,7 +49,7 @@ class NewPlatformState(State):
         color_sum = (0, 0, 0)
         for x, y, z in self.blocks:
             color = protocol.map.get_color(x, y, z)
-            color_sum = tuple(imap(operator.add, color_sum, color))
+            color_sum = tuple(map(operator.add, color_sum, color))
         color_avg = tuple(n / len(self.blocks) for n in color_sum)
 
         protocol.highest_id += 1
