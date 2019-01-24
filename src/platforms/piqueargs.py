@@ -22,6 +22,13 @@ def command(name=None, usage=None, **attrs):
     return decorator
 
 
+def option(name, argname=None):
+    def decorator(func):
+        func.options.append((name, name if argname is None else argname))
+        return func
+    return decorator
+
+
 def bad_command(message):
     raise _InvalidException(message)
 
@@ -51,6 +58,7 @@ class _PiqueArgsBaseCommand(BaseCommand):
     def __init__(self, *args, usage=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.usage = usage
+        self.options = []
 
     def make_context(self, info_name, args, parent=None, **extra):
         ctx = super().make_context(info_name, args, parent, **extra)
@@ -64,9 +72,15 @@ class _PiqueArgsBaseCommand(BaseCommand):
 
 class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
     def parse_args(self, ctx, args):
+        for index in range(len(self.options)):
+            option, cmd_option = self.options[index]
+            if args[index] == option:
+                ctx.params[cmd_option] = True
+                args.pop(0)
+            else:
+                ctx.params[cmd_option] = False
         if not args and self.no_args_is_help and not ctx.resilient_parsing:
             raise _InvalidException(self.usage)
-
         return Group.parse_args(self, ctx, args)
 
     def run(self, connection, args):
