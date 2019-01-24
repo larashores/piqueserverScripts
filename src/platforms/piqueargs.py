@@ -5,7 +5,7 @@ import types
 
 def group(name=None, *, usage=None, **attrs):
     def decorator(func):
-        group = click.group(name, **attrs, cls=_PyArgsGroup, usage=usage)(func)
+        group = click.group(name, **attrs, cls=_PiqueArgsGroup, usage=usage)(func)
         group.group = types.MethodType(_subgroup, group)
         group.command = types.MethodType(_subcommand, group)
         return group
@@ -14,13 +14,13 @@ def group(name=None, *, usage=None, **attrs):
 
 def command(name=None, usage=None, **attrs):
     def decorator(func):
-        cmd = click.command(name, **attrs, cls=_PyArgsCommand, usage=usage)(func)
+        cmd = click.command(name, **attrs, cls=_PiqueArgsCommand, usage=usage)(func)
         return cmd
     return decorator
 
 
 def bad_command(message):
-    raise InvalidException(message)
+    raise _InvalidException(message)
 
 
 def _subgroup(self, *args, **kwargs):
@@ -39,12 +39,12 @@ def _subcommand(self, *args, **kwargs):
     return decorator
 
 
-class InvalidException(Exception):
+class _InvalidException(Exception):
     def __init__(self, usage=None):
         self.usage = usage
 
 
-class _PyArgsBaseCommand(BaseCommand):
+class _PiqueArgsBaseCommand(BaseCommand):
     def __init__(self, *args, usage=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.usage = usage
@@ -59,10 +59,10 @@ class _PyArgsBaseCommand(BaseCommand):
         return ctx
 
 
-class _PyArgsGroup(_PyArgsBaseCommand, Group):
+class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
     def parse_args(self, ctx, args):
         if not args and self.no_args_is_help and not ctx.resilient_parsing:
-            raise InvalidException(self.usage)
+            raise _InvalidException(self.usage)
 
         return Group.parse_args(self, ctx, args)
 
@@ -73,13 +73,13 @@ class _PyArgsGroup(_PyArgsBaseCommand, Group):
             with ctx:
                 result = self.invoke(ctx)
                 return result
-        except InvalidException as e:
+        except _InvalidException as e:
             return e.usage
         except click.exceptions.UsageError as e:
             return e.ctx.command.usage
 
 
-class _PyArgsCommand(_PyArgsBaseCommand, Command):
+class _PiqueArgsCommand(_PiqueArgsBaseCommand, Command):
     pass
 
 
