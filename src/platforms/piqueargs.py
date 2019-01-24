@@ -6,18 +6,18 @@ argument = click.argument
 pass_obj = click.pass_obj
 
 
-def group(name=None, *, usage=None, **attrs):
+def group(name=None, **attrs):
     def decorator(func):
-        group = click.group(name, **attrs, cls=_PiqueArgsGroup, usage=usage)(func)
+        group = click.group(name, **attrs, cls=_PiqueArgsGroup)(func)
         group.group = types.MethodType(_subgroup, group)
         group.command = types.MethodType(_subcommand, group)
         return group
     return decorator
 
 
-def command(name=None, usage=None, **attrs):
+def command(name=None, **attrs):
     def decorator(func):
-        cmd = click.command(name, **attrs, cls=_PiqueArgsCommand, usage=usage)(func)
+        cmd = click.command(name, **attrs, cls=_PiqueArgsCommand)(func)
         return cmd
     return decorator
 
@@ -54,11 +54,37 @@ class _InvalidException(Exception):
         self.usage = usage
 
 
+class _Usage:
+    def __init__(self, text, args, kwargs):
+        self.text = '' if text is None else text
+        self.args = [] if args is None else args
+        self.kwargs = {} if kwargs is None else kwargs
+        self.parent = None
+
+    def __str__(self):
+        args = []
+        kwargs = {}
+        current = self
+        while current is not None:
+            for arg in reversed(current.args):
+                args.insert(0, arg)
+            kwargs.update(current.kwargs)
+            current = current.parent
+        return self.text.format(*args, **kwargs)
+
+
 class _PiqueArgsBaseCommand(BaseCommand):
-    def __init__(self, *args, usage=None, **kwargs):
+    def __init__(self, *args, usage=None, usageargs=None, usagekwargs=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.usage = usage
+        self._usage = _Usage(usage, usageargs, usagekwargs)
         self.options = []
+
+    @property
+    def usage(self):
+        return str(self._usage)
+
+    def add_parent(self, parent):
+        self._usage.parent = parent._usage
 
     def make_context(self, info_name, args, parent=None, **extra):
         ctx = super().make_context(info_name, args, parent, **extra)
@@ -71,6 +97,10 @@ class _PiqueArgsBaseCommand(BaseCommand):
 
 
 class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
+    def add_command(self, cmd, name=None):
+        cmd.add_parent(self)
+        return super().add_command(cmd, name)
+
     def parse_args(self, ctx, args):
         for index in range(len(self.options)):
             option, cmd_option = self.options[index]
