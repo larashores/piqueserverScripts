@@ -1,5 +1,5 @@
-from logging.sqlitecommands import *
-from logging.timeutil import current_timestamp
+from logs.sqlitecommands import *
+from logs.timeutil import current_timestamp
 import enum
 
 

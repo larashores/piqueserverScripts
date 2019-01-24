@@ -5,10 +5,10 @@ where the day, month, and year are all optional. They default to the current, da
 """
 
 from piqueserver.commands import command
-from logging.sqlitecommands import *
-from logging.loggerconnection import logger_connection
-from logging.loggerprotocol import logger_protocol
-from logging.timeutil import current_timestamp, time_string, parse_time_string
+from logs.sqlitecommands import *
+from logs.loggerconnection import logger_connection
+from logs.loggerprotocol import logger_protocol
+from logs.timeutil import current_timestamp, time_string, parse_time_string
 
 
 STRING_LOGGED_ON_MESSAGE = '{}({}) was logged on from {} to {}\n'

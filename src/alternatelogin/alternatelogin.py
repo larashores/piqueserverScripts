@@ -1,5 +1,5 @@
 """
-Creates an alternate system of logging in where each user has their own password and can belong to one or more groups.
+Creates an alternate system of logs in where each user has their own password and can belong to one or more groups.
 Privileges are assigned on a group level instead of a per-user level. The special "admin" group is allowed to use every
 command per the usual rules. Users can be updated on-the-fly with the passreload.py script. Passwords must be unique as
 the usernames are not used to login with.

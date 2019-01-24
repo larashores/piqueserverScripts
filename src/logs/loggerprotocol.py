@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from logging.sqlitecommands import COMMANDS_CREATE_TABLES
+from logs.sqlitecommands import COMMANDS_CREATE_TABLES
 
 PATH = r'logs\log.db'
 
