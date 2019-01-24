@@ -102,21 +102,11 @@ def delete(connection, what):
     return 'delete {}'.format(what)
 
 
-add_set_commands = [
-    height,
-    raise_,
-    lower,
-    elevator,
-    output,
-    teleport,
-    chat,
-    damage
-]
-for command in add_set_commands:
+for command in (height, raise_, lower, elevator, output, teleport, chat, damage):
     add.add_command(command)
     set_.add_command(command)
 
 
 if __name__ == '__main__':
-    result = action.run('hello', ['del', 'a'])
+    result = action.run('connection', [])
     print(result)
