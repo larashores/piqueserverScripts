@@ -1,7 +1,7 @@
 from pyspades.contained import BlockAction
 from pyspades.constants import DESTROY_BLOCK
 from platforms.states.state import State
-from platforms.wordobjects.platform import Platform
+from platforms.worldobjects.platform import Platform
 
 import operator
 

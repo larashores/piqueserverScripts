@@ -1,5 +1,5 @@
 from pyspades.constants import DESTROY_BLOCK, BUILD_BLOCK
-from platforms.wordobjects.baseobject import BaseObject
+from platforms.worldobjects.baseobject import BaseObject
 from platforms.util.packets import send_block, send_color
 
 from collections import defaultdict

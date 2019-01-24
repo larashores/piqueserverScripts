@@ -7,8 +7,8 @@ from platforms.commands.trigger.distancetrigger import DistanceTrigger
 from platforms.commands.trigger.heighttrigger import HeightTrigger
 from platforms.commands.action.platformaction import PlatformAction
 from platforms.commands.action.playeraction import PlayerAction
-from platforms.wordobjects.platform import Platform
-from platforms.wordobjects.button import Button
+from platforms.worldobjects.platform import Platform
+from platforms.worldobjects.button import Button
 
 import json
 import os

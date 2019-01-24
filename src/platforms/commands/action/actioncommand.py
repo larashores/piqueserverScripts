@@ -134,7 +134,7 @@ def chat(connection, text):
 @piqueargs.argument('amount', type=click.INT)
 @piqueargs.command(usage='Usage: /action {} damage <amount>')
 def damage(connection, amount):
-    return '{}: damage {}'.format(connection, amount)
+    return 'damage {}'.format(amount)
 
 
 @action.command('list', usage='Usage: /action list')

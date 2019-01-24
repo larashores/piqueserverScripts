@@ -1,6 +1,6 @@
 from platforms.states.state import State
 from platforms.commands.trigger.presstrigger import PressTrigger
-from platforms.wordobjects.button import Button
+from platforms.worldobjects.button import Button
 
 S_BUTTON_PLACEMENT = 'Put down a block where you want the new button to be'
 S_BUTTON_CREATED = "Button '{label}' created"

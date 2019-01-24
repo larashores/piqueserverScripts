@@ -1,7 +1,7 @@
 from pyspades.constants import DESTROY_BLOCK, UPDATE_FREQUENCY
 from pyspades.contained import BlockLine, PositionData
 from pyspades.world import cube_line
-from platforms.wordobjects.baseobject import BaseObject
+from platforms.worldobjects.baseobject import BaseObject
 from platforms.util.geometry import aabb_colision, prism, plane_least_rows
 from platforms.util.packets import send_block, send_color
 
