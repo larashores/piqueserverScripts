@@ -1,170 +1,113 @@
-import argparse
-import enum
+import click
+from platform import piqueargs
 
 
-class Commands(enum.Enum):
-    NONE = None
-
-    SET = 'set'
-    ADD = 'add'
-    DEL = 'del'
-    LIST = 'list'
-
-    HEIGHT = 'height'
-    RAISE = 'raise'
-    LOWER = 'lower'
-    ELEVATOR = 'elevator'
-    OUTPUT = 'output'
-    TELEPORT = 'teleport'
-    CHAT = 'chat'
-    DAMAGE = 'damage'
+@piqueargs.group(usage='Usage: /action <{commands}>')
+def action():
+    pass
 
 
-signature = ('trigger', [])
+@action.group(usage='Usage: /action add <{actions}>')
+def add():
+    pass
 
 
-class ParseError(Exception):
-    def __init__(self, prog):
-        self.parsed = prog.split()[1:]
+@action.group('set', usage='Usage: /action set <{actions}>')
+def set_():
+    pass
 
 
-class NoExitParser(argparse.ArgumentParser):
-    def error(self, *args, **kwargs):
-        raise ParseError(self.prog)
+@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@click.argument('speed', default=.15, type=click.FLOAT, required=False)
+@click.argument('height', type=click.FLOAT)
+@piqueargs.command(usage='Usage: /action add height <height> [speed=0.15] [delay]')
+def height(height, speed, delay):
+    return 'height {} {} {}'.format(height, speed, delay)
 
 
-S_ACTION_USAGE = 'Usage: /action <{commands}>'
-
-ACTION_ADD_SET_ACTIONS = ('height', 'raise', 'lower', 'elevator', 'output', 'teleport', 'chat', 'damage')
-ACTION_COMMAND_USAGES = {
-    'add': 'Usage: /action add <{}>',
-    'set': 'Usage: /action add <{}>',
-    'del': 'Usage: /action del <#|all>'
-}
-
-ACTION_COMMANDS = ('add', 'set', 'list', 'del')
-ACTION_ADD_SET_USAGES = {
-    'height': 'Usage: /action {} height <height> [speed=0.15] [delay]',
-    'raise': 'Usage: /action {} raise <amount> [speed=0.15] [delay]',
-    'lower': 'Usage: /action {} lower <amount> [speed=0.15] [delay]',
-    'elevator': 'Usage: /action {} elevator <height> [speed=0.25] [delay] [wait=3.0]',
-    'output': 'Usage: /action {} output [delay]',
-    'teleport': 'Usage: /action {} teleport <x y z|where>',
-    'chat': 'Usage: /action {} chat <text>',
-    'damage': 'Usage: /action {} damage <amount>',
-}
+@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@click.argument('speed', default=.15, type=click.FLOAT, required=False)
+@click.argument('amount', type=click.FLOAT)
+@piqueargs.command('raise', usage='Usage: /action add raise <amount> [speed=0.15] [delay]')
+def raise_(amount, speed, delay):
+    return 'raise {} {} {}'.format(amount, speed, delay)
 
 
-def create_add_set_subparsers(parent):
-    subparsers = parent.add_subparsers(dest='add_command')
-    height_parser = subparsers.add_parser('height')
-    height_parser.add_argument('height', nargs='?', type=int)
-    height_parser.add_argument('speed',  nargs='?', type=float, default=0.25)
-    height_parser.add_argument('delay', nargs='?', type=float, default=0.0)
+@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@click.argument('speed', default=.15, type=click.FLOAT, required=False)
+@click.argument('amount', type=click.FLOAT)
+@piqueargs.command(usage='Usage: /action add lower <amount> [speed=0.15] [delay]')
+def lower(amount, speed, delay):
+    return 'lower {} {} {}'.format(amount, speed, delay)
 
-    raise_parser = subparsers.add_parser('raise')
-    raise_parser.add_argument('amount', nargs='?', type=int)
-    raise_parser.add_argument('speed',  nargs='?', type=float, default=0.25)
-    raise_parser.add_argument('delay', nargs='?', type=float, default=0.0)
 
-    lower_parser = subparsers.add_parser('lower')
-    lower_parser.add_argument('amount', nargs='?', type=int)
-    lower_parser.add_argument('speed',  nargs='?', type=float, default=0.25)
-    lower_parser.add_argument('delay', nargs='?', type=float, default=0.0)
+@click.argument('wait', default=3.0, type=click.FLOAT, required=False)
+@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@click.argument('speed', default=.15, type=click.FLOAT, required=False)
+@click.argument('height', type=click.FLOAT)
+@piqueargs.command(usage='Usage: /action add elevator <height> [speed=0.25] [delay] [wait=3.0]')
+def elevator(height, speed, delay, wait):
+    return 'elevator {} {} {} {}'.format(height, speed, delay, wait)
 
-    elevator_parser = subparsers.add_parser('elevator')
-    elevator_parser.add_argument('height', nargs='?', type=int)
-    elevator_parser.add_argument('speed',  nargs='?', type=float, default=0.25)
-    elevator_parser.add_argument('delay', nargs='?', type=float, default=0.0)
-    elevator_parser.add_argument('wait', nargs='?', type=float, default=0.0)
 
-    subparsers.add_parser('output')
+@piqueargs.command(usage='Usage: /action add output [delay]')
+def output():
+    return 'output'
 
-    teleport_parser = subparsers.add_parser('teleport')
-    teleport_parser.add_argument('first',  nargs='?')
-    teleport_parser.add_argument('y', nargs='?', type=int)
-    teleport_parser.add_argument('z', nargs='?', type=int)
 
-    chat_parser = subparsers.add_parser('chat')
-    chat_parser.add_argument('text')
+@piqueargs.command(usage='Usage: /action add teleport <x y z|where>')
+def teleport():
+    return 'teleport'
 
-    damage_parser = subparsers.add_parser('damage')
-    damage_parser.add_argument('amount', type=int)
 
-def create_parser():
-    platform_parser = NoExitParser()
-    platform_subparsers = platform_parser.add_subparsers(dest='command')
+@click.argument('text')
+@piqueargs.command(usage='Usage: /action add chat <text>')
+def chat(text):
+    return 'chat {}'.format(text)
 
-    set_parser = platform_subparsers.add_parser('set')
-    create_add_set_subparsers(set_parser)
 
-    add_parser = platform_subparsers.add_parser('add')
-    create_add_set_subparsers(add_parser)
+@click.argument('amount', type=click.INT)
+@piqueargs.command(usage='Usage: /action add damage <amount>')
+def damage(amount):
+    return 'damage {}'.format(amount)
 
-    parser = platform_subparsers.add_parser('del')
-    parser.add_argument('specifier', nargs='?')
 
-    platform_subparsers.add_parser('list')
+@action.command(usage='Usage: /action list')
+def list():
+    return 'list'
 
-    return platform_parser
+
+@click.argument('z', type=click.INT, required=False)
+@click.argument('y', type=click.INT, required=False)
+@click.argument('first')
+@action.command('del', usage='Usage: /action del <#|all>')
+def delete(first, y, z):
+    if first == 'where':
+        return 'delete where'
+    elif y is not None and z is not None:
+        try:
+            return 'delete {} {} {}'.format(int(first), y, z)
+        except ValueError:
+            piqueargs.bad_command(delete.usage)
+    else:
+        piqueargs.bad_command(delete.usage)
+
+
+add_set_commands = [
+    height,
+    raise_,
+    lower,
+    elevator,
+    output,
+    teleport,
+    chat,
+    damage
+]
+for command in add_set_commands:
+    add.add_command(command)
+    set_.add_command(command)
 
 
 if __name__ == '__main__':
-    parser = create_parser()
-
-    try:
-        args = parser.parse_args(['add', 'adf'])
-
-        command = Commands(args.command)
-        if command == Commands.ADD or command == Commands.SET:
-            add_command = Commands(args.add_command)
-            if add_command == Commands.HEIGHT:
-                if args.height is None:
-                    print('Usage: /action add height <height> [speed=0.15] [delay]')
-            elif add_command == Commands.RAISE:
-                if args.amount is None:
-                    print('Usage: /action add raise <amount> [speed=0.15] [delay]')
-            elif add_command == Commands.LOWER:
-                if args.amount is None:
-                    print('Usage: /action add lower <amount> [speed=0.15] [delay]')
-            elif add_command == Commands.ELEVATOR:
-                if args.height is None:
-                    print('Usage: /action add elevator <height> [speed=0.25] [delay] [wait=3.0]')
-            elif add_command == Commands.OUTPUT:
-                print('Usage: /action add output [delay]')
-            elif add_command == Commands.TELEPORT:
-                if args.first == 'where':
-                    print('doing teleport where')
-                else:
-                    try:
-                        x = int(args.first)
-                        if args.y is None or args.z is None:
-                            raise ValueError()
-                        print('teleporting ', x, args.y, args.z)
-                    except (ValueError, TypeError):
-                        print('Usage: /action add teleport <x y z|where>')
-            elif add_command == Commands.CHAT:
-                print('parse chat')
-            elif add_command == Commands.DAMAGE:
-                print('parse damage', args.amount)
-            else:
-                print('add usage')
-        elif command == Commands.DEL:
-            if args.specifier is None:
-                print('del usage')
-            elif args.specifier is 'all':
-                print('del all')
-            else:
-                print('del', int(args.specifier))
-        elif command == Commands.LIST:
-            print('Parsed: list')
-        else:
-            print('usage message')
-
-    except ParseError as e:
-        if len(e.parsed) == 1:
-            command = e.parsed[0]
-            print(ACTION_COMMAND_USAGES[command].format(ACTION_ADD_SET_ACTIONS))
-        elif len(e.parsed == 2):
-            pass
-        print('error:', e.parsed)
+    result = action.run(['del'])
+    print(result)
