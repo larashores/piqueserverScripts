@@ -2,6 +2,9 @@ import click
 from click.core import Command, Group, BaseCommand
 import types
 
+argument = click.argument
+pass_obj = click.pass_obj
+
 
 def group(name=None, *, usage=None, **attrs):
     def decorator(func):

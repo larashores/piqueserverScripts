@@ -18,34 +18,34 @@ def set_(connection):
     pass
 
 
-@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@click.argument('speed', default=.15, type=click.FLOAT, required=False)
-@click.argument('height', type=click.FLOAT)
+@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
+@piqueargs.argument('height', type=click.FLOAT)
 @piqueargs.command(usage='Usage: /action add height <height> [speed=0.15] [delay]')
 def height(connection, height, speed, delay):
     return 'height {} {} {}'.format(height, speed, delay)
 
 
-@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@click.argument('speed', default=.15, type=click.FLOAT, required=False)
-@click.argument('amount', type=click.FLOAT)
+@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
+@piqueargs.argument('amount', type=click.FLOAT)
 @piqueargs.command('raise', usage='Usage: /action add raise <amount> [speed=0.15] [delay]')
 def raise_(connection, amount, speed, delay):
     return 'raise {} {} {}'.format(amount, speed, delay)
 
 
-@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@click.argument('speed', default=.15, type=click.FLOAT, required=False)
-@click.argument('amount', type=click.FLOAT)
+@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
+@piqueargs.argument('amount', type=click.FLOAT)
 @piqueargs.command(usage='Usage: /action add lower <amount> [speed=0.15] [delay]')
 def lower(connection, amount, speed, delay):
     return 'lower {} {} {}'.format(amount, speed, delay)
 
 
-@click.argument('wait', default=3.0, type=click.FLOAT, required=False)
-@click.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@click.argument('speed', default=.15, type=click.FLOAT, required=False)
-@click.argument('height', type=click.FLOAT)
+@piqueargs.argument('wait', default=3.0, type=click.FLOAT, required=False)
+@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
+@piqueargs.argument('height', type=click.FLOAT)
 @piqueargs.command(usage='Usage: /action add elevator <height> [speed=0.25] [delay] [wait=3.0]')
 def elevator(connection, height, speed, delay, wait):
     return 'elevator {} {} {} {}'.format(height, speed, delay, wait)
@@ -56,9 +56,9 @@ def output(connection):
     return 'output'
 
 
-@click.argument('z', type=click.INT, required=False)
-@click.argument('y', type=click.INT, required=False)
-@click.argument('first')
+@piqueargs.argument('z', type=click.INT, required=False)
+@piqueargs.argument('y', type=click.INT, required=False)
+@piqueargs.argument('first')
 @piqueargs.command(usage='Usage: /action add teleport <x y z|where>')
 def teleport(connection, first, y, z):
     if first == 'where':
@@ -72,13 +72,13 @@ def teleport(connection, first, y, z):
         piqueargs.bad_command(teleport.usage)
 
 
-@click.argument('text')
+@piqueargs.argument('text')
 @piqueargs.command(usage='Usage: /action add chat <text>')
 def chat(connection, text):
     return 'chat {}'.format(text)
 
 
-@click.argument('amount', type=click.INT)
+@piqueargs.argument('amount', type=click.INT)
 @piqueargs.command(usage='Usage: /action add damage <amount>')
 def damage(connection, amount):
     return '{}: damage {}'.format(connection, amount)
@@ -89,7 +89,7 @@ def list_(connection):
     return 'list'
 
 
-@click.argument('what')
+@piqueargs.argument('what')
 @action.command('del', usage='Usage: /action del <#|all>')
 def delete(connection, what):
     if what == 'all':
@@ -118,5 +118,5 @@ for command in add_set_commands:
 
 
 if __name__ == '__main__':
-    result = action.run('hello', ['del', '3'])
+    result = action.run('hello', ['del', 'a'])
     print(result)
