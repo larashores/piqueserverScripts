@@ -58,6 +58,7 @@ from platforms.states.actionaddstate import ActionAddState
 from platforms.states.actioncommandstate import ActionCommandState
 from platforms.states.selectbuttonstate import SelectButtonState
 from platforms.states.selectplatformstate import SelectPlatformState
+from platforms.commands.util import IDENTIFIER
 
 POS_FLOAT = piqueargs.FloatRange(0.0, 86400.0)
 
@@ -194,18 +195,11 @@ def list_(connection):
     push_states(connection, [state, SelectButtonState(state)])
 
 
-@piqueargs.argument('what')
+@piqueargs.argument('what', type=IDENTIFIER)
 @action.command('del', usage='Usage: /action del <#|all>')
 def delete(connection, what):
     state = ActionCommandState('del')
-    if what == 'all':
-        state.number = what
-    else:
-        try:
-            state.number = int(what)
-        except ValueError:
-            piqueargs.stop_parsing(delete.usage)
-        piqueargs.stop_parsing(delete.usage)
+    state.number = what
     push_states(connection, [state, SelectButtonState(state)])
 
 

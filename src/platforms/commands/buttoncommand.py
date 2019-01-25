@@ -75,7 +75,7 @@ def cooldown(connection, seconds):
 
 @button.command(usage='Usage: /button destroy')
 def destroy(connection):
-        push_command_state(connection, ButtonCommandState('destroy'))
+    push_command_state(connection, ButtonCommandState('destroy'))
 
 
 @button.command(usage='Usage: /button last')

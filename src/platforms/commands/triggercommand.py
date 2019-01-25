@@ -56,6 +56,7 @@
 import click
 
 from platforms import piqueargs
+from platforms.commands.util import IDENTIFIER
 from platforms.strings import S_EXIT_BLOCKING_STATE
 from platforms.states.triggeraddstate import TriggerAddState
 from platforms.states.triggercommandstate import TriggerCommandState
@@ -136,18 +137,11 @@ def list_(connection):
     push_states(connection, [state, SelectButtonState(state)])
 
 
-@piqueargs.argument('what')
+@piqueargs.argument('what', type=IDENTIFIER)
 @trigger.command('del', usage='Usage: /trigger del <#|all>')
 def delete(connection, what):
     state = TriggerCommandState('del')
-    if what == 'all':
-        state.number = what
-    else:
-        try:
-            state.number = int(what)
-        except ValueError:
-            piqueargs.stop_parsing(delete.usage)
-        piqueargs.stop_parsing(delete.usage)
+    state.number = what
     push_states(connection, [state, SelectButtonState(state)])
 
 
