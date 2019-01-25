@@ -51,108 +51,164 @@
 
             Specifying 'all' instead of a number erases all the actions.
 """
-import click
-
+from pyspades.constants import WEAPON_KILL, FALL_KILL
 from platforms import piqueargs
+from platforms.strings import S_EXIT_BLOCKING_STATE, S_WHERE_FIRST
+from platforms.states.actionaddstate import ActionAddState
+from platforms.states.actioncommandstate import ActionCommandState
+from platforms.states.selectbuttonstate import SelectButtonState
+from platforms.states.selectplatformstate import SelectPlatformState
+
+POS_FLOAT = piqueargs.FloatRange(0, 86400)
 
 
-@piqueargs.group(usage='Usage: /action <add set list del>')
-def action(connection):
-    pass
+@piqueargs.group(usage='Usage: /action <add set list del>', required=False)
+def action(connection, end=False):
+    if not end:
+        return
+
+    if connection not in connection.protocol.players:
+        raise ValueError()
+    state = connection.states.top()
+    if state and state.get_parent().name == 'action':
+        connection.states.exit()  # cancel action command
+    elif state and state.blocking:
+        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
+    else:
+        connection.states.exit()
 
 
 @action.group(usage='Usage: /action {} <height raise lower elevator output teleport chat damage>', usageargs=['add'])
-def add(connection):
-    pass
+@piqueargs.pass_obj
+def add(obj, connection):
+    obj.add = True
 
 
 @action.group('set', usage='Usage: /action {} <height raise lower elevator output teleport chat damage>', usageargs=['set'])
-def set_(connection):
-    pass
+@piqueargs.pass_obj
+def set_(obj, connection):
+    obj.add = False
 
 
-@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
-@piqueargs.argument('height', type=click.FLOAT)
+@piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
+@piqueargs.argument('height', type=POS_FLOAT)
 @piqueargs.command(usage='Usage: /action {} height <height> [speed=0.15] [delay]')
-def height(connection, height, speed, delay):
-    return 'height {} {} {}'.format(height, speed, delay)
+@piqueargs.pass_obj
+def height(obj, connection, height, speed, delay):
+    state = ActionAddState('elevator', obj.add)
+    state.kwargs = {'mode': 'elevator', 'height': height, 'speed': speed, 'delay': delay}
+    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
-@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
-@piqueargs.argument('amount', type=click.FLOAT)
+@piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
+@piqueargs.argument('amount', type=POS_FLOAT)
 @piqueargs.command('raise', usage='Usage: /action {} raise <amount> [speed=0.15] [delay]')
-def raise_(connection, amount, speed, delay):
-    return 'raise {} {} {}'.format(amount, speed, delay)
+@piqueargs.pass_obj
+def raise_(obj, connection, amount, speed, delay):
+    state = ActionAddState('raise', obj.add)
+    state.kwargs = {'mode': 'raise', 'amount': amount, 'speed': speed, 'delay': delay}
+    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
-@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
-@piqueargs.argument('amount', type=click.FLOAT)
+@piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
+@piqueargs.argument('amount', type=POS_FLOAT)
 @piqueargs.command(usage='Usage: /action {} lower <amount> [speed=0.15] [delay]')
-def lower(connection, amount, speed, delay):
-    return 'lower {} {} {}'.format(amount, speed, delay)
+@piqueargs.pass_obj
+def lower(obj, connection, amount, speed, delay):
+    state = ActionAddState('lower', obj.add)
+    state.kwargs = {'mode': 'lower', 'amount': amount, 'speed': speed, 'delay': delay}
+    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
-@piqueargs.argument('wait', default=3.0, type=click.FLOAT, required=False)
-@piqueargs.argument('delay', default=0.0, type=click.FLOAT, required=False)
-@piqueargs.argument('speed', default=.15, type=click.FLOAT, required=False)
-@piqueargs.argument('height', type=click.FLOAT)
+@piqueargs.argument('wait', default=3.0, type=POS_FLOAT, required=False)
+@piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
+@piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
+@piqueargs.argument('height', type=POS_FLOAT)
 @piqueargs.command(usage='Usage: /action {} elevator <height> [speed=0.25] [delay] [wait=3.0]')
-def elevator(connection, height, speed, delay, wait):
-    return 'elevator {} {} {} {}'.format(height, speed, delay, wait)
+@piqueargs.pass_obj
+def elevator(obj, connection, height, speed, delay, wait):
+    state = ActionAddState('elevator', obj.add)
+    state.kwargs = {'mode': 'elevator', 'height': height, 'speed': speed, 'delay': delay, 'wait': wait}
+    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
+@piqueargs.argument('delay', type=piqueargs.FloatRange())
 @piqueargs.command(usage='Usage: /action {} output [delay]')
-def output(connection):
-    return 'output'
+@piqueargs.pass_obj
+def output(obj, connection, delay):
+    state = ActionAddState('output', obj.add)
+    state.kwargs = {'mode': 'height', 'speed': 0.0, 'delay': delay or 0.0, 'force': True}
+    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
-@piqueargs.argument('z', type=click.INT, required=False)
-@piqueargs.argument('y', type=click.INT, required=False)
+@piqueargs.argument('z', type=piqueargs.FloatRange(0.0, 62.0), required=False)
+@piqueargs.argument('y', type=piqueargs.FloatRange(511.0, 511.0), required=False)
 @piqueargs.argument('first')
 @piqueargs.command(usage='Usage: /action {} teleport <x y z|where>')
-def teleport(connection, first, y, z):
+@piqueargs.pass_obj
+def teleport(obj, connection, first, y, z):
     if first == 'where':
-        return 'teleport where'
+        if not connection.where_location:
+            piqueargs.stop_parsing(S_WHERE_FIRST)
+        x, y, z = connection.where_location
+        x = round(x * 2.0) / 2.0 - 0.5
+        y = round(y * 2.0) / 2.0 - 0.5
+        z = round(z) + 0.5
     elif y is not None and z is not None:
         try:
-            return 'teleport {} {} {}'.format(int(first), y, z)
+            x = piqueargs.FloatRange.check_value('x', float(first), 0.0, 511.0)
         except ValueError:
-            piqueargs.bad_command(teleport.usage)
+            piqueargs.stop_parsing(teleport.usage)
     else:
-        piqueargs.bad_command(teleport.usage)
+        piqueargs.stop_parsing(teleport.usage)
+    z = max(0.5, z)
+
+    state = ActionAddState('teleport', obj.add)
+    state.kwargs = {'location': (x, y, z)}
+    push_states(connection, [state, SelectButtonState(state)])
 
 
 @piqueargs.argument('text')
 @piqueargs.command(usage='Usage: /action {} chat <text>')
-def chat(connection, text):
-    return 'chat {}'.format(text)
+@piqueargs.pass_obj
+def chat(obj, connection, text):
+    state = ActionAddState('chat', obj.add)
+    state.kwargs = {'value': text}
+    push_states(connection, [state, SelectButtonState(state)])
 
 
-@piqueargs.argument('amount', type=click.INT)
+@piqueargs.argument('amount', type=piqueargs.IntRange(-100, 100))
 @piqueargs.command(usage='Usage: /action {} damage <amount>')
-def damage(connection, amount):
+@piqueargs.pass_obj
+def damage(obj, connection, amount):
+    state = ActionAddState('damage', obj.add)
+    state.kwargs = {'value': amount, 'type': WEAPON_KILL if amount > 0 else FALL_KILL}
+    push_states(connection, [state, SelectButtonState(state)])
     return 'damage {}'.format(amount)
 
 
 @action.command('list', usage='Usage: /action list')
 def list_(connection):
-    return 'list'
+    state = ActionCommandState('list')
+    push_states(connection, [state, SelectButtonState(state)])
 
 
 @piqueargs.argument('what')
 @action.command('del', usage='Usage: /action del <#|all>')
 def delete(connection, what):
+    state = ActionCommandState('del')
     if what == 'all':
-        return 'delete all'
+        state.number = what
     else:
         try:
-            what = int(what)
+            state.number = int(what)
         except ValueError:
-            piqueargs.bad_command(delete.usage)
-    return 'delete {}'.format(what)
+            piqueargs.stop_parsing(delete.usage)
+        piqueargs.stop_parsing(delete.usage)
+    push_states(connection, [state, SelectButtonState(state)])
 
 
 for command in (height, raise_, lower, elevator, output, teleport, chat, damage):
@@ -160,6 +216,8 @@ for command in (height, raise_, lower, elevator, output, teleport, chat, damage)
     set_.add_command(command)
 
 
-if __name__ == '__main__':
-    result = action.run('connection', [])
-    print(result)
+def push_states(player, states):
+    player.states.exit()
+    for state in states[:-1]:
+        player.states.push(state)
+    player.states.enter(states[-1])

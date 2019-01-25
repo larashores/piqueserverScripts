@@ -64,19 +64,20 @@ def triggercommand(connection):
 
 
 @piqueargs.option('not', 'notarg')
-@triggercommand.group(usage='Usage: /action {} [not] <press distance track height>', usageargs=['add'])
+@triggercommand.group(usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['add'])
 def add(connection, notarg):
     print('add{}'.format(' not' if notarg else ''))
 
 
 @piqueargs.option('not', 'notarg')
-@triggercommand.group('set', usage='Usage: /action {} [not] <press distance track height>>', usageargs=['set'])
+@triggercommand.group('set', usage='Usage: /trigger {} [not] <press distance track height>>', usageargs=['set'])
 def set_(connection, notarg):
     print('set{}'.format(' not' if notarg else ''))
 
 
-@piqueargs.command(usage='Usage: /action {} [not] press')
+@piqueargs.command(usage='Usage: /trigger {} [not] press')
 def press(connection):
+    print(dir(press))
     return 'press'
 
 
@@ -126,5 +127,5 @@ for command in (press, distance, track, height):
 
 
 if __name__ == '__main__':
-    result = triggercommand.run('connection', [])
+    result = triggercommand.run('connection', ['add', 'press'])
     print(result)
