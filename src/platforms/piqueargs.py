@@ -1,5 +1,6 @@
 import click
 from click.core import Command, Group, BaseCommand
+from click.types import IntParamType, FloatParamType
 import types
 
 argument = click.argument
@@ -29,8 +30,8 @@ def option(name, argname=None):
     return decorator
 
 
-def bad_command(message):
-    raise _InvalidException(message)
+def stop_parsing(message=None):
+    raise _EndEarlyException(message)
 
 
 def _subgroup(self, *args, **kwargs):
@@ -49,9 +50,15 @@ def _subcommand(self, *args, **kwargs):
     return decorator
 
 
-class _InvalidException(Exception):
-    def __init__(self, usage=None):
-        self.usage = usage
+class _EndEarlyException(Exception):
+    def __init__(self, text=None):
+        self.message = text
+
+
+class _InvokeEarlyException(Exception):
+    def __init__(self, command, context):
+        self.command = command
+        self.context = context
 
 
 class _Usage:
@@ -87,16 +94,25 @@ class _PiqueArgsBaseCommand(BaseCommand):
         self._usage.parent = parent._usage
 
     def make_context(self, info_name, args, parent=None, **extra):
-        ctx = super().make_context(info_name, args, parent, **extra)
-        if parent is not None:
+        if parent is None:
+            ctx = super().make_context(info_name, args, parent, **extra)
+            ctx.obj = types.SimpleNamespace()
+        else:
+            ctx = super().make_context(info_name, args, parent, **extra)
             ctx.params['connection'] = parent.params['connection']
             ctx.obj = parent.obj
-        else:
-            ctx.obj = types.SimpleNamespace()
+
         return ctx
 
 
+S_OUT_OF_BOUNDS = 'ERROR: {parameter} must be in the range [{min}..{max}]'
+
+
 class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
+    def __init__(self, *args, required=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.required = required
+
     def add_command(self, cmd, name=None):
         cmd.add_parent(self)
         return super().add_command(cmd, name)
@@ -109,8 +125,8 @@ class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
                 args.pop(0)
             else:
                 ctx.params[cmd_option] = False
-        if not args and self.no_args_is_help and not ctx.resilient_parsing:
-            raise _InvalidException(self.usage)
+        if not args:
+            raise _InvokeEarlyException(self, ctx)
         return Group.parse_args(self, ctx, args)
 
     def run(self, connection, args):
@@ -120,15 +136,64 @@ class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
             with ctx:
                 result = self.invoke(ctx)
                 return result
-        except _InvalidException as e:
-            return e.usage
         except click.exceptions.UsageError as e:
+            print(dir(e))
+            print('here', e.message, e.cmd.name, e.exit_code, e.args)
             return e.ctx.command.usage
+        except _InvokeEarlyException as e:
+            e.context.params['connection'] = connection
+            e.context.params['end'] = True
+            try:
+                return Command.invoke(e.command, e.context)
+            except _EndEarlyException as e:
+                return e.message
+        except _EndEarlyException as e:
+            return e.message
 
 
 class _PiqueArgsCommand(_PiqueArgsBaseCommand, Command):
     pass
 
 
+def range_class(base):
+    class Range(IntParamType):
+        """A parameter that works similar to :data:`click.INT` but restricts
+        the value to fit into a range.  The default behavior is to fail if the
+        value falls outside the range, but it can also be silently clamped
+        between the two edges.
+
+        See :ref:`ranges` for an example.
+        """
+        name = 'integer range'
+
+        def __init__(self, min=None, max=None, clamp=False):
+            self.min = min
+            self.max = max
+            self.clamp = clamp
+
+        def convert(self, value, param, ctx):
+            rv = base.convert(self, value, param, ctx)
+            if self.clamp:
+                if self.min is not None and rv < self.min:
+                    return self.min
+                if self.max is not None and rv > self.max:
+                    return self.max
+            if self.min is not None and rv < self.min or self.max is not None and rv > self.max:
+                if self.min is None:
+                    stop_parsing("ERROR: Maximum value of '{parameter}' is {max}".format(
+                        parameter=param.name, max=self.max))
+                elif self.max is None:
+                    stop_parsing("ERROR: Minimum value of '{parameter}' is {min}".format(
+                        parameter=param.name, min=self.min))
+                else:
+                    stop_parsing("ERROR: '{parameter}' must be in the range [{min}..{max}]".format(
+                        parameter=param.name, min=self.min, max=self.max))
+            return rv
+
+        def __repr__(self):
+            return '{}Range({}, {})'.format(base, self.min, self.max)
+    return Range
 
 
+IntRange = range_class(IntParamType)
+FloatRange = range_class(FloatParamType)
