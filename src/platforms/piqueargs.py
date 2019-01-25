@@ -104,8 +104,24 @@ class _PiqueArgsBaseCommand(BaseCommand):
 
         return ctx
 
-
-S_OUT_OF_BOUNDS = 'ERROR: {parameter} must be in the range [{min}..{max}]'
+    def run(self, connection, args):
+        try:
+            ctx = self.make_context(self.name, args)
+            ctx.params['connection'] = connection
+            with ctx:
+                result = self.invoke(ctx)
+                return result
+        except click.exceptions.UsageError as e:
+            return e.ctx.command.usage
+        except _InvokeEarlyException as e:
+            e.context.params['connection'] = connection
+            e.context.params['end'] = True
+            try:
+                return Command.invoke(e.command, e.context)
+            except _EndEarlyException as e:
+                return e.message
+        except _EndEarlyException as e:
+            return e.message
 
 
 class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
@@ -128,25 +144,6 @@ class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
         if not args:
             raise _InvokeEarlyException(self, ctx)
         return Group.parse_args(self, ctx, args)
-
-    def run(self, connection, args):
-        try:
-            ctx = self.make_context(self.name, args)
-            ctx.params['connection'] = connection
-            with ctx:
-                result = self.invoke(ctx)
-                return result
-        except click.exceptions.UsageError as e:
-            return e.ctx.command.usage
-        except _InvokeEarlyException as e:
-            e.context.params['connection'] = connection
-            e.context.params['end'] = True
-            try:
-                return Command.invoke(e.command, e.context)
-            except _EndEarlyException as e:
-                return e.message
-        except _EndEarlyException as e:
-            return e.message
 
 
 class _PiqueArgsCommand(_PiqueArgsBaseCommand, Command):
