@@ -29,16 +29,22 @@ Maintainer: hompy
 # Platforms crushing players
 # Stop platforms action?
 
+from platforms import piqueargs
 from platforms.core.platformconnection import platform_connection
 from platforms.core.platformprotocol import platform_protocol
+from platforms.commands.actioncommand import action
+from platforms.commands.buttoncommand import button
+from platforms.commands.platformcommand import platform
+from platforms.commands.triggercommand import trigger
+from platforms.commands.commands import save, reach
 
-# --------------Adds commands on import----------------
-from platforms.commands import commands
-from platforms.commands.platform import platform_command
-from platforms.commands.action import action_command
-from platforms.commands.trigger import trigger_command
-from platforms.commands.button import button_command
-# -----------------------------------------------------
+
+piqueargs.add_server_command(action, 'action', 'ac')
+piqueargs.add_server_command(button, 'button', 'b')
+piqueargs.add_server_command(platform, 'action', 'p')
+piqueargs.add_server_command(trigger, 'trigger', 'tr')
+piqueargs.add_server_command(save)
+piqueargs.add_server_command(reach)
 
 
 def apply_script(protocol, connection, config):

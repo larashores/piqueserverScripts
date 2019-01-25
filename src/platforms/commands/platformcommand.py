@@ -30,7 +30,7 @@ from platforms.states.platformcommandstate import PlatformCommandState
 
 
 @piqueargs.group(usage='Usage: /platform [new name height freeze destroy last]', required=False)
-def platform_command(connection, end=False):
+def platform(connection, end=False):
     if not end:
         return
 
@@ -47,14 +47,14 @@ def platform_command(connection, end=False):
 
 
 @piqueargs.argument('label')
-@platform_command.command(usage='Usage: /platform new <label>')
+@platform.command(usage='Usage: /platform new <label>')
 def new(connection, label):
     connection.states.exit()
     connection.states.enter(NewPlatformState(label))
 
 
 @piqueargs.argument('label')
-@platform_command.command(usage='Usage: /platform name <label>')
+@platform.command(usage='Usage: /platform name <label>')
 def name(connection, label):
     state = PlatformCommandState('name')
     state.label = label
@@ -62,24 +62,24 @@ def name(connection, label):
 
 
 @piqueargs.argument('height', type=piqueargs.IntRange(0, 63))
-@platform_command.command(usage='Usage: /platform height <height>')
+@platform.command(usage='Usage: /platform height <height>')
 def height(connection, height):
     state = PlatformCommandState('height')
     state.height = height
     push_state(connection, state)
 
 
-@platform_command.command(usage='Usage: /platform freeze')
+@platform.command(usage='Usage: /platform freeze')
 def freeze(connection):
     push_state(connection, PlatformCommandState('freeze'))
 
 
-@platform_command.command(usage='Usage: /platform destroy')
+@platform.command(usage='Usage: /platform destroy')
 def destroy(connection):
     push_state(connection, PlatformCommandState('destroy'))
 
 
-@platform_command.command(usage='Usage: /platform last')
+@platform.command(usage='Usage: /platform last')
 def last(connection):
     state = connection.states.top()
     if state and state.name == 'select platforms' and connection.previous_platform:

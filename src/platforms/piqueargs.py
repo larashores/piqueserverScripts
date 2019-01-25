@@ -2,9 +2,17 @@ import click
 from click.core import Command, Group, BaseCommand
 from click.types import IntParamType, FloatParamType
 import types
+import piqueserver.commands
 
 argument = click.argument
 pass_obj = click.pass_obj
+
+
+def add_server_command(func, *args, **kwargs):
+    @piqueserver.commands.command(*args, **kwargs)
+    def command(connection, *arg):
+        return func(connection, *arg)
+    return command
 
 
 def group(name=None, **attrs):
