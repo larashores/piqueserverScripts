@@ -25,47 +25,75 @@
 import click
 
 from platforms import piqueargs
+from platforms.strings import S_EXIT_BLOCKING_STATE, S_NOT_POSITIVE
+from platforms.states.newplatformstate import NewPlatformState
+from platforms.states.selectplatformstate import SelectPlatformState
+from platforms.states.platformcommandstate import PlatformCommandState
 
 
-@piqueargs.group(usage='Usage: /platform [new name height freeze destroy last]')
-def platform_command(connection):
-    pass
+@piqueargs.group(usage='Usage: /platform [new name height freeze destroy last]', required=False)
+def platform_command(connection, end=False):
+    if not end:
+        return
+
+    if connection not in connection.protocol.players:
+        raise ValueError()
+    state = connection.states.top()
+    if state and state.get_parent().name in ('new platforms', 'platforms command'):
+        connection.states.exit()  # cancel platform creation
+    elif state and state.blocking:
+        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
+    else:
+        connection.states.exit()
+        connection.states.enter(NewPlatformState())
 
 
 @piqueargs.argument('label')
 @platform_command.command(usage='Usage: /platform new <label>')
 def new(connection, label):
-    return 'new {}'.format(label)
+    connection.states.exit()
+    connection.states.enter(NewPlatformState(label))
 
 
 @piqueargs.argument('label')
 @platform_command.command(usage='Usage: /platform name <label>')
 def name(connection, label):
-    return 'name {}'.format(label)
+    state = PlatformCommandState('name')
+    state.label = label
+    push_state(connection, state)
 
 
 @piqueargs.argument('height', type=click.INT)
 @platform_command.command(usage='Usage: /platform height <height>')
 def height(connection, height):
-    return 'name {}'.format(height)
+    if height < 0:
+        piqueargs.stop_parsing(S_NOT_POSITIVE.format(parameter=height))
+    state = PlatformCommandState('height')
+    state.height = height
+    push_state(connection, state)
 
 
 @platform_command.command(usage='Usage: /platform freeze')
 def freeze(connection):
-    return 'freeze'
+    push_state(connection, PlatformCommandState('freeze'))
 
 
 @platform_command.command(usage='Usage: /platform destroy')
 def destroy(connection):
-    return 'destroy'
+    push_state(connection, PlatformCommandState('destroy'))
 
 
 @platform_command.command(usage='Usage: /platform last')
 def last(connection):
-    pass
+    state = connection.states.top()
+    if state and state.name == 'select platforms' and connection.previous_platform:
+        state.platform = connection.previous_platform
+        connection.states.pop()
+    else:
+        push_state(connection, PlatformCommandState('last'))
 
 
-if __name__ == '__main__':
-    result = platform_command.run('connection', [])
-    print(result)
-
+def push_state(player, state):
+    player.states.exit()
+    player.states.push(state)
+    player.states.enter(SelectPlatformState(state))
