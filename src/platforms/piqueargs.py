@@ -137,8 +137,6 @@ class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
                 result = self.invoke(ctx)
                 return result
         except click.exceptions.UsageError as e:
-            print(dir(e))
-            print('here', e.message, e.cmd.name, e.exit_code, e.args)
             return e.ctx.command.usage
         except _InvokeEarlyException as e:
             e.context.params['connection'] = connection
@@ -173,22 +171,26 @@ def range_class(base):
 
         def convert(self, value, param, ctx):
             rv = base.convert(self, value, param, ctx)
-            if self.clamp:
-                if self.min is not None and rv < self.min:
-                    return self.min
-                if self.max is not None and rv > self.max:
-                    return self.max
-            if self.min is not None and rv < self.min or self.max is not None and rv > self.max:
-                if self.min is None:
+            return Range.check_value(param.name, rv, self.min, self.max)
+
+        @staticmethod
+        def check_value(name, value, min=None, max=None, clamp=None):
+            if clamp:
+                if min is not None and value < min:
+                    return min
+                if max is not None and value > max:
+                    return max
+            if min is not None and value < min or max is not None and value > max:
+                if min is None:
                     stop_parsing("ERROR: Maximum value of '{parameter}' is {max}".format(
-                        parameter=param.name, max=self.max))
-                elif self.max is None:
+                        parameter=name, max=max))
+                elif max is None:
                     stop_parsing("ERROR: Minimum value of '{parameter}' is {min}".format(
-                        parameter=param.name, min=self.min))
+                        parameter=name, min=min))
                 else:
                     stop_parsing("ERROR: '{parameter}' must be in the range [{min}..{max}]".format(
-                        parameter=param.name, min=self.min, max=self.max))
-            return rv
+                        parameter=name, min=min, max=max))
+            return value
 
         def __repr__(self):
             return '{}Range({}, {})'.format(base, self.min, self.max)
