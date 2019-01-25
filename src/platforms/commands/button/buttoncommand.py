@@ -24,16 +24,12 @@
             When you get asked to select a button, you can use this command
             to automatically choose the last button you selected or created.
 """
-import click
 
 from platforms import piqueargs
-from platforms.strings import S_EXIT_BLOCKING_STATE, S_NOT_POSITIVE, S_MINIMUM
+from platforms.strings import S_EXIT_BLOCKING_STATE
 from platforms.states.buttoncommandstate import ButtonCommandState
 from platforms.states.newbuttonstate import NewButtonState
 from platforms.states.selectbuttonstate import SelectButtonState
-
-
-MIN_COOLDOWN = 0.1  # seconds
 
 
 @piqueargs.group(usage="Usage: /button [new name destroy toggle cooldown last]", required=False)
@@ -69,17 +65,12 @@ def name(connection, label):
     push_command_state(connection, state)
 
 
-@piqueargs.argument('seconds', type=click.FLOAT)
+@piqueargs.argument('seconds', type=piqueargs.FloatRange(0.1, 86400))
 @button_command.command(usage='Usage: /button cooldown <seconds>')
 def cooldown(connection, seconds):
-    if seconds < 0:
-        piqueargs.stop_parsing(S_NOT_POSITIVE.format(parameter='seconds'))
-    elif seconds < MIN_COOLDOWN:
-        piqueargs.stop_parsing(S_MINIMUM.format(paramer='seconds', value=MIN_COOLDOWN))
-    else:
-        state = ButtonCommandState('cooldown')
-        state.cooldown = seconds
-        push_command_state(connection, state)
+    state = ButtonCommandState('cooldown')
+    state.cooldown = seconds
+    push_command_state(connection, state)
 
 
 @button_command.command(usage='Usage: /button destroy')

@@ -22,10 +22,8 @@
             When you get asked to select a platforms, you can use this command
             to automatically choose the last platforms you selected or created.
 """
-import click
-
 from platforms import piqueargs
-from platforms.strings import S_EXIT_BLOCKING_STATE, S_NOT_POSITIVE
+from platforms.strings import S_EXIT_BLOCKING_STATE
 from platforms.states.newplatformstate import NewPlatformState
 from platforms.states.selectplatformstate import SelectPlatformState
 from platforms.states.platformcommandstate import PlatformCommandState
@@ -63,11 +61,9 @@ def name(connection, label):
     push_state(connection, state)
 
 
-@piqueargs.argument('height', type=click.INT)
+@piqueargs.argument('height', type=piqueargs.IntRange(0, 63))
 @platform_command.command(usage='Usage: /platform height <height>')
 def height(connection, height):
-    if height < 0:
-        piqueargs.stop_parsing(S_NOT_POSITIVE.format(parameter=height))
     state = PlatformCommandState('height')
     state.height = height
     push_state(connection, state)
