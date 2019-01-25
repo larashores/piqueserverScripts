@@ -59,7 +59,7 @@ from platforms.states.actioncommandstate import ActionCommandState
 from platforms.states.selectbuttonstate import SelectButtonState
 from platforms.states.selectplatformstate import SelectPlatformState
 
-POS_FLOAT = piqueargs.FloatRange(0, 86400)
+POS_FLOAT = piqueargs.FloatRange(0.0, 86400.0)
 
 
 @piqueargs.group(usage='Usage: /action <add set list del>', required=False)
@@ -74,8 +74,6 @@ def action(connection, end=False):
         connection.states.exit()  # cancel action command
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
-    else:
-        connection.states.exit()
 
 
 @action.group(usage='Usage: /action {} <height raise lower elevator output teleport chat damage>', usageargs=['add'])
