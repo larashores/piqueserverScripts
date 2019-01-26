@@ -79,7 +79,7 @@ def destroy(connection):
 def last(connection):
     state = connection.states.top()
     if state and isinstance(state, SelectPlatformState) and connection.previous_platform:
-        state.platform = connection.previous_platform
+        state.select_platform(connection.previous_platform)
         connection.states.pop()
     else:
         push_state(connection, PlatformLastState())
