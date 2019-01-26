@@ -1,4 +1,4 @@
-from platforms.abstractattribute import abstractattribute, abstractmethod, ABCMeta
+from platforms.abstractattribute import abstractattribute, ABCMeta
 from platforms.states.needsplatformstate import NeedsButtonState
 from platforms.states.platform.platformstate import PlatformState
 from platforms.strings import S_COMMAND_CANCEL
@@ -12,7 +12,6 @@ class PlatformCommandState(PlatformState, NeedsButtonState, metaclass=ABCMeta):
             return S_COMMAND_CANCEL.format(command='platform {}'.format(self.COMMAND_NAME))
         self._on_activate_command(protocol, player)
 
-    @abstractmethod
     def _on_activate_command(self, protocol, player):
         pass
 

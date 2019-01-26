@@ -15,7 +15,7 @@ class SelectButtonState(ButtonState):
         return 'Select a button by hitting it with the spade'
 
     def on_exit(self, protocol, player):
-        self.parent_state.button = self.button
+        self.parent_state.set_button(self.button)
         player.previous_button = self.button or player.previous_button
         if player.states.top() is self.parent_state:
             player.states.pop()
