@@ -4,7 +4,7 @@ from platforms.states.needsbuttonstate import NeedsButtonState
 from platforms.strings import *
 
 
-class TriggerCommandState(TriggerState, NeedsButtonState, metaclass=ABCMeta):
+class TriggerCommandState(NeedsButtonState, TriggerState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def on_exit(self, protocol, player):

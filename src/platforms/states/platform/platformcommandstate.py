@@ -4,7 +4,7 @@ from platforms.states.platform.platformstate import PlatformState
 from platforms.strings import S_COMMAND_CANCEL
 
 
-class PlatformCommandState(PlatformState, NeedsPlatformState, metaclass=ABCMeta):
+class PlatformCommandState(NeedsPlatformState, PlatformState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def on_exit(self, protocol, player):

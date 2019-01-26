@@ -4,12 +4,11 @@ from platforms.strings import S_COMMAND_CANCEL
 from platforms.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
 
-class ActionCommandState(ActionState, NeedsButtonState, metaclass=ABCMeta):
+class ActionCommandState(NeedsButtonState, ActionState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def on_exit(self, protocol, player):
-        button = self.button
-        if not button:
+        if not self.button:
             return S_COMMAND_CANCEL.format(command='action {}'.format(self.COMMAND_NAME))
         self._on_activate_command(protocol, player)
 

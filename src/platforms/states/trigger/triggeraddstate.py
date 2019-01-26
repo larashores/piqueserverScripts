@@ -9,7 +9,7 @@ from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
 from platforms.strings import S_COMMAND_CANCEL
 
 
-class TriggerAddState(TriggerState, NeedsButtonState, metaclass=ABCMeta):
+class TriggerAddState(NeedsButtonState, TriggerState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def __init__(self, trigger_type, negate, clear_others):
@@ -66,7 +66,7 @@ class TrackTriggerState(TriggerAddState):
         return TrackTrigger(protocol, self.radius)
 
 
-class HeightTriggerState(TriggerAddState, NeedsPlatformState):
+class HeightTriggerState(NeedsPlatformState, TriggerAddState):
     COMMAND_NAME = 'height'
 
     def __init__(self, height, *args, **kwargs):

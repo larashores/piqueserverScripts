@@ -1,10 +1,8 @@
-from platforms.states.state import State
-
-
-class NeedsButtonState(State):
+class NeedsButtonState:
     button = property(lambda self: self._button)
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._button = None
 
     def set_button(self, button):
