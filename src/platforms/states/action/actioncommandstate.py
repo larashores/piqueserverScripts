@@ -1,10 +1,10 @@
 from platforms.states.action.actionstate import ActionState
-from platforms.states.buttonactionstate import ButtonActionState
+from platforms.states.needsbuttonstate import NeedsButtonState
 from platforms.strings import S_COMMAND_CANCEL
 from platforms.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
 
-class ActionCommandState(ActionState, ButtonActionState, metaclass=ABCMeta):
+class ActionCommandState(ActionState, NeedsButtonState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def on_exit(self, protocol, player):
@@ -42,7 +42,6 @@ class ActionDelState(ActionCommandState):
         try:
             index = self.number % len(self.button.actions)
             action = self.button.actions.pop(self.number)
-            return "{} action {} deleted from button '{}'".format(action.type.capitalize(),
-                                                                  index, self.button.label)
+            return "{} action {} deleted from button '{}'".format(action.type.capitalize(), index, self.button.label)
         except IndexError:
             return "Invalid action number! Use '/action list' to check"

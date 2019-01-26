@@ -57,4 +57,4 @@ class ButtonCooldownState(ButtonCommandState):
 
 
 class ButtonLastState(ButtonCommandState):
-    COMMAND_NAME = 'lasr'
+    COMMAND_NAME = 'last'
