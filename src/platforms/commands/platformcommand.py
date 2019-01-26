@@ -24,7 +24,7 @@
 """
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE
-from platforms.states.newplatformstate import NewPlatformState
+from platforms.states.platform.newplatformstate import NewPlatformState
 from platforms.states.selectplatformstate import SelectPlatformState
 from platforms.states.platformcommandstate import PlatformCommandState
 
