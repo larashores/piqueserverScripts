@@ -1,7 +1,7 @@
 from platforms.states.state import State
 
 
-class ButtonActionState(State):
+class NeedsButtonState(State):
     button = property(lambda self: self._button)
 
     def __init__(self):

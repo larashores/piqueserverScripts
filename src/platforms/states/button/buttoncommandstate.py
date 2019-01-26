@@ -1,10 +1,10 @@
 from platforms.abstractattribute import abstractattribute, ABCMeta
 from platforms.states.button.buttonstate import ButtonState
-from platforms.states.buttonactionstate import ButtonActionState
+from platforms.states.needsbuttonstate import NeedsButtonState
 from platforms.strings import S_COMMAND_CANCEL
 
 
-class ButtonCommandState(ButtonState, ButtonActionState, metaclass=ABCMeta):
+class ButtonCommandState(ButtonState, NeedsButtonState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def on_exit(self, protocol, player):
