@@ -1,36 +1,18 @@
 from platforms.states.button.buttonstate import ButtonState
-from platforms.commands.trigger.presstrigger import PressTrigger
-from platforms.worldobjects.button import Button
-
-S_BUTTON_PLACEMENT = 'Put down a block where you want the new button to be'
-S_BUTTON_CREATED = "Button '{label}' created"
-S_BUTTON_CANCEL = 'Aborting button placement'
-S_BUTTON_OVERLAPS = 'There is already another button here!'
 
 
 class NewButtonState(ButtonState):
-    name = 'new button'
-    location = None
-    label = None
-
     def __init__(self, label=None):
         self.label = label
+        self.color = None
+        self.location = None
 
     def on_enter(self, protocol, player):
-        return S_BUTTON_PLACEMENT
+        return 'Put down a block where you want the new button to be'
 
     def on_exit(self, protocol, player):
         if not self.location:
-            return S_BUTTON_CANCEL
-        if self.location in protocol.buttons:
-            return S_BUTTON_OVERLAPS
-
-        protocol.highest_id += 1
-        id = protocol.highest_id
-        x, y, z = self.location
-        button = Button(protocol, id, x, y, z, self.color)
-        button.label = self.label or button.label
-        button.add_trigger(PressTrigger(protocol))
-        protocol.buttons[(id, (x, y, z))] = button
-        player.previous_button = button
-        return S_BUTTON_CREATED.format(label=button.label)
+            return 'Aborting button placement'
+        if not protocol.create_button(self.location, self.label, self.color):
+            return 'There is already another button here!'
+        return "Button '{}' created".format(self.label)

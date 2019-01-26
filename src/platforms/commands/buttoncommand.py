@@ -78,8 +78,8 @@ def destroy(connection):
 @button.command(usage='Usage: /button last')
 def last(connection):
     state = connection.states.top()
-    if state and state.name == 'select button' and connection.previous_button:
-        state.button = connection.previous_button
+    if state and isinstance(state, SelectButtonState) and connection.previous_button:
+        state.select_button(connection.previous_button)
         connection.states.pop()
     else:
         push_command_state(connection, ButtonLastState())
