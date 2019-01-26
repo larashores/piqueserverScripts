@@ -1,41 +1,48 @@
-from platforms.states.state import State
+from platforms.states.action.actionstate import ActionState
+from platforms.states.buttonactionstate import ButtonActionState
 from platforms.strings import S_COMMAND_CANCEL
-
-S_ACTION_LIST_EMPTY = "Button '{label}' has no actions"
-S_ACTION_LIST_HEADER = "Actions in '{label}': "
-S_ACTION_DELETED = "{action} action {number} deleted from button '{label}'"
-S_ACTION_DELETED_ALL = "Deleted all actions in button '{label}'"
-S_ACTION_INVALID_NUMBER = "Invalid action number! Use '/action list' to check"
+from platforms.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
 
-class ActionCommandState(State):
-    name = 'action'
-    button = None
-
-    def __init__(self, command):
-        self.command = command
+class ActionCommandState(ActionState, ButtonActionState, metaclass=ABCMeta):
+    COMMAND_NAME = abstractattribute
 
     def on_exit(self, protocol, player):
         button = self.button
         if not button:
-            return S_COMMAND_CANCEL.format(command = 'action ' + self.command)
+            return S_COMMAND_CANCEL.format(command='action {}'.format(self.COMMAND_NAME))
+        self._on_activate_command(protocol, player)
 
-        if self.command == 'list':
-            if not button.actions:
-                return S_ACTION_LIST_EMPTY.format(label = button.label)
+    @abstractmethod
+    def _on_activate_command(self, protocol, player):
+        pass
 
-            items = ' -- '.join('#{} {}'.format(i, action) for i, action in enumerate(button.actions))
-            return S_ACTION_LIST_HEADER.format(label=button.label) + items
-        elif self.command == 'del':
-            if self.number == 'all':
-                button.actions = []
-                return S_ACTION_DELETED_ALL.format(label = button.label)
-            else:
-                try:
-                    index = self.number % len(button.actions)
-                    action = button.actions.pop(self.number)
-                except IndexError:
-                    return S_ACTION_INVALID_NUMBER
 
-                action_type = action.type.capitalize()
-                return S_ACTION_DELETED.format(action=action_type, number=index, label=button.label)
+class ActionListState(ActionCommandState):
+    COMMAND_NAME = 'list'
+
+    def _on_activate_command(self, protocol, player):
+        if not self.button.actions:
+            return "Button '{}' has no actions".format(self.button.label)
+        items = ' -- '.join('#{} {}'.format(i, action) for i, action in enumerate(self.button.actions))
+        return "Actions in '{}': ".format(self.button.label) + items
+
+
+class ActionDelState(ActionCommandState):
+    COMMAND_NAME = 'del'
+
+    def __init__(self, number):
+        ActionCommandState.__init__(self)
+        self.number = number
+
+    def _on_activate_command(self, protocol, player):
+        if self.number == 'all':
+            self.button.actions.clear()
+            return "Deleted all actions in button '{}'".format(self.button.label)
+        try:
+            index = self.number % len(self.button.actions)
+            action = self.button.actions.pop(self.number)
+            return "{} action {} deleted from button '{}'".format(action.type.capitalize(),
+                                                                  index, self.button.label)
+        except IndexError:
+            return "Invalid action number! Use '/action list' to check"

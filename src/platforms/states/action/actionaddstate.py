@@ -1,11 +1,12 @@
 from platforms.abstractattribute import abstractmethod, ABCMeta
 from platforms.worldobjects.action.platformaction import PlatformAction
 from platforms.worldobjects.action.playeraction import PlayerAction
+from platforms.states.action.actionstate import ActionState
 from platforms.states.buttonactionstate import ButtonActionState
 from platforms.strings import *
 
 
-class ActionAddState(ButtonActionState, metaclass=ABCMeta):
+class ActionAddState(ActionState, ButtonActionState, metaclass=ABCMeta):
     def __init__(self, action_type, clear_others=True, **kwargs):
         ButtonActionState.__init__(self)
         self.action_type = action_type

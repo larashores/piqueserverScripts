@@ -55,7 +55,7 @@ from pyspades.constants import WEAPON_KILL, FALL_KILL
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE, S_WHERE_FIRST
 from platforms.states.action.actionaddstate import ActionAddState
-from platforms.states.action.actioncommandstate import ActionCommandState
+from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
 from platforms.states.button.selectbuttonstate import SelectButtonState
 from platforms.states.platform.selectplatformstate import SelectPlatformState
 from platforms.worldobjects.action.platformaction import PlatformActionType
@@ -184,23 +184,21 @@ def chat(obj, connection, text):
 @piqueargs.pass_obj
 def damage(obj, connection, amount):
     state = ActionAddState(PlayerActionType.DAMAGE,
-                           obj.add, value=amount, type=WEAPON_KILL if amount > 0 else FALL_KILL,)
-    state.kwargs = {'value': amount, 'type': WEAPON_KILL if amount > 0 else FALL_KILL}
+                           obj.add, value=amount, type=WEAPON_KILL if amount > 0 else FALL_KILL)
     push_states(connection, [state, SelectButtonState(state)])
     return 'damage {}'.format(amount)
 
 
 @action.command('list', usage='Usage: /action list')
 def list_(connection):
-    state = ActionCommandState('list')
+    state = ActionListState()
     push_states(connection, [state, SelectButtonState(state)])
 
 
 @piqueargs.argument('what', type=IDENTIFIER)
 @action.command('del', usage='Usage: /action del <#|all>')
 def delete(connection, what):
-    state = ActionCommandState('del')
-    state.number = what
+    state = ActionDelState(what)
     push_states(connection, [state, SelectButtonState(state)])
 
 
