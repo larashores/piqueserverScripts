@@ -25,8 +25,8 @@
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE
 from platforms.states.platform.newplatformstate import NewPlatformState
-from platforms.states.selectplatformstate import SelectPlatformState
-from platforms.states.platformcommandstate import PlatformCommandState
+from platforms.states.platform.selectplatformstate import SelectPlatformState
+from platforms.states.platform.platformcommandstate import *
 
 
 @piqueargs.group(usage='Usage: /platform [new name height freeze destroy last]', required=False)
@@ -56,37 +56,33 @@ def new(connection, label):
 @piqueargs.argument('label')
 @platform.command(usage='Usage: /platform name <label>')
 def name(connection, label):
-    state = PlatformCommandState('name')
-    state.label = label
-    push_state(connection, state)
+    push_state(connection, PlatformNameState(label))
 
 
 @piqueargs.argument('height', type=piqueargs.IntRange(0, 63))
 @platform.command(usage='Usage: /platform height <height>')
 def height(connection, height):
-    state = PlatformCommandState('height')
-    state.height = height
-    push_state(connection, state)
+    push_state(connection, PlatformHeightState(height))
 
 
 @platform.command(usage='Usage: /platform freeze')
 def freeze(connection):
-    push_state(connection, PlatformCommandState('freeze'))
+    push_state(connection, PlatformFreezeState())
 
 
 @platform.command(usage='Usage: /platform destroy')
 def destroy(connection):
-    push_state(connection, PlatformCommandState('destroy'))
+    push_state(connection, PlatformDestroyState())
 
 
 @platform.command(usage='Usage: /platform last')
 def last(connection):
     state = connection.states.top()
-    if state and state.name == 'select platforms' and connection.previous_platform:
+    if state and isinstance(state, SelectPlatformState) and connection.previous_platform:
         state.platform = connection.previous_platform
         connection.states.pop()
     else:
-        push_state(connection, PlatformCommandState('last'))
+        push_state(connection, PlatformLastState())
 
 
 def push_state(player, state):
