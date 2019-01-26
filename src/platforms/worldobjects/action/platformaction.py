@@ -1,3 +1,14 @@
+import enum
+
+
+class PlatformActionType(enum.Enum):
+    HEIGHT = 0
+    RAISE = 1
+    LOWER = 2
+    ELEVATOR = 3
+    OUTPUT = 4
+
+
 PLATFORM_ACTION_FUNCTIONS = {
     'start': 'start',
     'height': 'start',

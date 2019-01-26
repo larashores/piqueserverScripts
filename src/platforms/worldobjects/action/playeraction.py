@@ -1,4 +1,12 @@
 from platforms.strings import S_NICE_LOCATION
+import enum
+
+
+class PlayerActionType(enum.Enum):
+    TELEPORT = 0
+    CHAT = 1
+    DAMAGE = 2
+
 
 PLAYER_ACTION_FUNCTIONS = {
     'teleport': 'set_location',

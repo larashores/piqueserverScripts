@@ -37,7 +37,7 @@ def platform(connection, end=False):
     if connection not in connection.protocol.players:
         raise ValueError()
     state = connection.states.top()
-    if state and state.get_parent().name in ('new platforms', 'platforms command'):
+    if state and type(state.get_parent()) in (NewPlatformState, PlatformCommandState):
         connection.states.exit()  # cancel platform creation
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode

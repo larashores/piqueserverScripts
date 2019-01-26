@@ -54,6 +54,7 @@
 from pyspades.constants import WEAPON_KILL, FALL_KILL
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE, S_WHERE_FIRST
+from platforms.states.action.actionstate import ActionState
 from platforms.states.action.actionaddstate import ActionAddState
 from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
 from platforms.states.button.selectbuttonstate import SelectButtonState
@@ -73,7 +74,7 @@ def action(connection, end=False):
     if connection not in connection.protocol.players:
         raise ValueError()
     state = connection.states.top()
-    if state and state.get_parent().name == 'action':
+    if state and isinstance(state.get_parent(), ActionState):
         connection.states.exit()  # cancel action command
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode

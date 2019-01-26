@@ -1,5 +1,6 @@
 from pyspades.types import MultikeyDict
 from piqueserver.config import config
+from platforms.worldobjects.trigger.presstrigger import PressTrigger
 
 from platforms.commands.trigger.presstrigger import PressTrigger
 from platforms.commands.trigger.tracktrigger import TrackTrigger
@@ -140,12 +141,57 @@ def platform_protocol(protocol):
             self.platform_json_dirty = True
 
         def get_platform(self, x, y, z):
-            for platform in self.platforms.itervalues():
+            for platform in self.platforms.values():
                 if platform.contains(x, y, z):
                     return platform
             return None
 
-        def is_platform(self, x, y, z):
+        def is_platform_or_button(self, x, y, z):
             return self.get_platform(x, y, z) or (x, y, z) in self.buttons
+
+        def create_button(self, location, color, label):
+            if location in self.buttons:
+                return None
+            self.highest_id += 1
+            id_ = self.highest_id
+            x, y, z = location
+            button = Button(self, id_, x, y, z, color)
+            button.label = label or button.label
+            button.add_trigger(PressTrigger(self))
+            self.buttons[(id_, (x, y, z))] = button
+            return button
+
+        def destroy_button(self, button):
+            button.destroy()
+            del self.buttons[button]
+            for player in self.players.values():  # clear last button memory from players
+                if player.previous_button is button:
+                    player.previous_button = None
+
+        def create_platform(self, x1, y1, z1, x2, y2, z2, color, label):
+            self.highest_id += 1
+            id_ = self.highest_id
+            platform = Platform(self, id_, x1, y1, z1, x2, y2, z2, color)
+            platform.label = label or platform.label
+            platform.build_plane(z1)
+            self.platforms[id_] = platform
+
+        def destroy_platform(self, platform):
+            platform.destroy()
+            del self.platforms[platform.id]
+            # remove actions affecting this platforms
+            for button in self.buttons.itervalues():
+                button.actions = list(filter(lambda ac: getattr(ac, 'platform', None) is not platform, button.actions))
+            # cancel any ongoing commands targeting this platforms
+            for player in self.players.itervalues():
+                state = player.states.top()
+                if not state:
+                    continue
+                if getattr(state.get_parent(), 'platform', None) is platform:
+                    player.states.exit()
+            # clear last platforms memory from players
+            for player in self.players.itervalues():
+                if player.previous_platform is platform:
+                    player.previous_platform = None
 
     return PlatformProtocol

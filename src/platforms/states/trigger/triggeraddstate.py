@@ -12,7 +12,7 @@ from platforms.strings import S_COMMAND_CANCEL
 class TriggerAddState(TriggerState, NeedsButtonState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
-    def __init__(self, trigger_type, negate, clear_others=True):
+    def __init__(self, trigger_type, negate, clear_others):
         super().__init__()
         self.trigger_type = trigger_type
         self.negate = negate
@@ -27,10 +27,10 @@ class TriggerAddState(TriggerState, NeedsButtonState, metaclass=ABCMeta):
             return
         trigger.negate = self.negate
 
-        if not self.add:
+        if self.clear_others:
             self.button.clear_triggers()
         self.button.add_trigger(trigger)
-        return "Added {} trigger to button '{}'".format(self.trigger, self.button.label)
+        return "Added {} trigger to button '{}'".format(self.trigger_type.name.lower(), self.button.label)
 
     @abstractmethod
     def _make_trigger(self, protocol):
@@ -68,6 +68,7 @@ class TrackTriggerState(TriggerAddState):
 
 class HeightTriggerState(TriggerAddState, NeedsPlatformState):
     COMMAND_NAME = 'height'
+
     def __init__(self, height, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.height = height

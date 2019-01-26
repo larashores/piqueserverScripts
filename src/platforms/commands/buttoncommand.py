@@ -40,7 +40,7 @@ def button(connection, end=False):
     if connection not in connection.protocol.players:
         raise ValueError()
     state = connection.states.top()
-    if state and state.get_parent().name in ('new button', 'button command'):
+    if state and type(state.get_parent()) in (NewButtonState, ButtonCommandState):
         connection.states.exit()  # cancel button creation
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
