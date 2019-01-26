@@ -1,6 +1,6 @@
 from pyspades.contained import BlockAction
 from pyspades.constants import DESTROY_BLOCK
-from platforms.states.state import State
+from platforms.states.platform.platformstate import PlatformState
 from platforms.worldobjects.platform import Platform
 
 import operator
@@ -11,7 +11,7 @@ S_PLATFORM_CREATED = "Platform '{label}' created"
 S_PLATFORM_CANCEL = 'Platform construction cancelled'
 
 
-class NewPlatformState(State):
+class NewPlatformState(PlatformState):
     name = 'new platforms'
     blocking = True
     label = None

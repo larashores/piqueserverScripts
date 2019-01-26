@@ -27,9 +27,9 @@
 
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE
-from platforms.states.buttoncommandstate import ButtonCommandState
-from platforms.states.newbuttonstate import NewButtonState
-from platforms.states.selectbuttonstate import SelectButtonState
+from platforms.states.button.buttoncommandstate import *
+from platforms.states.button.newbuttonstate import NewButtonState
+from platforms.states.button.selectbuttonstate import SelectButtonState
 
 
 @piqueargs.group(usage="Usage: /button [new name destroy toggle cooldown last]", required=False)
@@ -60,22 +60,19 @@ def new(connection, label):
 @button.command(usage='Usage: /button name <label>')
 @piqueargs.pass_obj
 def name(connection, label):
-    state = ButtonCommandState('new')
-    state.label = label
+    state = ButtonNameState(label)
     push_command_state(connection, state)
 
 
 @piqueargs.argument('seconds', type=piqueargs.FloatRange(0.1, 86400))
 @button.command(usage='Usage: /button cooldown <seconds>')
 def cooldown(connection, seconds):
-    state = ButtonCommandState('cooldown')
-    state.cooldown = seconds
-    push_command_state(connection, state)
+    push_command_state(connection, ButtonCooldownState(seconds))
 
 
 @button.command(usage='Usage: /button destroy')
 def destroy(connection):
-    push_command_state(connection, ButtonCommandState('destroy'))
+    push_command_state(connection, ButtonDestroyState())
 
 
 @button.command(usage='Usage: /button last')
@@ -85,7 +82,7 @@ def last(connection):
         state.button = connection.previous_button
         connection.states.pop()
     else:
-        push_command_state(connection, ButtonCommandState('last'))
+        push_command_state(connection, ButtonLastState())
 
 
 def push_command_state(player, state):

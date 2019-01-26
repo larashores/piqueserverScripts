@@ -1,4 +1,4 @@
-from platforms.states.state import State
+from platforms.states.button.buttonstate import ButtonState
 from platforms.commands.trigger.presstrigger import PressTrigger
 from platforms.worldobjects.button import Button
 
@@ -8,7 +8,7 @@ S_BUTTON_CANCEL = 'Aborting button placement'
 S_BUTTON_OVERLAPS = 'There is already another button here!'
 
 
-class NewButtonState(State):
+class NewButtonState(ButtonState):
     name = 'new button'
     location = None
     label = None

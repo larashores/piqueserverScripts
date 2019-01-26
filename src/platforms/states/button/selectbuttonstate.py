@@ -1,10 +1,10 @@
-from platforms.states.state import State
+from platforms.states.button.buttonstate import ButtonState
 
 S_SELECT_BUTTON = 'Select a button by hitting it with the spade'
 S_BUTTON_SELECTED = "Button '{label}' selected"
 
 
-class SelectButtonState(State):
+class SelectButtonState(ButtonState):
     name = 'select button'
     button = None
     parent_state = None

@@ -1,4 +1,4 @@
-from platforms.states.state import State
+from platforms.states.platform.platformstate import PlatformState
 from platforms.strings import S_COMMAND_CANCEL
 
 S_PLATFORM_RENAMED = "Platform '{old_label}' renamed to '{label}'"
@@ -7,7 +7,7 @@ S_FROZEN = "Platform '{label}' frozen"
 S_UNFROZEN = "Platform '{label}' unfrozen"
 
 
-class PlatformCommandState(State):
+class PlatformCommandState(PlatformState):
     name = 'platforms command'
     platform = None
 

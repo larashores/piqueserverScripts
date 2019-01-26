@@ -1,10 +1,10 @@
-from platforms.states.state import State
+from platforms.states.platform.platformstate import PlatformState
 
 S_SELECT_PLATFORM = 'Select a platforms by hitting it with the spade'
 S_PLATFORM_SELECTED = "Platform '{label}' selected"
 
 
-class SelectPlatformState(State):
+class SelectPlatformState(PlatformState):
     name = 'select platforms'
     platform = None
     parent_state = None
