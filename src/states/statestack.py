@@ -1,40 +1,28 @@
 class StateStack:
-    stack = None
-    protocol = None
-    connection = None
-
-    def __init__(self, connection):
+    def __init__(self):
         self.stack = []
-        self.connection = connection
-        self.protocol = connection.protocol
 
     def top(self):
         return self.stack[-1] if self.stack else None
 
-    def enter(self, state):
-        self.push(state)
-        result = state.on_enter(self.protocol, self.connection)
-        if result:
-            self.connection.send_chat(result)
-
-    def push(self, state):
-        def on_exit(exiting_state):
-            if exiting_state == self.top():
-                self.pop()
-        state.signal_exit.connect(on_exit)
-        self.stack.append(state)
+    def push(self, *states):
+        for state in states:
+            state.signal_exit.connect(self._on_signal_exit)
+            self.stack.append(state)
+        states[-1].on_enter()
 
     def pop(self):
-        state = self.stack.pop()
-        result = state.on_exit(self.protocol, self.connection)
-        if result:
-            self.connection.send_chat(result)
-        state = self.top()
-        if state:
-            result = state.on_enter(self.protocol, self.connection)
-            if result:
-                self.connection.send_chat(result)
+        old_state = self.stack.pop()
+        old_state.signal_exit.disconnet(self._on_signal_exit)
+        old_state.on_exit()
+        new_state = self.top()
+        if new_state:
+            new_state.on_enter()
 
-    def exit(self):
+    def clear(self):
         while self.stack:
+            self.pop()
+
+    def _on_signal_exit(self, exiting_state):
+        if exiting_state == self.top():
             self.pop()
