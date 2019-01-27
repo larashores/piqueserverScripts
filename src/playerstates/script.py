@@ -1,4 +1,5 @@
 from playerstates.statestack import StateStack
+from playerstates.buildingstate import BuildingState
 
 
 def apply_script(protocol, connection, config):
@@ -21,27 +22,27 @@ def apply_script(protocol, connection, config):
 
         def on_block_removed(self, x, y, z):
             state = self.state_stack.top()
-            if state:
+            if isinstance(state, BuildingState):
                 state.on_block_removed(x, y, z)
             connection.on_block_removed(self, x, y, z)
 
         def on_block_build(self, x, y, z):
             state = self.state_stack.top()
-            if state:
+            if isinstance(state, BuildingState):
                 state.on_block_build(x, y, z)
             connection.on_block_build(self, x, y, z)
 
         def on_line_build(self, points):
             state = self.state_stack.top()
-            if state:
+            if isinstance(state, BuildingState):
                 state.on_line_build(points)
             connection.on_line_build(self, points)
 
         def on_line_build_attempt(self, points):
-            state = self.state_stack.top()
             if connection.on_line_build_attempt(self, points) is False:
                 return False
-            if state:
+            state = self.state_stack.top()
+            if isinstance(state, BuildingState):
                 return state.on_line_build_attempt(points)
             return True
 
