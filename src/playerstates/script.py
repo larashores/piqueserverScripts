@@ -1,4 +1,4 @@
-from states.statestack import StateStack
+from playerstates.statestack import StateStack
 
 
 def apply_script(protocol, connection, config):

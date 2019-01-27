@@ -1,4 +1,4 @@
-from states.playerstate import PlayerState
+from playerstates.playerstate import PlayerState
 
 
 class BuildingState(PlayerState):

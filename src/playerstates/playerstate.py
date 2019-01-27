@@ -1,4 +1,4 @@
-from states.signal import Signal
+from playerstates.signal import Signal
 from abc import ABCMeta
 
 
