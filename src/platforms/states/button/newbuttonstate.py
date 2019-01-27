@@ -1,9 +1,10 @@
 from platforms.states.button.buttonstate import ButtonState
+from playerstates.buildingstate import BuildingState
 
 
-class NewButtonState(ButtonState):
+class NewButtonState(BuildingState, ButtonState):
     def __init__(self, label=None):
-        ButtonState.__init__()
+        super().__init__()
         self.label = label
         self.color = None
         self.location = None

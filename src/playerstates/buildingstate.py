@@ -1,7 +1,7 @@
-from playerstates.playerstate import PlayerState
+class BuildingState:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-
-class BuildingState(PlayerState):
     def on_block_removed(self, x, y, z):
         pass
 
@@ -13,4 +13,3 @@ class BuildingState(PlayerState):
 
     def on_line_build_attempt(self, points):
         return True
-
