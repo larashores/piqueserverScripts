@@ -18,11 +18,11 @@ class TriggerAddState(NeedsButtonState, TriggerState, metaclass=ABCMeta):
         self.negate = negate
         self.clear_others = clear_others
 
-    def on_exit(self, protocol, player):
+    def on_exit(self):
         if not self.button:
             return S_COMMAND_CANCEL.format(command='trigger {}'.format(self.COMMAND_NAME))
 
-        trigger = self._make_trigger(protocol)
+        trigger = self._make_trigger()
         if trigger is None:
             return
         trigger.negate = self.negate
@@ -33,15 +33,15 @@ class TriggerAddState(NeedsButtonState, TriggerState, metaclass=ABCMeta):
         return "Added {} trigger to button '{}'".format(self.trigger_type.name.lower(), self.button.label)
 
     @abstractmethod
-    def _make_trigger(self, protocol):
+    def _make_trigger(self):
         pass
 
 
 class PressTriggerState(TriggerAddState):
     COMMAND_NAME = 'press'
 
-    def _make_trigger(self, protocol):
-        return PressTrigger(protocol)
+    def _make_trigger(self):
+        return PressTrigger(self.player.protocol)
 
 
 class DistanceTriggerState(TriggerAddState):
@@ -51,8 +51,8 @@ class DistanceTriggerState(TriggerAddState):
         super().__init__(*args, **kwargs)
         self.radius = radius
 
-    def _make_trigger(self, protocol):
-        return DistanceTrigger(protocol, self.radius)
+    def _make_trigger(self):
+        return DistanceTrigger(self.player.protocol, self.radius)
 
 
 class TrackTriggerState(TriggerAddState):
@@ -62,8 +62,8 @@ class TrackTriggerState(TriggerAddState):
         super().__init__(*args, **kwargs)
         self.radius = radius
 
-    def _make_trigger(self, protocol):
-        return TrackTrigger(protocol, self.radius)
+    def _make_trigger(self):
+        return TrackTrigger(self.player.protocol, self.radius)
 
 
 class HeightTriggerState(NeedsPlatformState, TriggerAddState):
@@ -73,7 +73,7 @@ class HeightTriggerState(NeedsPlatformState, TriggerAddState):
         super().__init__(*args, **kwargs)
         self.height = height
 
-    def _make_trigger(self, protocol):
+    def _make_trigger(self):
         if not self.platform:
             return None
-        return HeightTrigger(protocol, self.platform.id, self.height)
+        return HeightTrigger(self.player.protocol, self.platform.id, self.height)

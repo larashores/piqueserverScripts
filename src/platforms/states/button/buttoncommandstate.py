@@ -7,12 +7,12 @@ from platforms.strings import S_COMMAND_CANCEL
 class ButtonCommandState(NeedsButtonState, ButtonState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
-    def on_exit(self, protocol, player):
+    def on_exit(self):
         if not self.button:
             return S_COMMAND_CANCEL.format(command='button {}'.format(self.COMMAND_NAME))
-        self._on_activate_command(protocol, player)
+        return self._on_activate_command()
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         pass
 
 
@@ -23,7 +23,7 @@ class ButtonNameState(ButtonCommandState):
         ButtonCommandState.__init__(self)
         self.label = label
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         old, self.button.label = self.button.label, self.label
         return "Button '{}' renamed to '{}'".format(old, self.label)
 
@@ -31,15 +31,15 @@ class ButtonNameState(ButtonCommandState):
 class ButtonDestroyState(ButtonCommandState):
     COMMAND_NAME = 'destroy'
 
-    def _on_activate_command(self, protocol, player):
-        protocol.destroy_button(self.button)
+    def _on_activate_command(self):
+        self.player.protocol.destroy_button(self.button)
         return "Button '{}' removed".format(self.button.label)
 
 
 class ButtonToggleState(ButtonCommandState):
     COMMAND_NAME = 'toggle'
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         self.button.disabled = not self.button.disabled
         return "Button '{}' {}".format(self.button.label, 'disabled' if self.button.disabled else 'enabled')
 
@@ -51,7 +51,7 @@ class ButtonCooldownState(ButtonCommandState):
         ButtonCommandState.__init__(self)
         self.cooldown = cooldown
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         self.button.cooldown = self.cooldown
         return "Cooldown for button '{}' set to {:.2f} seconds".format(self.button.label, self.cooldown)
 

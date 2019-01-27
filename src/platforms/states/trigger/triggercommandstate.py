@@ -7,20 +7,20 @@ from platforms.strings import *
 class TriggerCommandState(NeedsButtonState, TriggerState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
-    def on_exit(self, protocol, player):
+    def on_exit(self):
         if not self.button:
             return S_COMMAND_CANCEL.format(command='trigger []'.format(self.COMMAND_NAME))
-        self._on_activate_command(protocol, player)
+        return self._on_activate_command()
 
     @abstractmethod
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         pass
 
 
 class TriggerListState(TriggerCommandState):
     COMMAND_NAME = 'list'
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         if not self.button.triggers:
             return "Button '{}' has no triggers".format(self.button.label)
 
@@ -37,7 +37,7 @@ class TriggerDeleteState(TriggerCommandState):
         TriggerCommandState.__init__(self)
         self.number = number
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         if self.number == 'all':
             self.button.clear_triggers()
             return "Deleted all triggers in button '{}'".format(self.button.label)
@@ -58,7 +58,7 @@ class TriggerLogicState(TriggerCommandState):
         TriggerCommandState.__init__(self)
         self.logic = logic
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         self.button.logic = self.logic
         self.button.trigger_check()
         return "Button '{}' will activate when {}".format(
@@ -68,7 +68,7 @@ class TriggerLogicState(TriggerCommandState):
 class TriggerQuietState(TriggerCommandState):
     COMMAND_NAME = 'quiet'
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         self.button.silent = not self.button.silent
         return "Button {} will {}".format(
             self.button.label, 'activate quietly' if self.button.silent else 'animate when activated')

@@ -1,5 +1,5 @@
-from platforms.states.state import State
+from playerstates.playerstate import PlayerState
 
 
-class TriggerState(State):
+class TriggerState(PlayerState):
     pass

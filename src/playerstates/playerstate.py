@@ -5,10 +5,9 @@ from abc import ABCMeta
 class PlayerState(metaclass=ABCMeta):
     BLOCKING_STATE = False
 
-    def __init__(self, player, parent_state=None):
+    def __init__(self):
         self.signal_exit = Signal()
-        self.player = player
-        self.parent_state = parent_state if parent_state else self
+        self.player = None      # Should be set by StateStack on push
 
     def on_enter(self):
         pass

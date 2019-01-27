@@ -14,10 +14,10 @@ class ActionAddState(ActionState, NeedsButtonState, metaclass=ABCMeta):
         self.platform = None
         self.kwargs = kwargs
 
-    def on_exit(self, protocol, player):
+    def on_exit(self):
         if not self.button:
             return S_COMMAND_CANCEL.format(command='action')
-        action = self._make_action(protocol)
+        action = self._make_action()
         if action is None:
             return S_COMMAND_CANCEL.format(command='action {}'.format(self.action_type.name.lower()))
 
@@ -27,15 +27,16 @@ class ActionAddState(ActionState, NeedsButtonState, metaclass=ABCMeta):
         return "Added {} action to button '{}'".format(self.action_type.value, self.button.label)
 
     @abstractmethod
-    def _make_action(self, protocol):
+    def _make_action(self):
         pass
 
 
 class PlatformActionAddState(ActionAddState):
-    def _make_action(self, protocol):
-        return PlatformAction(protocol, self.platform.id, self.action_type, self.kwargs) if self.platform else None
+    def _make_action(self):
+        return (PlatformAction(self.player.protocol, self.platform.id, self.action_type, self.kwargs)
+                if self.platform else None)
 
 
 class PlayerActionAddState(ActionAddState):
-    def _make_action(self, protocol):
-        return PlayerAction(protocol, self.action_type, self.kwargs)
+    def _make_action(self):
+        return PlayerAction(self.player.protocol, self.action_type, self.kwargs)

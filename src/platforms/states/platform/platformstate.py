@@ -1,7 +1,7 @@
-from platforms.states.state import State
+from playerstates.buildingstate import BuildingState
 
 
-class PlatformState(State):
-    def on_inspect_platform(self, player, platform):
-        player.send_chat("Platform '{}', height {}".format(platform.label, platform.height))
+class PlatformState(BuildingState):
+    def on_inspect_platform(self, platform):
+        self.player.send_chat("Platform '{}', height {}".format(platform.label, platform.height))
         return True

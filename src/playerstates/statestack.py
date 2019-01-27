@@ -1,18 +1,20 @@
 class StateStack:
-    def __init__(self):
-        self.stack = []
+    def __init__(self, player):
+        self._stack = []
+        self._player = player
 
     def top(self):
-        return self.stack[-1] if self.stack else None
+        return self._stack[-1] if self._stack else None
 
     def push(self, *states):
         for state in states:
+            state.player = self._player
             state.signal_exit.connect(self._on_signal_exit)
-            self.stack.append(state)
+            self._stack.append(state)
         states[-1].on_enter()
 
     def pop(self):
-        old_state = self.stack.pop()
+        old_state = self._stack.pop()
         old_state.signal_exit.disconnet(self._on_signal_exit)
         old_state.on_exit()
         new_state = self.top()
@@ -20,7 +22,7 @@ class StateStack:
             new_state.on_enter()
 
     def clear(self):
-        while self.stack:
+        while self._stack:
             self.pop()
 
     def _on_signal_exit(self, exiting_state):

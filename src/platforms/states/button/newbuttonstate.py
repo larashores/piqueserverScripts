@@ -3,17 +3,18 @@ from platforms.states.button.buttonstate import ButtonState
 
 class NewButtonState(ButtonState):
     def __init__(self, label=None):
+        ButtonState.__init__()
         self.label = label
         self.color = None
         self.location = None
 
-    def on_enter(self, protocol, player):
+    def on_enter(self):
         return 'Put down a block where you want the new button to be'
 
-    def on_exit(self, protocol, player):
+    def on_exit(self):
         if not self.location:
             return 'Aborting button placement'
-        if not protocol.create_button(self.location, self.label, self.color):
+        if not self.player.protocol.create_button(self.location, self.label, self.color):
             return 'There is already another button here!'
         return "Button '{}' created".format(self.label)
 

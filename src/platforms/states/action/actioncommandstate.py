@@ -7,20 +7,20 @@ from platforms.abstractattribute import abstractattribute, abstractmethod, ABCMe
 class ActionCommandState(NeedsButtonState, ActionState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
-    def on_exit(self, protocol, player):
+    def on_exit(self):
         if not self.button:
             return S_COMMAND_CANCEL.format(command='action {}'.format(self.COMMAND_NAME))
-        self._on_activate_command(protocol, player)
+        self._on_activate_command()
 
     @abstractmethod
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         pass
 
 
 class ActionListState(ActionCommandState):
     COMMAND_NAME = 'list'
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         if not self.button.actions:
             return "Button '{}' has no actions".format(self.button.label)
         items = ' -- '.join('#{} {}'.format(i, action) for i, action in enumerate(self.button.actions))
@@ -34,7 +34,7 @@ class ActionDelState(ActionCommandState):
         ActionCommandState.__init__(self)
         self.number = number
 
-    def _on_activate_command(self, protocol, player):
+    def _on_activate_command(self):
         if self.number == 'all':
             self.button.actions.clear()
             return "Deleted all actions in button '{}'".format(self.button.label)
