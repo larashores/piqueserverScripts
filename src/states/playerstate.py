@@ -1,13 +1,12 @@
 from platforms.signal import Signal
 
 
-class State(object):
-    name = None
-    blocking = False
-    parent_state = None
+class PlayerState:
+    BLOCKING_STATE = False
 
-    def __init__(self):
+    def __init__(self, parent_state=None):
         self.signal_exit = Signal()
+        self.parent_state = parent_state
 
     def on_enter(self, protocol, player):
         pass
