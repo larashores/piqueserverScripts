@@ -21,3 +21,12 @@ class SelectButtonState(ButtonState):
             player.states.pop()
         elif self.button:
             return "Button '{}' selected".format(self.button.label)
+
+    def on_select_button(self, player, button):
+        if button:
+            self._button = button
+            self.signal_exit()
+            return True
+        else:
+            player.send_chat('This is not a button!')
+            return False

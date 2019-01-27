@@ -46,3 +46,12 @@ class NewPlatformState(PlatformState):
         platform = protocol.add_platform(x1, y1, z1, x2, y2, z2, color_avg, self.label)
         player.previous_platform = platform
         return "Platform '{}' created".format(platform.label)
+
+    def on_block_build(self, x, y, z):
+        self.blocks.add((x, y, z))
+
+    def on_line_build(self, points):
+        self.blocks.update(points)
+
+    def on_block_removed(self, x, y, z):
+        self.blocks.discard((x, y, z))

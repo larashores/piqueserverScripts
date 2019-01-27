@@ -21,3 +21,12 @@ class SelectPlatformState(PlatformState):
             player.states.pop()
         elif self.platform:
             return "Platform '{}' selected".format(self.platform.label)
+
+    def on_select_platform(self, player, platform):
+        if platform:
+            self._platform = platform
+            self.signal_exit()
+            return True
+        else:
+            player.send_chat('This is not a platform!')
+            return False

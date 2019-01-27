@@ -16,3 +16,8 @@ class NewButtonState(ButtonState):
         if not protocol.create_button(self.location, self.label, self.color):
             return 'There is already another button here!'
         return "Button '{}' created".format(self.label)
+
+    def on_block_build(self, x, y, z):
+        self.location = (x, y, z)
+        self.color = self.color
+        self.signal_exit()
