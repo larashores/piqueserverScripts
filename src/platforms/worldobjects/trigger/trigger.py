@@ -1,19 +1,22 @@
+from playerstates.signal import Signal
+
+
 class Trigger:
-    type = None
-    parent = None
-    status = False
-    unique = False
-    negate = False
+    NAME = None
+    ONE_PER_BUTTON = False
 
     def __init__(self, protocol, negate=False):
         self.protocol = protocol
         self.negate = negate
+        self.signal_fire = Signal()
+        self.affected_players = set()
+        self._status = False
 
     def unbind(self):
-        self.parent.triggers.remove(self)
+        pass
 
     def get_status(self):
-        return self.status ^ self.negate
+        return self._status ^ self.negate
 
     def serialize(self):
-        return {'type': self.type, 'negate': self.negate}
+        return {'type': self.NAME, 'negate': self.negate}

@@ -1,19 +1,17 @@
-from platforms.commands.trigger.trigger import Trigger
+from platforms.worldobjects.trigger.trigger import Trigger
 from platforms.strings import *
 
 
 class PressTrigger(Trigger):
-    type = 'press'
-    unique = True
+    NAME = 'press'
+    ONE_PER_BUTTON = True
 
     def callback(self, player):
-        shared = self.parent.shared_trigger_objects[self.type]
-        shared.add(player)
-        self.status = True
-        self.parent.trigger_check()
-        self.status = False
-        shared.discard(player)
+        self.affected_players.add(player)
+        self._status = True
+        self.signal_fire()
+        self._status = False
+        self.affected_players.clear()
 
     def __str__(self):
-        s = 'player press'
-        return S_TRIGGER_LIST_NOT + s if self.negate else s
+        return "{}player press".format('NOT ' if self.negate else s)

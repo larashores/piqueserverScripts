@@ -3,12 +3,13 @@ from platforms.worldobjects.action.platformaction import PlatformAction
 from platforms.worldobjects.action.playeraction import PlayerAction
 from platforms.states.action.actionstate import ActionState
 from platforms.states.needsbuttonstate import NeedsButtonState
+from platforms.states.needsplatformstate import NeedsPlatformState
 from platforms.strings import *
 
 
-class ActionAddState(ActionState, NeedsButtonState, metaclass=ABCMeta):
+class ActionAddState(NeedsButtonState, ActionState, metaclass=ABCMeta):
     def __init__(self, action_type, clear_others=True, **kwargs):
-        NeedsButtonState.__init__(self)
+        super().__init__()
         self.action_type = action_type
         self.clear_others = clear_others
         self.platform = None
@@ -31,7 +32,7 @@ class ActionAddState(ActionState, NeedsButtonState, metaclass=ABCMeta):
         pass
 
 
-class PlatformActionAddState(ActionAddState):
+class PlatformActionAddState(NeedsPlatformState, ActionAddState):
     def _make_action(self):
         return (PlatformAction(self.player.protocol, self.platform.id, self.action_type, self.kwargs)
                 if self.platform else None)

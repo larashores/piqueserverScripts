@@ -10,16 +10,8 @@ class TrackTrigger(Trigger):
     def __init__(self, protocol, radius, negate = False):
         Trigger.__init__(self, protocol, negate)
         self.radius = radius
-        protocol.position_triggers.append(self)
-
-    def unbind(self):
-        Trigger.unbind(self)
-        shared = self.parent.shared_trigger_objects[self.type]
-        shared.discard(self.tracked_player)
-        self.protocol.position_triggers.remove(self)
 
     def callback(self, player):
-        parent = self.parent
         if not parent:
             return
         shared = parent.shared_trigger_objects[self.type]
@@ -46,8 +38,7 @@ class TrackTrigger(Trigger):
                 self.tracked_player = None
 
             self.status = status
-            if self.parent:
-                parent.trigger_check()
+            self.signal_fire()
 
     def serialize(self):
         return {

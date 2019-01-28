@@ -23,8 +23,7 @@ class HeightTrigger(Trigger):
         met = platform.height == self.target_height
         if self.status != met:
             self.status = met
-            if self.parent:
-                self.parent.trigger_check()
+            self.signal_fire()
 
     def serialize(self):
         return {

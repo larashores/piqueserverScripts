@@ -6,23 +6,12 @@ from platforms.strings import *
 class DistanceTrigger(Trigger):
     type = 'distance'
 
-    def __init__(self, protocol, radius, negate = False):
+    def __init__(self, protocol, radius, negate=False):
         Trigger.__init__(self, protocol, negate)
         self.radius = radius
-        protocol.position_triggers.append(self)
-
-    def unbind(self):
-        Trigger.unbind(self)
-        shared = self.parent.shared_trigger_objects[self.type]
-        shared.clear()
-        self.protocol.position_triggers.remove(self)
 
     def callback(self, player):
-        parent = self.parent
-        if not parent:
-            return
-        shared = parent.shared_trigger_objects[self.type]
-        status = False
+        player_in_range = False
         if not player.disconnected and player.world_object:
             x1, y1, z1 = parent.x + 0.5, parent.y + 0.5, parent.z + 0.5
             x2, y2, z2 = player.world_object.position.get()
@@ -34,8 +23,7 @@ class DistanceTrigger(Trigger):
         status = bool(shared)
         if self.status != status:
             self.status = status
-            if self.parent:
-                parent.trigger_check()
+            self.signal_fire()
 
     def serialize(self):
         return {

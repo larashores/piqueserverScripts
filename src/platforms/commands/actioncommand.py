@@ -21,7 +21,7 @@
                     Elevators can wait an amount of time at the end of the journey,
                     before heading back.
                 output
-                teleport <x y z|where>
+                teleport <x y _z|where>
                     Moves the activating players to the specified coordinates.
                     Using 'where' instead takes the last location where you stood
                     and executed the /where command.
@@ -146,10 +146,10 @@ def output(obj, connection, delay):
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
-@piqueargs.argument('z', type=piqueargs.FloatRange(0.0, 62.0), required=False)
+@piqueargs.argument('_z', type=piqueargs.FloatRange(0.0, 62.0), required=False)
 @piqueargs.argument('y', type=piqueargs.FloatRange(511.0, 511.0), required=False)
 @piqueargs.argument('first')
-@piqueargs.command(usage='Usage: /action {} teleport <x y z|where>')
+@piqueargs.command(usage='Usage: /action {} teleport <x y _z|where>')
 @piqueargs.pass_obj
 def teleport(obj, connection, first, y, z):
     if first == 'where':

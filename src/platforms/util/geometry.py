@@ -1,7 +1,7 @@
 import itertools
 
 
-def aabb_colision(x, y, z, x1, y1, z1, x2, y2, z2):
+def aabb_collision(x, y, z, x1, y1, z1, x2, y2, z2):
     return (x1 <= x < x2) and (y1 <= y < y2) and (z1 <= z < z2)
 
 
