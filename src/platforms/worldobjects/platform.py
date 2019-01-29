@@ -45,7 +45,6 @@ class Platform(BaseObject):
         clear_solid(self._protocol, *self._location1, self._z, *self._location2, self._start_z)
 
     def _cycle_later(self, delay):
-        print('cycling later')
         self._cycle_start_call = callLater(delay, self._cycle_loop.start, self._speed)
 
     def _cycle(self):

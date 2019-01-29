@@ -13,7 +13,7 @@ class SelectPlatformState(PlatformState):
         self._platform = platform
 
     def on_enter(self):
-        return 'Select a platforms by hitting it with the spade'
+        return 'Select a platform by hitting it with the spade'
 
     def on_exit(self):
         self._parent.set_platform(self.platform)
