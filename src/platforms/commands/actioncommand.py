@@ -69,7 +69,7 @@ def action(connection, end=False):
     if connection not in connection.protocol.players:
         raise ValueError()
     state = connection.state_stack.top()
-    if state and isinstance(state.get_parent(), ActionState):
+    if state and isinstance(state, ActionState):
         connection.state_stack.exit()  # cancel action command
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode

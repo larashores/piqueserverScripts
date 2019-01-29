@@ -37,7 +37,6 @@ class PlatformHeightState(PlatformCommandState):
 
     def _on_activate_command(self):
         self._platform.height(self.height, .1)
-        #self.platform.start(self.height, 'once', 0.1, 0.0, None, force=True)
 
 
 class PlatformFreezeState(PlatformCommandState):

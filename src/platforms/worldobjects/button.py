@@ -3,10 +3,7 @@ from platforms.worldobjects.baseobject import BaseObject
 from platforms.worldobjects.trigger.presstrigger import PressTrigger
 from platforms.util.packets import send_block, send_color
 
-from collections import defaultdict
 from itertools import chain
-import itertools
-from twisted.internet.task import LoopingCall
 from twisted.internet.reactor import callLater
 import enum
 
@@ -35,9 +32,17 @@ class Button(BaseObject):
         self._color_triggered = tuple(int(c * 0.2) for c in color)
         self._cooldown_call = None
 
+    def __str__(self):
+        return "[{}] Button '{}' cooldown {:.2f}s logic '{}'".format('OFF' if self.disabled else 'ON',
+                                                                   self.label, self.cooldown, self.logic.name)
+
     def destroy(self):
         if self._protocol.map.destroy_point(*self._location):
             send_block(self, *self._location, DESTROY_BLOCK)
+        self.clear_triggers()
+        if self._cooldown_call and self._cooldown_call.active():
+            self._cooldown_call.cancel()
+            self._cooldown_call = None
 
     def add_trigger(self, new_trigger):
         if new_trigger.ONE_PER_BUTTON:  # ensure there is only one trigger of this type
@@ -124,23 +129,6 @@ class Button(BaseObject):
         send_block(self._protocol, *self._location, DESTROY_BLOCK)
         send_color(self._protocol, color)
         send_block(self._protocol, *self._location, BUILD_BLOCK)
-
-    #     self.logic = LogicType.AND
-    #     self.cooldown = 0.5
-    #     self._actions = []
-    #     self._triggers = []
-    #     self._action_pending = False
-    #     self._color = color
-    #     self._color_triggered = tuple(int(c * 0.2) for c in color)
-    #     self._cooldown_call = None
-    #     protocol.map.set_point(*location, self._color)
-    #
-    # def release(self):
-    #     """Removes the button from the worlds"""
-    #     self.clear_triggers()
-    #     if self._cooldown_call and self._cooldown_call.active():
-    #         self._cooldown_call.cancel()
-    #         self._cooldown_call = None
 
     # def pop_trigger(self, index):
     #     """Removes a trigger by index"""

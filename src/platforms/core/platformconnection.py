@@ -51,11 +51,10 @@ def platform_connection(connection):
             if self.tool == SPADE_TOOL and sneak:
                 state = self.state_stack.top()
                 button, platform = self._get_button_or_platform_if_within_reach()
-                if isinstance(state, PlatformsState):
-                    if button:
-                        state.on_inspect_button(button)
-                    elif platform:
-                        state.on_inspect_platform(platform)
+                if button and isinstance(state, NeedsButtonState):
+                    self.send_chat(str(button))
+                elif platform and isinstance(state, NeedsPlatformState):
+                    self.send_chat(str(platform))
             return connection.on_animation_update(self, jump, crouch, sneak, sprint)
 
         def on_command(self, command, parameters):
