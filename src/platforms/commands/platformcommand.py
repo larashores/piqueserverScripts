@@ -31,26 +31,26 @@ from platforms.states.platform.platformcommandstate import *
 
 @piqueargs.group(usage='Usage: /platform [new name height freeze destroy last]', required=False)
 def platform(connection, end=False):
+    print('platform', end)
     if not end:
         return
 
     if connection not in connection.protocol.players:
         raise ValueError()
-    state = connection.states.top()
-    if state and type(state.get_parent()) in (NewPlatformState, PlatformCommandState):
-        connection.states.exit()  # cancel platform creation
+    state = connection.state_stack.top()
+    if isinstance(state, (NewPlatformState, PlatformCommandState)):
+        connection.state_stack.clear()  # cancel platform creation
+        return
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
-    else:
-        connection.states.exit()
-        connection.states.enter(NewPlatformState())
+    return platform.usage
 
 
-@piqueargs.argument('label')
+@piqueargs.argument('label', required=False)
 @platform.command(usage='Usage: /platform new <label>')
 def new(connection, label):
-    connection.states.exit()
-    connection.states.enter(NewPlatformState(label))
+    connection.state_stack.clear()
+    connection.state_stack.push(NewPlatformState(label))
 
 
 @piqueargs.argument('label')
@@ -59,7 +59,7 @@ def name(connection, label):
     push_state(connection, PlatformNameState(label))
 
 
-@piqueargs.argument('height', type=piqueargs.IntRange(0, 63))
+@piqueargs.argument('height', type=piqueargs.IntRange(1, 63))
 @platform.command(usage='Usage: /platform height <height>')
 def height(connection, height):
     push_state(connection, PlatformHeightState(height))
@@ -77,15 +77,12 @@ def destroy(connection):
 
 @platform.command(usage='Usage: /platform last')
 def last(connection):
-    state = connection.states.top()
-    if state and isinstance(state, SelectPlatformState) and connection.previous_platform:
-        state.select_platform(connection.previous_platform)
-        connection.states.pop()
-    else:
-        push_state(connection, PlatformLastState())
+    state = connection.state_stack.top()
+    if state and isinstance(state, SelectPlatformState) and connection.last_platform:
+        state.select_platform(connection.last_platform)
+        state.signal_exit(state)
 
 
 def push_state(player, state):
-    player.states.exit()
-    player.states.push(state)
-    player.states.enter(SelectPlatformState(state))
+    player.state_stack.clear()
+    player.state_stack.push(state, SelectPlatformState(state))

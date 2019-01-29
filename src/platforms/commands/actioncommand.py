@@ -55,7 +55,7 @@ from pyspades.constants import WEAPON_KILL, FALL_KILL
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE, S_WHERE_FIRST
 from platforms.states.action.actionstate import ActionState
-from platforms.states.action.actionaddstate import ActionAddState
+from platforms.states.action.actionaddstate import PlayerActionAddState, PlatformActionAddState
 from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
 from platforms.states.button.selectbuttonstate import SelectButtonState
 from platforms.states.platform.selectplatformstate import SelectPlatformState
@@ -73,23 +73,25 @@ def action(connection, end=False):
 
     if connection not in connection.protocol.players:
         raise ValueError()
-    state = connection.states.top()
+    state = connection.state_stack.top()
     if state and isinstance(state.get_parent(), ActionState):
-        connection.states.exit()  # cancel action command
+        connection.state_stack.exit()  # cancel action command
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
 
 
-@action.group(usage='Usage: /action {} <height raise lower elevator output teleport chat damage>', usageargs=['add'])
+@action.group(usage='Usage: /action {} <height raise lower elevator output teleport chat damage>',
+              usageargs=['add'], required=False)
 @piqueargs.pass_obj
-def add(obj, connection):
-    obj.add = True
+def add(obj, connection, end=False):
+    obj.clear_others = False
 
 
-@action.group('set', usage='Usage: /action {} <height raise lower elevator output teleport chat damage>', usageargs=['set'])
+@action.group('set', usage='Usage: /action {} <height raise lower elevator output teleport chat damage>',
+              usageargs=['set'], required=False)
 @piqueargs.pass_obj
-def set_(obj, connection):
-    obj.add = False
+def set_(obj, connection, end=False):
+    obj.clear_others = True
 
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
@@ -99,7 +101,7 @@ def set_(obj, connection):
 @piqueargs.pass_obj
 def height(obj, connection, height, speed, delay):
     state = ActionAddState(PlatformActionType.HEIGHT,
-                           obj.add, mode='elevator', height=height, speed=speed, delay=delay)
+                           obj.clear_others, mode='elevator', height=height, speed=speed, delay=delay)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
@@ -110,7 +112,7 @@ def height(obj, connection, height, speed, delay):
 @piqueargs.pass_obj
 def raise_(obj, connection, amount, speed, delay):
     state = ActionAddState(PlatformActionType.RAISE,
-                           obj.add, mode='raise', amount=amount, speed=speed, delay=delay)
+                           obj.clear_others, mode='raise', amount=amount, speed=speed, delay=delay)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
@@ -121,7 +123,7 @@ def raise_(obj, connection, amount, speed, delay):
 @piqueargs.pass_obj
 def lower(obj, connection, amount, speed, delay):
     state = ActionAddState(PlatformActionType.LOWER,
-                           obj.add, mode='lower', lower=lower, amount=amount, speed=speed, delay=delay)
+                           obj.clear_others, mode='lower', lower=lower, amount=amount, speed=speed, delay=delay)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
@@ -133,7 +135,7 @@ def lower(obj, connection, amount, speed, delay):
 @piqueargs.pass_obj
 def elevator(obj, connection, height, speed, delay, wait):
     state = ActionAddState(PlatformActionType.ELEVATOR,
-                           obj.add, mode='elevator', height=height, speed=speed, delay=delay, wait='wait')
+                           obj.clear_others, mode='elevator', height=height, speed=speed, delay=delay, wait='wait')
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
@@ -142,7 +144,7 @@ def elevator(obj, connection, height, speed, delay, wait):
 @piqueargs.pass_obj
 def output(obj, connection, delay):
     state = ActionAddState(PlatformActionType.OUTPUT,
-                           obj.add, mode='height', speed=0.0, delay=delay or 0.0, force=True)
+                           obj.clear_others, mode='height', speed=0.0, delay=delay or 0.0, force=True)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
@@ -168,7 +170,7 @@ def teleport(obj, connection, first, y, z):
         piqueargs.stop_parsing(teleport.usage)
     z = max(0.5, z)
 
-    state = ActionAddState(PlayerActionType.TELEPORT, obj.add, location=(x, y, z))
+    state = ActionAddState(PlayerActionType.TELEPORT, obj.clear_others, location=(x, y, z))
     push_states(connection, [state, SelectButtonState(state)])
 
 
@@ -176,7 +178,7 @@ def teleport(obj, connection, first, y, z):
 @piqueargs.command(usage='Usage: /action {} chat <text>')
 @piqueargs.pass_obj
 def chat(obj, connection, text):
-    state = ActionAddState(PlayerActionType.CHAT, obj.add, value=text)
+    state = PlayerActionAddState(obj.clear_others, connection.send_chat, text)
     push_states(connection, [state, SelectButtonState(state)])
 
 
@@ -185,7 +187,7 @@ def chat(obj, connection, text):
 @piqueargs.pass_obj
 def damage(obj, connection, amount):
     state = ActionAddState(PlayerActionType.DAMAGE,
-                           obj.add, value=amount, type=WEAPON_KILL if amount > 0 else FALL_KILL)
+                           obj.clear_others, value=amount, type=WEAPON_KILL if amount > 0 else FALL_KILL)
     push_states(connection, [state, SelectButtonState(state)])
     return 'damage {}'.format(amount)
 
@@ -209,7 +211,5 @@ for command in (height, raise_, lower, elevator, output, teleport, chat, damage)
 
 
 def push_states(player, states):
-    player.states.exit()
-    for state in states[:-1]:
-        player.states.push(state)
-    player.states.enter(states[-1])
+    player.state_stack.clear()
+    player.state_stack.push(*states)

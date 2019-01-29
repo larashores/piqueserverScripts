@@ -39,29 +39,26 @@ def button(connection, end=False):
 
     if connection not in connection.protocol.players:
         raise ValueError()
-    state = connection.states.top()
-    if state and type(state.get_parent()) in (NewButtonState, ButtonCommandState):
-        connection.states.exit()  # cancel button creation
-    elif state and state.blocking:
+    state = connection.state_stack.top()
+    if isinstance(state, (NewButtonState, ButtonCommandState)):
+        connection.state_stack.clear()  # cancel button creation
+        return
+    elif state and state.BLOCKING:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
-    else:
-        connection.states.exit()
-        connection.states.enter(NewButtonState())
+    return button.usage
 
 
-@piqueargs.argument('label')
+@piqueargs.argument('label', required=False)
 @button.command(usage='Usage: /button new <label>')
 def new(connection, label):
-    connection.states.exit()
-    connection.states.enter(NewButtonState(label))
+    connection.state_stack.clear()
+    connection.state_stack.push(NewButtonState(label))
 
 
 @piqueargs.argument('label')
 @button.command(usage='Usage: /button name <label>')
-@piqueargs.pass_obj
 def name(connection, label):
-    state = ButtonNameState(label)
-    push_command_state(connection, state)
+    push_command_state(connection, ButtonNameState(label))
 
 
 @piqueargs.argument('seconds', type=piqueargs.FloatRange(0.1, 86400))
@@ -77,15 +74,17 @@ def destroy(connection):
 
 @button.command(usage='Usage: /button last')
 def last(connection):
-    state = connection.states.top()
-    if state and isinstance(state, SelectButtonState) and connection.previous_button:
-        state.select_button(connection.previous_button)
-        connection.states.pop()
-    else:
-        push_command_state(connection, ButtonLastState())
+    state = connection.state_stack.top()
+    if state and isinstance(state, SelectButtonState) and connection.last_button:
+        state.select_button(connection.last_button)
+        state.signal_exit(state)
 
 
 def push_command_state(player, state):
-    player.states.exit()
-    player.states.push(state)
-    player.states.enter(SelectButtonState(state))
+    player.state_stack.clear()
+    player.state_stack.push(state, SelectButtonState(state))
+
+
+if __name__ == '__main__':
+    result = button.run(None, ['new'])
+    print(result)

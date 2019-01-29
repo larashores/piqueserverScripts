@@ -1,40 +1,102 @@
 from pyspades.types import MultikeyDict
-from piqueserver.config import config
+# from piqueserver.config import config
 
 from platforms.worldobjects.trigger.presstrigger import PressTrigger
-from platforms.worldobjects.trigger.tracktrigger import TrackTrigger
-from platforms.worldobjects.trigger.distancetrigger import DistanceTrigger
-from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
-from platforms.worldobjects.action.platformaction import PlatformAction
-from platforms.worldobjects.action.playeraction import PlayerAction
+# from platforms.worldobjects.trigger.tracktrigger import TrackTrigger
+# from platforms.worldobjects.trigger.distancetrigger import DistanceTrigger
+# from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
+# from platforms.worldobjects.action.platformaction import PlatformAction
+# from platforms.worldobjects.action.playeraction import PlayerAction
 from platforms.worldobjects.platform import Platform
 from platforms.worldobjects.button import Button
+from platforms.util.packets import send_block
+from pyspades.constants import DESTROY_BLOCK
 
 import json
 import os
-from twisted.internet.reactor import LoopingCall
+from twisted.internet.task import LoopingCall
 
-DEFAULT_LOAD_DIR = os.path.join(config.config_dir, 'maps')
-SAVE_ON_MAP_CHANGE = True
-AUTOSAVE_EVERY = 0.0  # minutes, 0 = disabled
-
-TRIGGER_CLASSES = {cls.type: cls for cls in (PressTrigger, TrackTrigger, DistanceTrigger, HeightTrigger)}
-ACTION_CLASSES = {cls.type: cls for cls in (PlatformAction, PlayerAction)}
+# DEFAULT_LOAD_DIR = os.path.join(config.config_dir, 'maps')
+# SAVE_ON_MAP_CHANGE = True
+# AUTOSAVE_EVERY = 0.0  # minutes, 0 = disabled
+#
+# TRIGGER_CLASSES = {cls.type: cls for cls in (PressTrigger, TrackTrigger, DistanceTrigger, HeightTrigger)}
+# ACTION_CLASSES = {cls.type: cls for cls in (PlatformAction, PlayerAction)}
 
 
 def platform_protocol(protocol):
     class PlatformProtocol(protocol):
+        _next_id = 0
 
         def __init__(self, *args, **kwargs):
             protocol.__init__(self, *args, **kwargs)
-            self.highest_id = None
-            self.platforms = {}
-            self.platform_json_dirty = False
-            self.running_platforms = None
-            self.buttons = MultikeyDict()
-            self.position_triggers = None
-            self.autosave_loop = None
+            self._buttons = MultikeyDict()
+            self._platforms = {}
+            self._distance_triggers = set()
 
+        def add_distance_trigger(self, trigger):
+            self._distance_triggers.add(trigger)
+
+        def remove_distance_trigger(self, trigger):
+            self._distance_triggers.remove(trigger)
+
+        def on_world_update(self):
+            for player in self.players.values():
+                for trigger in self._distance_triggers:
+                    trigger.update(player)
+            protocol.on_world_update(self)
+
+        def create_button(self, location, color, label):
+            if location in self._buttons:
+                return None
+            button = Button(self, self._next_id, location, color, label)
+            button.add_trigger(PressTrigger(self))
+            self._buttons[(self._next_id, location)] = button
+            self._next_id += 1
+            return button
+
+        def destroy_button(self, button):
+            button.destroy()
+            del self._buttons[button]
+            for player in self.players.values():  # clear last button memory from players
+                if player.last_button is button:
+                    player.last_button = None
+
+        def create_platform(self, location1, location2, z, color, label):
+            platform = Platform(self, self._next_id, location1, location2, z, color, label)
+            self._platforms[self._next_id] = platform
+            self._next_id += 1
+            return platform
+
+        def destroy_platform(self, platform):
+            platform.destroy()
+            del self._platforms[platform.id]
+            for player in self.players.values():  # clear last platform memory from players
+                if player.last_platform is platform:
+                    player.last_platform = None
+
+        def get_platform(self, location):
+            for platform in self._platforms.values():
+                if platform.contains(location):
+                    return platform
+
+        def get_button(self, location):
+            if location in self._buttons:
+                return self._buttons[location]
+
+        def is_platform_or_button(self, location):
+            return self.get_platform(location) or location in self._buttons
+
+        # def __init__(self, *args, **kwargs):
+        #     protocol.__init__(self, *args, **kwargs)
+        #     self.highest_id = None
+        #     self.platforms = {}
+        #     self.platform_json_dirty = False
+        #     self.running_platforms = None
+        #     self.buttons = MultikeyDict()
+        #     self.position_triggers = None
+        #     self.autosave_loop = None
+        #
         # def on_map_change(self, map):
         #     self.highest_id = -1
         #     self.platforms = {}
@@ -142,58 +204,8 @@ def platform_protocol(protocol):
         #         json.dump(data, file, indent=4)
         #     self.platform_json_dirty = True
         #
-        # def get_platform(self, x, y, z):
-        #     for platform in self.platforms.values():
-        #         if platform.contains(x, y, z):
-        #             return platform
-        #     return None
         #
-        # def is_platform_or_button(self, x, y, z):
-        #     return self.get_platform(x, y, z) or (x, y, z) in self.buttons
         #
-        # def create_button(self, location, color, label):
-        #     if location in self.buttons:
-        #         return None
-        #     self.highest_id += 1
-        #     id_ = self.highest_id
-        #     x, y, z = location
-        #     button = Button(self, id_, x, y, z, color)
-        #     button.label = label or button.label
-        #     button.add_trigger(PressTrigger(self))
-        #     self.buttons[(id_, (x, y, z))] = button
-        #     return button
-        #
-        # def destroy_button(self, button):
-        #     button.destroy()
-        #     del self.buttons[button]
-        #     for player in self.players.values():  # clear last button memory from players
-        #         if player.previous_button is button:
-        #             player.previous_button = None
-        #
-        # def create_platform(self, x1, y1, z1, x2, y2, z2, color, label):
-        #     self.highest_id += 1
-        #     id_ = self.highest_id
-        #     platform = Platform(self, id_, x1, y1, z1, x2, y2, z2, color)
-        #     platform.label = label or platform.label
-        #     platform.build_plane(z1)
-        #     self.platforms[id_] = platform
-        #
-        # def destroy_platform(self, platform):
-        #     platform.destroy()
-        #     del self.platforms[platform.id]
-        #     # remove actions affecting this platforms
-        #     for button in self.buttons.itervalues():
-        #         button.actions = list(filter(lambda ac: getattr(ac, 'platform', None) is not platform, button.actions))
-        #     # cancel any ongoing commands targeting this platforms
-        #     for player in self.players.itervalues():
-        #         state = player.states.top()
-        #         if not state:
-        #             continue
-        #         if getattr(state.get_parent(), 'platform', None) is platform:
-        #             player.states.exit()
-        #     # clear last platforms memory from players
-        #     for player in self.players.itervalues():
-        #         if player.previous_platform is platform:
-        #             player.previous_platform = None
+
 
     return PlatformProtocol

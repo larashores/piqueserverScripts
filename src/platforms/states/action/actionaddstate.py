@@ -8,11 +8,13 @@ from platforms.strings import *
 
 
 class ActionAddState(NeedsButtonState, ActionState, metaclass=ABCMeta):
-    def __init__(self, action_type, clear_others=True, **kwargs):
+    def __init__(self, clear_others, method, *args, **kwargs):
         super().__init__()
-        self.action_type = action_type
+        self._method = method
+        self.action_type = 'test'
         self.clear_others = clear_others
         self.platform = None
+        self.args = args
         self.kwargs = kwargs
 
     def on_exit(self):
@@ -20,12 +22,12 @@ class ActionAddState(NeedsButtonState, ActionState, metaclass=ABCMeta):
             return S_COMMAND_CANCEL.format(command='action')
         action = self._make_action()
         if action is None:
-            return S_COMMAND_CANCEL.format(command='action {}'.format(self.action_type.name.lower()))
+            return S_COMMAND_CANCEL.format(command='action {}'.format(self.action_type.lower()))
 
         if not self.clear_others:
-            self.button.actions.clear()
-        self.button.actions.append(action)
-        return "Added {} action to button '{}'".format(self.action_type.value, self.button.label)
+            self.button.clear_actions()
+        self.button.add_action(action)
+        return "Added {} action to button '{}'".format(self.action_type, self.button.label)
 
     @abstractmethod
     def _make_action(self):
@@ -40,4 +42,4 @@ class PlatformActionAddState(NeedsPlatformState, ActionAddState):
 
 class PlayerActionAddState(ActionAddState):
     def _make_action(self):
-        return PlayerAction(self.player.protocol, self.action_type, self.kwargs)
+        return PlayerAction(self.player.protocol, self._method, *self.args, **self.kwargs)

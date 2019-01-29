@@ -11,7 +11,7 @@ pass_obj = click.pass_obj
 def add_server_command(func, *args, **kwargs):
     @piqueserver.commands.command(*args, **kwargs)
     def command(connection, *arg):
-        return func(connection, *arg)
+        return func.run(connection, list(arg))
     return command
 
 
@@ -123,7 +123,6 @@ class _PiqueArgsBaseCommand(BaseCommand):
             return e.ctx.command.usage
         except _InvokeEarlyException as e:
             e.context.params['connection'] = connection
-            e.context.params['end'] = True
             try:
                 return Command.invoke(e.command, e.context)
             except _EndEarlyException as e:
@@ -144,12 +143,14 @@ class _PiqueArgsGroup(_PiqueArgsBaseCommand, Group):
     def parse_args(self, ctx, args):
         for index in range(len(self.options)):
             option, cmd_option = self.options[index]
-            if args[index] == option:
+            if index < len(args) and args[index] == option:
                 ctx.params[cmd_option] = True
                 args.pop(0)
             else:
                 ctx.params[cmd_option] = False
         if not args:
+            if not self.required:
+                ctx.params['end'] = True
             raise _InvokeEarlyException(self, ctx)
         return Group.parse_args(self, ctx, args)
 

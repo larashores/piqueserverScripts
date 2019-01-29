@@ -39,4 +39,12 @@ def state_connection(connection):
                 return state.on_line_build_attempt(points)
             return True
 
+        def on_block_destroy(self, x, y, z, mode):
+            if connection.on_block_destroy(self, x, y, z, mode) is False:
+                return False
+            state = self.state_stack.top()
+            if isinstance(state, BuildingState):
+                return state.on_block_destroy(x, y, z, mode)
+            return True
+
     return StateConnection

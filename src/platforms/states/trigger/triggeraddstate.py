@@ -12,9 +12,8 @@ from platforms.strings import S_COMMAND_CANCEL
 class TriggerAddState(NeedsButtonState, TriggerState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
-    def __init__(self, trigger_type, negate, clear_others):
+    def __init__(self, negate, clear_others):
         super().__init__()
-        self.trigger_type = trigger_type
         self.negate = negate
         self.clear_others = clear_others
 
@@ -30,7 +29,7 @@ class TriggerAddState(NeedsButtonState, TriggerState, metaclass=ABCMeta):
         if self.clear_others:
             self.button.clear_triggers()
         self.button.add_trigger(trigger)
-        return "Added {} trigger to button '{}'".format(self.trigger_type.name.lower(), self.button.label)
+        return "Added {} trigger to button '{}'".format(self.COMMAND_NAME.lower(), self.button.label)
 
     @abstractmethod
     def _make_trigger(self):
@@ -52,7 +51,7 @@ class DistanceTriggerState(TriggerAddState):
         self.radius = radius
 
     def _make_trigger(self):
-        return DistanceTrigger(self.player.protocol, self.radius)
+        return DistanceTrigger(self.player.protocol, self.button, self.radius)
 
 
 class TrackTriggerState(TriggerAddState):

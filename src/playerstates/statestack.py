@@ -11,15 +11,21 @@ class StateStack:
             state.player = self._player
             state.signal_exit.connect(self._on_signal_exit)
             self._stack.append(state)
-        states[-1].on_enter()
+        result = states[-1].on_enter()
+        if result:
+            self._player.send_chat(result)
 
     def pop(self):
         old_state = self._stack.pop()
-        old_state.signal_exit.disconnet(self._on_signal_exit)
-        old_state.on_exit()
+        old_state.signal_exit.disconnect(self._on_signal_exit)
+        result = old_state.on_exit()
+        if result:
+            self._player.send_chat(result)
         new_state = self.top()
         if new_state:
-            new_state.on_enter()
+            result = new_state.on_enter()
+            if result:
+                self._player.send_chat(result)
 
     def clear(self):
         while self._stack:

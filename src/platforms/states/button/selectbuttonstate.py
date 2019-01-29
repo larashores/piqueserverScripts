@@ -1,11 +1,12 @@
 from platforms.states.button.buttonstate import ButtonState
+from playerstates.buildingstate import BuildingState
 
 
-class SelectButtonState(ButtonState):
-    button = property(lambda self: self.button)
+class SelectButtonState(BuildingState, ButtonState):
+    button = property(lambda self: self._button)
 
     def __init__(self, parent_state):
-        ButtonState.__init__(self)
+        super().__init__()
         self._parent = parent_state
         self._button = None
 
@@ -16,18 +17,14 @@ class SelectButtonState(ButtonState):
         return 'Select a button by hitting it with the spade'
 
     def on_exit(self):
-        self._parent.set_button(self.button)
-        self.player.previous_button = self.button or self.player.previous_button
-        if self.player.states.top() is self._parent:
-            self.player.states.pop()
-        elif self.button:
-            return "Button '{}' selected".format(self.button.label)
+        self._parent.set_button(self._button)
+        self.player.last_button = self._button or self.player.last_button
+        if self.player.state_stack.top() is self._parent:
+            self._parent.signal_exit(self._parent)
+        elif self._button:
+            return "Button '{}' selected".format(self._button.label)
 
-    def on_select_button(self, player, button):
-        if button:
-            self._button = button
-            self.signal_exit()
-            return True
-        else:
-            player.send_chat('This is not a button!')
-            return False
+    def on_select_button(self, button):
+        self._button = button
+        self.signal_exit(self)
+        return True

@@ -65,92 +65,91 @@ from platforms.states.platform.selectplatformstate import SelectPlatformState
 POS_FLOAT = piqueargs.FloatRange(0.0, 64.0)
 
 
-@piqueargs.group(usage='Usage: /trigger add set list del logic quiet', require=True)
-@piqueargs.pass_obj
+@piqueargs.group(usage='Usage: /trigger add set list del logic quiet', required=False)
 def trigger(connection, end=False):
     if not end:
         return
 
     if connection not in connection.protocol.players:
         raise ValueError()
-    state = connection.states.top()
+    state = connection.state_stack.top()
     if state and isinstance(state.get_parent(), TriggerCommandState):
-        connection.states.exit()  # cancel action command
+        connection.state_stack.exit()  # cancel action command
+        return
     elif state and state.blocking:
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
+    return trigger.usage
 
 
 @piqueargs.option('not', 'notarg')
-@trigger.group(usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['add'])
+@trigger.group(usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['add'], required=False)
 @piqueargs.pass_obj
-def add(obj, connection, notarg):
-    obj.add = True
-    obj.notarg = notarg
+def add(obj, connection, notarg, end=False):
+    if not end:
+        obj.clear_others = False
+        obj.negate = notarg
+        return
+    return set_.usage
 
 
 @piqueargs.option('not', 'notarg')
-@trigger.group('set', usage='Usage: /trigger {} [not] <press distance track height>>', usageargs=['set'])
+@trigger.group('set', usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['set'], required=False)
 @piqueargs.pass_obj
-def set_(obj, connection, notarg):
-    obj.add = False
-    obj.notarg = notarg
+def set_(obj, connection, notarg, end=False):
+    if not end:
+        obj.clear_others = True
+        obj.negate = notarg
+        return
+    return set_.usage
 
 
 @piqueargs.command(usage='Usage: /trigger {} [not] press')
 @piqueargs.pass_obj
 def press(obj, connection):
-    state = PressTriggerState(obj.negate, obj.add)
-    push_states(connection, [state, SelectButtonState(state)])
+    push_command_state(connection, PressTriggerState(obj.negate, obj.clear_others))
 
 
 @piqueargs.argument('radius', default=3.0, type=POS_FLOAT, required=False)
-@piqueargs.command('raise', usage='Usage: /trigger {} [not] distance [radius=3]')
+@piqueargs.command(usage='Usage: /trigger {} [not] distance [radius=3]')
 @piqueargs.pass_obj
 def distance(obj, connection, radius):
-    state = DistanceTriggerState(radius, obj.negate, obj.add)
-    push_states(connection, [state, SelectButtonState(state)])
+    push_command_state(connection, DistanceTriggerState(radius, obj.negate, obj.clear_others))
 
 
 @piqueargs.argument('radius', default=3.0, type=POS_FLOAT, required=False)
 @piqueargs.command(usage='Usage: /trigger {} [not] track [radius=3]')
 @piqueargs.pass_obj
 def track(obj, connection, radius):
-    state = TrackTriggerState(radius, obj.negate, obj.add)
-    push_states(connection, [state, SelectButtonState(state)])
+    push_command_state(connection, TrackTriggerState(radius, obj.negate, obj.clear_others))
 
 
 @piqueargs.argument('height', type=piqueargs.IntRange(0, 62))
 @piqueargs.command(usage='/trigger {} [not] height <height>')
 @piqueargs.pass_obj
 def height(obj, connection, height):
-    state = HeightTrigger(height, obj.negate, obj.add)
-    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
+    push_command_state(connection, HeightTrigger(height, obj.negate, obj.clear_others))
 
 
 @trigger.command('list', usage='Usage: /trigger list')
 def list_(connection):
-    state = TriggerListState()
-    push_states(connection, [state, SelectButtonState(state)])
+    push_command_state(connection, TriggerListState())
 
 
 @piqueargs.argument('what', type=IDENTIFIER)
 @trigger.command('del', usage='Usage: /trigger del <#|all>')
 def delete(connection, what):
-    state = TriggerDeleteState(what)
-    push_states(connection, [state, SelectButtonState(state)])
+    push_command_state(connection, TriggerDeleteState(what))
 
 
 @piqueargs.argument('andor', type=click.Choice('and', 'or'))
 @trigger.command(usage='Usage: /trigger logic <and|or>')
 def logic(connection, andor):
-    state = TriggerLogicState(andor)
-    push_states(connection, [state, SelectButtonState(state)])
+    push_command_state(connection, TriggerLogicState(andor))
 
 
 @trigger.command(usage='Usage: /trigger quiet')
 def quiet(connection):
-    state = TriggerQuietState()
-    push_states(connection, [state, SelectButtonState(state)])
+    push_command_state(connection, TriggerQuietState())
 
 
 for command in (press, distance, track, height):
@@ -158,8 +157,6 @@ for command in (press, distance, track, height):
     set_.add_command(command)
 
 
-def push_states(player, states):
-    player.states.exit()
-    for state in states[:-1]:
-        player.states.push(state)
-    player.states.enter(states[-1])
+def push_command_state(player, state):
+    player.state_stack.clear()
+    player.state_stack.push(state, SelectButtonState(state))

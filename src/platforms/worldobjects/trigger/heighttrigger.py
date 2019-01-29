@@ -1,4 +1,4 @@
-from platforms.commands.trigger.trigger import Trigger
+from platforms.worldobjects.trigger.trigger import Trigger
 from platforms.strings import *
 
 

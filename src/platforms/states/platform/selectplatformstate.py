@@ -18,16 +18,12 @@ class SelectPlatformState(PlatformState):
     def on_exit(self):
         self._parent.set_platform(self.platform)
         self.player.previous_platform = self.platform or self.player.previous_platform
-        if self.player.states.top() is self._parent:
-            self.player.states.pop()
+        if self.player.state_stack.top() is self._parent:
+            self._parent.signal_exit(self._parent)
         elif self.platform:
             return "Platform '{}' selected".format(self.platform.label)
 
     def on_select_platform(self, platform):
-        if platform:
-            self._platform = platform
-            self.signal_exit()
-            return True
-        else:
-            self.player.send_chat('This is not a platform!')
-            return False
+        self._platform = platform
+        self.signal_exit(self)
+        return True

@@ -1,37 +1,39 @@
 from pyspades.collision import collision_3d
-from platforms.commands.trigger.trigger import Trigger
+from platforms.worldobjects.trigger.playertrigger import PlayerTrigger
 from platforms.strings import *
 
 
-class DistanceTrigger(Trigger):
+class DistanceTrigger(PlayerTrigger):
     type = 'distance'
 
-    def __init__(self, protocol, radius, negate=False):
-        Trigger.__init__(self, protocol, negate)
-        self.radius = radius
+    def __init__(self, protocol, button, radius, negate=False):
+        PlayerTrigger.__init__(self, protocol, negate)
+        self._button = button
+        self._radius = radius
+        self._protocol.add_distance_trigger(self)
 
-    def callback(self, player):
-        player_in_range = False
-        if not player.disconnected and player.world_object:
-            x1, y1, z1 = parent.x + 0.5, parent.y + 0.5, parent.z + 0.5
-            x2, y2, z2 = player.world_object.position.get()
-            status = collision_3d(x1, y1, z1, x2, y2, z2, self.radius)
-        if status:
-            shared.add(player)
+    def unbind(self):
+        self._protocol.remove_distance_trigger(self)
+
+    def update(self, player):
+        if not player.world_object:
+            return
+        location1 = [coord + 0.5 for coord in self._button.location]
+        location2 = player.world_object.position.get()
+        if collision_3d(*location1, *location2, self._radius):
+            if player not in self.affected_players:
+                self.affected_players.add(player)
+                self.signal_fire()
         else:
-            shared.discard(player)
-        status = bool(shared)
-        if self.status != status:
-            self.status = status
-            self.signal_fire()
+            self.affected_players.discard(player)
 
     def serialize(self):
         return {
             'type': self.type,
-            'negate': self.negate,
-            'radius': self.radius
+            'negate': self._negate,
+            'radius': self._radius
         }
 
     def __str__(self):
-        s = 'player distance={}'.format(self.radius)
-        return S_TRIGGER_LIST_NOT + s if self.negate else s
+        s = 'player distance={}'.format(self._radius)
+        return S_TRIGGER_LIST_NOT + s if self._negate else s

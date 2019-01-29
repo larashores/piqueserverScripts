@@ -30,22 +30,21 @@ Maintainer: hompy
 # Stop platforms action?
 
 from platforms import piqueargs
-from platforms.core.platformconnection import platform_connection
-from platforms.core.platformprotocol import platform_protocol
-from platforms.commands.actioncommand import action
 from platforms.commands.buttoncommand import button
 from platforms.commands.platformcommand import platform
 from platforms.commands.triggercommand import trigger
-from platforms.commands.commands import save, reach
+from platforms.commands.actioncommand import action
+from platforms.core.platformprotocol import platform_protocol
+from platforms.core.platformconnection import platform_connection
+from cbc.core import cbc
 
 
-piqueargs.add_server_command(action, 'action', 'ac')
 piqueargs.add_server_command(button, 'button', 'b')
-piqueargs.add_server_command(platform, 'action', 'p')
+piqueargs.add_server_command(platform, 'platform', 'p')
 piqueargs.add_server_command(trigger, 'trigger', 'tr')
-piqueargs.add_server_command(save)
-piqueargs.add_server_command(reach)
+piqueargs.add_server_command(action, 'action', 'ac')
 
 
 def apply_script(protocol, connection, config):
+    protocol, connection = cbc.apply_script(protocol, connection, config)
     return platform_protocol(protocol), platform_connection(connection)

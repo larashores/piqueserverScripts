@@ -8,7 +8,7 @@ class ButtonCommandState(NeedsButtonState, ButtonState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def on_exit(self):
-        if not self.button:
+        if not self._button:
             return S_COMMAND_CANCEL.format(command='button {}'.format(self.COMMAND_NAME))
         return self._on_activate_command()
 
@@ -21,27 +21,27 @@ class ButtonNameState(ButtonCommandState):
 
     def __init__(self, label):
         ButtonCommandState.__init__(self)
-        self.label = label
+        self._label = label
 
     def _on_activate_command(self):
-        old, self.button.label = self.button.label, self.label
-        return "Button '{}' renamed to '{}'".format(old, self.label)
+        old, self._button.label = self._button.label, self._label
+        return "Button '{}' renamed to '{}'".format(old, self._label)
 
 
 class ButtonDestroyState(ButtonCommandState):
     COMMAND_NAME = 'destroy'
 
     def _on_activate_command(self):
-        self.player.protocol.destroy_button(self.button)
-        return "Button '{}' removed".format(self.button.label)
+        self.player.protocol.destroy_button(self._button)
+        return "Button '{}' removed".format(self._button.label)
 
 
 class ButtonToggleState(ButtonCommandState):
     COMMAND_NAME = 'toggle'
 
     def _on_activate_command(self):
-        self.button.disabled = not self.button.disabled
-        return "Button '{}' {}".format(self.button.label, 'disabled' if self.button.disabled else 'enabled')
+        self._button.disabled = not self._button.disabled
+        return "Button '{}' {}".format(self._button.label, 'disabled' if self._button.disabled else 'enabled')
 
 
 class ButtonCooldownState(ButtonCommandState):
@@ -52,9 +52,5 @@ class ButtonCooldownState(ButtonCommandState):
         self.cooldown = cooldown
 
     def _on_activate_command(self):
-        self.button.cooldown = self.cooldown
-        return "Cooldown for button '{}' set to {:.2f} seconds".format(self.button.label, self.cooldown)
-
-
-class ButtonLastState(ButtonCommandState):
-    COMMAND_NAME = 'last'
+        self._button.cooldown = self.cooldown
+        return "Cooldown for button '{}' set to {:.2f} seconds".format(self._button.label, self.cooldown)

@@ -13,3 +13,6 @@ class BuildingState:
 
     def on_line_build_attempt(self, points):
         return True
+
+    def on_block_destroy(self, x, y, z, mode):
+        return True

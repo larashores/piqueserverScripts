@@ -1,4 +1,4 @@
-from pyspades.contained import BlockAction, BlockLine, SetColor
+from pyspades.contained import BlockAction, BlockLine, SetColor, PositionData
 from pyspades.common import make_color
 from pyspades.constants import BUILD_BLOCK
 
@@ -30,3 +30,11 @@ def send_line(protocol, x1, y1, z1, x2, y2, z2):
     block_line.y2 = y2
     block_line.z2 = z2
     protocol.send_contained(block_line, save=True)
+
+
+def send_position(player, x, y, z):
+    position_data = PositionData()
+    position_data.x = x
+    position_data.y = y
+    position_data.z = z
+    player.send_contained(position_data)
