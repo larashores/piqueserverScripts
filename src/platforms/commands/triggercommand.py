@@ -82,25 +82,19 @@ def trigger(connection, end=False):
 
 
 @piqueargs.option('not', 'notarg')
-@trigger.group(usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['add'], required=False)
+@trigger.group(usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['add'])
 @piqueargs.pass_obj
 def add(obj, connection, notarg, end=False):
-    if not end:
-        obj.clear_others = False
-        obj.negate = notarg
-        return
-    return set_.usage
+    obj.clear_others = False
+    obj.negate = notarg
 
 
 @piqueargs.option('not', 'notarg')
-@trigger.group('set', usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['set'], required=False)
+@trigger.group('set', usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['set'])
 @piqueargs.pass_obj
 def set_(obj, connection, notarg, end=False):
-    if not end:
-        obj.clear_others = True
-        obj.negate = notarg
-        return
-    return set_.usage
+    obj.clear_others = True
+    obj.negate = notarg
 
 
 @piqueargs.command(usage='Usage: /trigger {} [not] press')

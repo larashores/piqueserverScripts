@@ -68,26 +68,26 @@ def action(connection, end=False):
     if not end:
         return
 
-    if connection not in connection.protocol.players:
-        raise ValueError()
-    state = connection.state_stack.top()
-    if state and isinstance(state.get_parent(), ActionState):
-        connection.state_stack.exit()  # cancel action command
-    elif state and state.blocking:
-        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
+    # if connection not in connection.protocol.players:
+    #     raise ValueError()
+    # state = connection.state_stack.top()
+    # if state and isinstance(state.get_parent(), ActionState):
+    #     connection.state_stack.exit()  # cancel action command
+    # elif state and state.blocking:
+    #     return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
 
 
 @action.group(usage='Usage: /action {} <height raise lower elevator teleport chat damage>',
-              usageargs=['add'], required=False)
+              usageargs=['add'])
 @piqueargs.pass_obj
-def add(obj, connection, end=False):
+def add(obj, connection):
     obj.clear_others = False
 
 
 @action.group('set', usage='Usage: /action {} <height raise lower elevator teleport chat damage>',
-              usageargs=['set'], required=False)
+              usageargs=['set'])
 @piqueargs.pass_obj
-def set_(obj, connection, end=False):
+def set_(obj, connection):
     obj.clear_others = True
 
 
@@ -163,8 +163,9 @@ def teleport(obj, connection, first, y, z):
 @piqueargs.command(usage='Usage: /action {} chat <text>')
 @piqueargs.pass_obj
 def chat(obj, connection, text):
-    state = PlayerAddActionState(obj.clear_others, ActionType.CHAT, text)
-    push_states(connection, [state, SelectButtonState(state)])
+    # state = PlayerAddActionState(obj.clear_others, ActionType.CHAT, text)
+    # push_states(connection, [state, SelectButtonState(state)])
+    return 'hey'
 
 
 @piqueargs.argument('amount', type=piqueargs.IntRange(-100, 100))

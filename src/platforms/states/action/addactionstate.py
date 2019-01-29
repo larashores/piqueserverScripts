@@ -40,7 +40,7 @@ class _AddActionState(NeedsButtonState, ActionState, metaclass=ABCMeta):
         if action is None:
             return S_COMMAND_CANCEL.format(command='action {}'.format(self._action_type))
 
-        if not self._clear_others:
+        if self._clear_others:
             self.button.clear_actions()
         self.button.add_action(action)
         return "Added {} action to button '{}'".format(self._action_type, self.button.label)
