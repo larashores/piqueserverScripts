@@ -95,8 +95,7 @@ def set_(obj, connection):
 @piqueargs.command(usage='Usage: /action {} height <height> [speed=0.15] [delay]')
 @piqueargs.pass_obj
 def height(obj, connection, height, speed, delay):
-    state = PlatformAddActionState(obj.clear_others, ActionType.HEIGHT, height, speed, delay)
-    push_states(connection, [state])
+    connection.state_stack.set(PlatformAddActionState(obj.clear_others, ActionType.HEIGHT, height, speed, delay))
 
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
@@ -105,8 +104,7 @@ def height(obj, connection, height, speed, delay):
 @piqueargs.command('raise', usage='Usage: /action {} raise <amount> [speed=0.15] [delay]')
 @piqueargs.pass_obj
 def raise_(obj, connection, amount, speed, delay):
-    state = PlatformAddActionState(obj.clear_others, ActionType.RAISE, amount, speed, delay)
-    push_states(connection, [state])
+    connection.state_stack.set(PlatformAddActionState(obj.clear_others, ActionType.RAISE, amount, speed, delay))
 
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
@@ -115,8 +113,7 @@ def raise_(obj, connection, amount, speed, delay):
 @piqueargs.command(usage='Usage: /action {} lower <amount> [speed=0.15] [delay]')
 @piqueargs.pass_obj
 def lower(obj, connection, amount, speed, delay):
-    state = PlatformAddActionState(obj.clear_others, ActionType.LOWER, lower, amount, speed, delay)
-    push_states(connection, [state])
+    connection.state_stack.set(PlatformAddActionState(obj.clear_others, ActionType.LOWER, lower, amount, speed, delay))
 
 
 @piqueargs.argument('wait', default=3.0, type=POS_FLOAT, required=False)
@@ -126,9 +123,8 @@ def lower(obj, connection, amount, speed, delay):
 @piqueargs.command(usage='Usage: /action {} elevator <height> [speed=0.25] [delay] [wait=3.0]')
 @piqueargs.pass_obj
 def elevator(obj, connection, height, speed, delay, wait):
-    print(type(ActionType.ELEVATOR))
-    state = PlatformAddActionState(obj.clear_others, ActionType.ELEVATOR, height, speed, delay, True, wait)
-    push_states(connection, [state])
+    connection.state_stack.set(PlatformAddActionState(obj.clear_others, ActionType.ELEVATOR,
+                                                      height, speed, delay, True, wait))
 
 
 @piqueargs.argument('z', type=piqueargs.FloatRange(0.0, 62.0), required=False)
@@ -153,38 +149,33 @@ def teleport(obj, connection, first, y, z):
         piqueargs.stop_parsing(teleport.usage)
     z = max(0.5, z)
 
-    state = PlayerAddActionState(obj.clear_others, ActionType.TELEPORT, (x, y, z))
-    push_states(connection, [state])
+    connection.state_stack.set(PlayerAddActionState(obj.clear_others, ActionType.TELEPORT, (x, y, z)))
 
 
 @piqueargs.argument('text')
 @piqueargs.command(usage='Usage: /action {} chat <text>')
 @piqueargs.pass_obj
 def chat(obj, connection, text):
-    state = PlayerAddActionState(obj.clear_others, ActionType.CHAT, text)
-    push_states(connection, [state])
+    connection.state_stack.set(PlayerAddActionState(obj.clear_others, ActionType.CHAT, text))
 
 
 @piqueargs.argument('amount', type=piqueargs.IntRange(-100, 100))
 @piqueargs.command(usage='Usage: /action {} damage <amount>')
 @piqueargs.pass_obj
 def damage(obj, connection, amount):
-    state = PlayerAddActionState(obj.clear_others, ActionType.DAMAGE,
-                                 kill_type=WEAPON_KILL if amount > 0 else FALL_KILL)
-    push_states(connection, [state])
+    connection.state_stack.set(PlayerAddActionState(obj.clear_others, ActionType.DAMAGE,
+                                                    kill_type=WEAPON_KILL if amount > 0 else FALL_KILL))
 
 
 @action.command('list', usage='Usage: /action list')
 def list_(connection):
-    state = ActionListState()
-    push_states(connection, [state])
+    connection.state_stack.set(ActionListState())
 
 
 @piqueargs.argument('what', type=IDENTIFIER)
 @action.command('del', usage='Usage: /action del <#|all>')
 def delete(connection, what):
-    state = ActionDelState(what)
-    push_states(connection, [state])
+    connection.state_stack.set(ActionDelState(what))
 
 
 for command in (height, raise_, lower, elevator, teleport, chat, damage):

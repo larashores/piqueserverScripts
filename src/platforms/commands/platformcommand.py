@@ -25,7 +25,6 @@
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE
 from platforms.states.platform.newplatformstate import NewPlatformState
-from platforms.states.needsplatformstate import NeedsPlatformState
 from platforms.states.platform.platformcommandstate import *
 
 
@@ -49,30 +48,29 @@ def platform(connection, end=False):
 @piqueargs.argument('label', required=False)
 @platform.command(usage='Usage: /platform new <label>')
 def new(connection, label):
-    connection.state_stack.clear()
-    connection.state_stack.push(NewPlatformState(label))
+    connection.state_stack.set(NewPlatformState(label))
 
 
 @piqueargs.argument('label')
 @platform.command(usage='Usage: /platform name <label>')
 def name(connection, label):
-    push_state(connection, PlatformNameState(label))
+    connection.state_stack.set(PlatformNameState(label))
 
 
 @piqueargs.argument('height', type=piqueargs.IntRange(1, 63))
 @platform.command(usage='Usage: /platform height <height>')
 def height(connection, height):
-    push_state(connection, PlatformHeightState(height))
+    connection.state_stack.set(PlatformHeightState(height))
 
 
 @platform.command(usage='Usage: /platform freeze')
 def freeze(connection):
-    push_state(connection, PlatformFreezeState())
+    connection.state_stack.set(PlatformFreezeState())
 
 
 @platform.command(usage='Usage: /platform destroy')
 def destroy(connection):
-    push_state(connection, PlatformDestroyState())
+    connection.state_stack.set(PlatformDestroyState())
 
 
 @platform.command(usage='Usage: /platform last')
@@ -80,9 +78,3 @@ def last(connection):
     state = connection.state_stack.top()
     if state and isinstance(state, NeedsPlatformState) and connection.last_platform:
         state.select_platform(connection.last_platform)
-        state.signal_exit(state)
-
-
-def push_state(player, state):
-    player.state_stack.clear()
-    player.state_stack.push(state)
