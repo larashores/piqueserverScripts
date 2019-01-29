@@ -1,39 +1,17 @@
-import enum
+from platforms.worldobjects.action.action import Action
 
 
-class PlatformActionType(enum.Enum):
-    HEIGHT = 0
-    RAISE = 1
-    LOWER = 2
-    ELEVATOR = 3
-    OUTPUT = 4
+class PlatformAction(Action):
+    NAME = 'platform'
 
+    def __init__(self, platform, function, *args, **kwargs):
+        self._platform_function = function
+        self._platform = platform
+        self._args = args
+        self._kwargs = kwargs
 
-PLATFORM_ACTION_FUNCTIONS = {
-    'start': 'start',
-    'height': 'start',
-    'raise': 'start',
-    'lower': 'start',
-    'elevator': 'start',
-    'output': 'start'
-}
-
-
-class PlatformAction:
-    type = 'platforms'
-
-    def __init__(self, protocol, platform_id, action, kwargs):
-        self.platform = protocol.platforms[platform_id]
-        self.action = action
-        func_name = PLATFORM_ACTION_FUNCTIONS[action]
-        self.callback = getattr(self.platform, func_name)
-        self.kwargs = kwargs
-
-    def run(self, value, objects):
-        if self.action == 'output':
-            self.callback(height=int(value), **self.kwargs)
-        elif value:
-            self.callback(**self.kwargs)
+    def run(self, players):
+        self._platform_function(self._platform, *self._args, **self._kwargs)
 
     def serialize(self):
         return {
@@ -42,6 +20,3 @@ class PlatformAction:
             'action': self.action,
             'kwargs': self.kwargs
         }
-
-    def __str__(self):
-        return "platforms '{}' {}({})" .format(self.platform.label, self.kwargs['mode'], self.kwargs['height'])

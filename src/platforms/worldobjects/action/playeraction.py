@@ -1,24 +1,10 @@
-from platforms.strings import S_NICE_LOCATION
-import enum
+from platforms.worldobjects.action.action import Action
 
 
-class PlayerActionType(enum.Enum):
-    TELEPORT = 0
-    CHAT = 1
-    DAMAGE = 2
+class PlayerAction(Action):
+    NAME = 'player'
 
-
-PLAYER_ACTION_FUNCTIONS = {
-    'teleport': 'set_location',
-    'chat': 'send_chat',
-    'damage': 'hit'
-}
-
-
-class PlayerAction:
-    type = 'player'
-
-    def __init__(self, protocol, function, *args, **kwargs):
+    def __init__(self, function, *args, **kwargs):
         self._player_function = function
         self.args = args
         self.kwargs = kwargs

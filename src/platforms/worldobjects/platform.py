@@ -28,6 +28,12 @@ class Platform(BaseObject):
     def contains(self, location):
         return aabb_collision(*location, *self._location1, self._z, *self._location2, self._start_z)
 
+    def raise_(self, amount, speed=0.0, delay=0.0):
+        self.height(self._z - amount, speed, delay)
+
+    def lower(self, amount, speed=0.0, delay=0.0):
+        self.height(self._z + amount, speed, delay)
+
     def height(self, height, speed=0.0, delay=0.0, go_back_at_end=False, wait=0.0):
         self._speed = speed
         self._wait = wait
@@ -39,6 +45,7 @@ class Platform(BaseObject):
         clear_solid(self._protocol, *self._location1, self._z, *self._location2, self._start_z)
 
     def _cycle_later(self, delay):
+        print('cycling later')
         self._cycle_start_call = callLater(delay, self._cycle_loop.start, self._speed)
 
     def _cycle(self):
@@ -54,7 +61,7 @@ class Platform(BaseObject):
         if self._z == self._target_z:
             self._cycle_loop.stop()
             if self._original_height is not None:
-                self._target_z = self._original_height
+                self._target_z, self._original_height = self._original_height, None
                 self._cycle_later(self._wait)
 
     def _build_plane(self, z):

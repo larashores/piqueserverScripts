@@ -20,7 +20,6 @@
                     actually starts to move.
                     Elevators can wait an amount of time at the end of the journey,
                     before heading back.
-                output
                 teleport <x y _z|where>
                     Moves the activating players to the specified coordinates.
                     Using 'where' instead takes the last location where you stood
@@ -59,8 +58,7 @@ from platforms.states.action.actionaddstate import PlayerActionAddState, Platfor
 from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
 from platforms.states.button.selectbuttonstate import SelectButtonState
 from platforms.states.platform.selectplatformstate import SelectPlatformState
-from platforms.worldobjects.action.platformaction import PlatformActionType
-from platforms.worldobjects.action.playeraction import PlayerActionType
+from platforms.worldobjects.platform import Platform
 from platforms.commands.util import IDENTIFIER
 
 POS_FLOAT = piqueargs.FloatRange(0.0, 86400.0)
@@ -80,7 +78,7 @@ def action(connection, end=False):
         return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
 
 
-@action.group(usage='Usage: /action {} <height raise lower elevator output teleport chat damage>',
+@action.group(usage='Usage: /action {} <height raise lower elevator teleport chat damage>',
               usageargs=['add'], required=False)
 @piqueargs.pass_obj
 def add(obj, connection, end=False):
@@ -96,55 +94,42 @@ def set_(obj, connection, end=False):
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('height', type=POS_FLOAT)
+@piqueargs.argument('height', type=piqueargs.IntRange(0, 62))
 @piqueargs.command(usage='Usage: /action {} height <height> [speed=0.15] [delay]')
 @piqueargs.pass_obj
 def height(obj, connection, height, speed, delay):
-    state = ActionAddState(PlatformActionType.HEIGHT,
-                           obj.clear_others, mode='elevator', height=height, speed=speed, delay=delay)
+    state = PlatformActionAddState(obj.clear_others, Platform.height, height, speed, delay)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('amount', type=POS_FLOAT)
+@piqueargs.argument('amount', type=piqueargs.IntRange(0, 62))
 @piqueargs.command('raise', usage='Usage: /action {} raise <amount> [speed=0.15] [delay]')
 @piqueargs.pass_obj
 def raise_(obj, connection, amount, speed, delay):
-    state = ActionAddState(PlatformActionType.RAISE,
-                           obj.clear_others, mode='raise', amount=amount, speed=speed, delay=delay)
+    state = PlatformActionAddState(obj.clear_others, Platform.raise_, amount, speed, delay)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('amount', type=POS_FLOAT)
+@piqueargs.argument('amount', type=piqueargs.IntRange(0, 62))
 @piqueargs.command(usage='Usage: /action {} lower <amount> [speed=0.15] [delay]')
 @piqueargs.pass_obj
 def lower(obj, connection, amount, speed, delay):
-    state = ActionAddState(PlatformActionType.LOWER,
-                           obj.clear_others, mode='lower', lower=lower, amount=amount, speed=speed, delay=delay)
+    state = PlatformActionAddState(obj.clear_others, Platform.lower, lower, amount, speed, delay)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
 @piqueargs.argument('wait', default=3.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('height', type=POS_FLOAT)
+@piqueargs.argument('height', type=piqueargs.IntRange(0, 62))
 @piqueargs.command(usage='Usage: /action {} elevator <height> [speed=0.25] [delay] [wait=3.0]')
 @piqueargs.pass_obj
 def elevator(obj, connection, height, speed, delay, wait):
-    state = ActionAddState(PlatformActionType.ELEVATOR,
-                           obj.clear_others, mode='elevator', height=height, speed=speed, delay=delay, wait='wait')
-    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
-
-
-@piqueargs.argument('delay', type=piqueargs.FloatRange())
-@piqueargs.command(usage='Usage: /action {} output [delay]')
-@piqueargs.pass_obj
-def output(obj, connection, delay):
-    state = ActionAddState(PlatformActionType.OUTPUT,
-                           obj.clear_others, mode='height', speed=0.0, delay=delay or 0.0, force=True)
+    state = PlatformActionAddState(obj.clear_others, Platform.height, height, speed, delay, True, wait)
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
@@ -204,7 +189,7 @@ def delete(connection, what):
     push_states(connection, [state, SelectButtonState(state)])
 
 
-for command in (height, raise_, lower, elevator, output, teleport, chat, damage):
+for command in (height, raise_, lower, elevator, teleport, chat, damage):
     add.add_command(command)
     set_.add_command(command)
 
