@@ -56,6 +56,22 @@ class PlatformAddActionState(NeedsPlatformState, _AddActionState):
             return S_COMMAND_CANCEL.format(command='action')
         return _AddActionState.on_exit(self)
 
+    def on_enter(self):
+        self.player.send_chat(NeedsButtonState.on_enter(self))
+        self.player.send_chat(NeedsPlatformState.on_enter(self))
+
+    def _on_button_selected(self):
+        if self._platform:
+            self.signal_exit(self)
+        else:
+            self.player.send_chat("Button '{}' selected".format(self._button.label))
+
+    def _on_platform_selected(self):
+        if self._button:
+            self.signal_exit(self)
+        else:
+            self.player.send_chat("Platform '{}' selected".format(self._platform.label))
+
     def _make_action(self):
         return PlatformAction(self.platform, self._action_type.value[0], *self._args, **self._kwargs)
 

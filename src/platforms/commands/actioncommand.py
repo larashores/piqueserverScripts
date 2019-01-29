@@ -56,8 +56,6 @@ from platforms.strings import S_EXIT_BLOCKING_STATE, S_WHERE_FIRST
 from platforms.states.action.actionstate import ActionState
 from platforms.states.action.addactionstate import PlatformAddActionState, PlayerAddActionState, ActionType
 from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
-from platforms.states.button.selectbuttonstate import SelectButtonState
-from platforms.states.platform.selectplatformstate import SelectPlatformState
 from platforms.commands.util import IDENTIFIER
 
 POS_FLOAT = piqueargs.FloatRange(0.0, 86400.0)
@@ -68,13 +66,13 @@ def action(connection, end=False):
     if not end:
         return
 
-    # if connection not in connection.protocol.players:
-    #     raise ValueError()
-    # state = connection.state_stack.top()
-    # if state and isinstance(state.get_parent(), ActionState):
-    #     connection.state_stack.exit()  # cancel action command
-    # elif state and state.blocking:
-    #     return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
+    if connection not in connection.protocol.players:
+        raise ValueError()
+    state = connection.state_stack.top()
+    if state and isinstance(state.get_parent(), ActionState):
+        connection.state_stack.exit()  # cancel action command
+    elif state and state.blocking:
+        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
 
 
 @action.group(usage='Usage: /action {} <height raise lower elevator teleport chat damage>',
@@ -98,7 +96,7 @@ def set_(obj, connection):
 @piqueargs.pass_obj
 def height(obj, connection, height, speed, delay):
     state = PlatformAddActionState(obj.clear_others, ActionType.HEIGHT, height, speed, delay)
-    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
+    push_states(connection, [state])
 
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
@@ -108,7 +106,7 @@ def height(obj, connection, height, speed, delay):
 @piqueargs.pass_obj
 def raise_(obj, connection, amount, speed, delay):
     state = PlatformAddActionState(obj.clear_others, ActionType.RAISE, amount, speed, delay)
-    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
+    push_states(connection, [state])
 
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
@@ -118,7 +116,7 @@ def raise_(obj, connection, amount, speed, delay):
 @piqueargs.pass_obj
 def lower(obj, connection, amount, speed, delay):
     state = PlatformAddActionState(obj.clear_others, ActionType.LOWER, lower, amount, speed, delay)
-    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
+    push_states(connection, [state])
 
 
 @piqueargs.argument('wait', default=3.0, type=POS_FLOAT, required=False)
@@ -130,7 +128,7 @@ def lower(obj, connection, amount, speed, delay):
 def elevator(obj, connection, height, speed, delay, wait):
     print(type(ActionType.ELEVATOR))
     state = PlatformAddActionState(obj.clear_others, ActionType.ELEVATOR, height, speed, delay, True, wait)
-    push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
+    push_states(connection, [state])
 
 
 @piqueargs.argument('z', type=piqueargs.FloatRange(0.0, 62.0), required=False)
@@ -156,16 +154,15 @@ def teleport(obj, connection, first, y, z):
     z = max(0.5, z)
 
     state = PlayerAddActionState(obj.clear_others, ActionType.TELEPORT, (x, y, z))
-    push_states(connection, [state, SelectButtonState(state)])
+    push_states(connection, [state])
 
 
 @piqueargs.argument('text')
 @piqueargs.command(usage='Usage: /action {} chat <text>')
 @piqueargs.pass_obj
 def chat(obj, connection, text):
-    # state = PlayerAddActionState(obj.clear_others, ActionType.CHAT, text)
-    # push_states(connection, [state, SelectButtonState(state)])
-    return 'hey'
+    state = PlayerAddActionState(obj.clear_others, ActionType.CHAT, text)
+    push_states(connection, [state])
 
 
 @piqueargs.argument('amount', type=piqueargs.IntRange(-100, 100))
@@ -174,20 +171,20 @@ def chat(obj, connection, text):
 def damage(obj, connection, amount):
     state = PlayerAddActionState(obj.clear_others, ActionType.DAMAGE,
                                  kill_type=WEAPON_KILL if amount > 0 else FALL_KILL)
-    push_states(connection, [state, SelectButtonState(state)])
+    push_states(connection, [state])
 
 
 @action.command('list', usage='Usage: /action list')
 def list_(connection):
     state = ActionListState()
-    push_states(connection, [state, SelectButtonState(state)])
+    push_states(connection, [state])
 
 
 @piqueargs.argument('what', type=IDENTIFIER)
 @action.command('del', usage='Usage: /action del <#|all>')
 def delete(connection, what):
     state = ActionDelState(what)
-    push_states(connection, [state, SelectButtonState(state)])
+    push_states(connection, [state])
 
 
 for command in (height, raise_, lower, elevator, teleport, chat, damage):

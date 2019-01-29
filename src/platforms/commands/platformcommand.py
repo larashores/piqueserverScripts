@@ -25,7 +25,7 @@
 from platforms import piqueargs
 from platforms.strings import S_EXIT_BLOCKING_STATE
 from platforms.states.platform.newplatformstate import NewPlatformState
-from platforms.states.platform.selectplatformstate import SelectPlatformState
+from platforms.states.needsplatformstate import NeedsPlatformState
 from platforms.states.platform.platformcommandstate import *
 
 
@@ -78,11 +78,11 @@ def destroy(connection):
 @platform.command(usage='Usage: /platform last')
 def last(connection):
     state = connection.state_stack.top()
-    if state and isinstance(state, SelectPlatformState) and connection.last_platform:
+    if state and isinstance(state, NeedsPlatformState) and connection.last_platform:
         state.select_platform(connection.last_platform)
         state.signal_exit(state)
 
 
 def push_state(player, state):
     player.state_stack.clear()
-    player.state_stack.push(state, SelectPlatformState(state))
+    player.state_stack.push(state)

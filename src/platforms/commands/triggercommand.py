@@ -59,8 +59,6 @@ from platforms import piqueargs
 from platforms.commands.util import IDENTIFIER
 from platforms.states.trigger.triggeraddstate import *
 from platforms.states.trigger.triggercommandstate import *
-from platforms.states.button.selectbuttonstate import SelectButtonState
-from platforms.states.platform.selectplatformstate import SelectPlatformState
 
 POS_FLOAT = piqueargs.FloatRange(0.0, 64.0)
 
@@ -153,4 +151,4 @@ for command in (press, distance, track, height):
 
 def push_command_state(player, state):
     player.state_stack.clear()
-    player.state_stack.push(state, SelectButtonState(state))
+    player.state_stack.push(state)

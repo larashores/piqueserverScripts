@@ -1,6 +1,8 @@
 # from twisted.internet.reactor import callLater, seconds
 from pyspades.constants import SPADE_TOOL, GRENADE_DESTROY, DESTROY_BLOCK, SPADE_DESTROY
 from platforms.states.platformsstate import PlatformsState
+from platforms.states.needsbuttonstate import NeedsButtonState
+from platforms.states.needsplatformstate import NeedsPlatformState
 from platforms.util.geometry import prism_range
 from playerstates.stateconnection import state_connection
 
@@ -37,11 +39,10 @@ def platform_connection(connection):
             if self.tool == SPADE_TOOL and self.world_object.primary_fire:
                 state = self.state_stack.top()
                 button, platform = self._get_button_or_platform_if_within_reach()
-                if isinstance(state, PlatformsState):
-                    if button:
-                        state.on_select_button(button)
-                    elif platform:
-                        state.on_select_platform(platform)
+                if button and isinstance(state, NeedsButtonState):
+                    state.select_button(button)
+                elif platform and isinstance(state, NeedsPlatformState):
+                    state.select_platform(platform)
                 elif button:
                     button.press(self)
             return connection.on_orientation_update(self, x, y, z)

@@ -5,5 +5,13 @@ class NeedsPlatformState:
         super().__init__(*args, **kwargs)
         self._platform = None
 
-    def set_platform(self, platform):
-        self._platform = platform
+    def on_enter(self):
+        return 'Select a platform by hitting it with the spade'
+
+    def select_platform(self, platform):
+        if not self._platform:
+            self._platform = platform
+            self._on_platform_selected()
+
+    def _on_platform_selected(self):
+        self.signal_exit(self)

@@ -54,7 +54,3 @@ class PlatformDestroyState(PlatformCommandState):
     def _on_activate_command(self):
         self.player.protocol.destroy_platform(self._platform)
         return "Platform '{}' destroyed".format(self._platform.label)
-
-
-class PlatformLastState(PlatformCommandState):
-    COMMAND_NAME = 'last'
