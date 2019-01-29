@@ -148,7 +148,7 @@ def output(obj, connection, delay):
     push_states(connection, [state, SelectButtonState(state), SelectPlatformState(state)])
 
 
-@piqueargs.argument('_z', type=piqueargs.FloatRange(0.0, 62.0), required=False)
+@piqueargs.argument('z', type=piqueargs.FloatRange(0.0, 62.0), required=False)
 @piqueargs.argument('y', type=piqueargs.FloatRange(511.0, 511.0), required=False)
 @piqueargs.argument('first')
 @piqueargs.command(usage='Usage: /action {} teleport <x y _z|where>')
@@ -170,7 +170,7 @@ def teleport(obj, connection, first, y, z):
         piqueargs.stop_parsing(teleport.usage)
     z = max(0.5, z)
 
-    state = ActionAddState(PlayerActionType.TELEPORT, obj.clear_others, location=(x, y, z))
+    state = PlayerActionAddState(obj.clear_others, connection.set_location.__func__, (x, y, z))
     push_states(connection, [state, SelectButtonState(state)])
 
 
@@ -178,7 +178,7 @@ def teleport(obj, connection, first, y, z):
 @piqueargs.command(usage='Usage: /action {} chat <text>')
 @piqueargs.pass_obj
 def chat(obj, connection, text):
-    state = PlayerActionAddState(obj.clear_others, connection.send_chat, text)
+    state = PlayerActionAddState(obj.clear_others, connection.send_chat.__func__, text)
     push_states(connection, [state, SelectButtonState(state)])
 
 
@@ -186,10 +186,9 @@ def chat(obj, connection, text):
 @piqueargs.command(usage='Usage: /action {} damage <amount>')
 @piqueargs.pass_obj
 def damage(obj, connection, amount):
-    state = ActionAddState(PlayerActionType.DAMAGE,
-                           obj.clear_others, value=amount, type=WEAPON_KILL if amount > 0 else FALL_KILL)
+    state = PlayerActionAddState(obj.clear_others, connection.hit.__func__, amount,
+                                 kill_type=WEAPON_KILL if amount > 0 else FALL_KILL)
     push_states(connection, [state, SelectButtonState(state)])
-    return 'damage {}'.format(amount)
 
 
 @action.command('list', usage='Usage: /action list')

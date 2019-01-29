@@ -8,9 +8,9 @@ from platforms.strings import *
 
 
 class ActionAddState(NeedsButtonState, ActionState, metaclass=ABCMeta):
-    def __init__(self, clear_others, method, *args, **kwargs):
+    def __init__(self, clear_others, function, *args, **kwargs):
         super().__init__()
-        self._method = method
+        self._function = function
         self.action_type = 'test'
         self.clear_others = clear_others
         self.platform = None
@@ -42,4 +42,4 @@ class PlatformActionAddState(NeedsPlatformState, ActionAddState):
 
 class PlayerActionAddState(ActionAddState):
     def _make_action(self):
-        return PlayerAction(self.player.protocol, self._method, *self.args, **self.kwargs)
+        return PlayerAction(self.player.protocol, self._function, *self.args, **self.kwargs)

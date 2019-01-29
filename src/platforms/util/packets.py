@@ -1,4 +1,4 @@
-from pyspades.contained import BlockAction, BlockLine, SetColor, PositionData
+from pyspades.contained import BlockAction, BlockLine, SetColor, PositionData, OrientationData
 from pyspades.common import make_color
 from pyspades.constants import BUILD_BLOCK
 
@@ -38,3 +38,11 @@ def send_position(player, x, y, z):
     position_data.y = y
     position_data.z = z
     player.send_contained(position_data)
+
+
+def send_orientation(player, x, y, z):
+    orientation_data = OrientationData()
+    orientation_data.x = x
+    orientation_data.y = y
+    orientation_data.z = z
+    player.send_contained(orientation_data)

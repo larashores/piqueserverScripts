@@ -17,6 +17,8 @@ def platform_connection(connection):
             connection.__init__(self, *args, **kwargs)
             self.last_button = None
             self.last_platform = None
+            self.where_location = None
+            self.where_orientation = None
             self._reach = ACTION_RAY_LENGTH
 
         def on_block_destroy(self, x, y, z, mode):
@@ -54,6 +56,12 @@ def platform_connection(connection):
                     elif platform:
                         state.on_inspect_platform(platform)
             return connection.on_animation_update(self, jump, crouch, sneak, sprint)
+
+        def on_command(self, command, parameters):
+            if command == 'where' and not parameters:
+                self.where_location = self.world_object.position.get()
+                self.where_orientation = self.world_object.orientation.get()
+            connection.on_command(self, command, parameters)
 
         def _get_button_or_platform_if_within_reach(self):
             location = self.world_object.cast_ray(self._reach)
@@ -104,23 +112,7 @@ def platform_connection(connection):
         #         self._player_action(self.world_object.primary_fire, not self.world_object.sneak and sneak)
         #     return connection.on_animation_update(self, jump, crouch, sneak, sprint)
         #
-        # def on_command(self, command, parameters):
-        #     if command == 'where' and not parameters:
-        #         self.where_location = self.world_object.position.get()
-        #         self.where_orientation = self.world_object.orientation.get()
-        #     connection.on_command(self, command, parameters)
         #
-        # def _get_button_if_within_reach(self):
-        #     location = self.world_object.cast_ray(self.reach)
-        #     if location is None:
-        #         return None
-        #     return self.protocol.buttons.get(location)
-        #
-        # def _get_platform_if_within_reach(self):
-        #     location = self.world_object.cast_ray(self.reach)
-        #     if location is None:
-        #         return None
-        #     return self.protocol.get_platform(*location)
         #
         # def _player_action(self, selecting, inspecting):
         #     if not selecting and not inspecting:

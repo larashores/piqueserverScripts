@@ -18,14 +18,14 @@ PLAYER_ACTION_FUNCTIONS = {
 class PlayerAction:
     type = 'player'
 
-    def __init__(self, protocol, method, *args, **kwargs):
-        self.player_method = method.__func__
+    def __init__(self, protocol, function, *args, **kwargs):
+        self._player_function = function
         self.args = args
         self.kwargs = kwargs
 
     def run(self, players):
         for player in players:
-            self.player_method(player, *self.args, **self.kwargs)
+            self._player_function(player, *self.args, **self.kwargs)
 
     def serialize(self):
         return {
