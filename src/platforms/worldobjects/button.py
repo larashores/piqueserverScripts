@@ -70,10 +70,18 @@ class Button(BaseObject):
     def add_action(self, action):
         self._actions.append(action)
 
+    def pop_trigger(self, index):
+        trigger = self._triggers[index]
+        self._remove_trigger(trigger)
+        return trigger
+
+    def pop_action(self, index):
+        action = self._actions.pop(index)
+        return action
+
     def clear_triggers(self):
         for trigger in self._triggers:
-            trigger.unbind()
-        self._triggers.clear()
+            self._remove_trigger(trigger)
 
     def clear_actions(self):
         self._actions.clear()
@@ -150,12 +158,6 @@ class Button(BaseObject):
         send_color(self._protocol, color)
         send_block(self._protocol, *self._location, BUILD_BLOCK)
 
-    # def pop_trigger(self, index):
-    #     """Removes a trigger by index"""
-    #     trigger = self._triggers[index]
-    #     self._remove_trigger(trigger)
-    #     return trigger
-    #
     #
     # def serialize(self):
     #     return {

@@ -62,7 +62,7 @@ def trigger(connection, end=False):
 
 
 @piqueargs.option('not', 'notarg')
-@trigger.group(usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['add'])
+@trigger.group(usage='Usage: /trigger {} [not] <press distance height timer>', usageargs=['add'])
 @piqueargs.pass_obj
 def add(obj, connection, notarg):
     obj.clear_others = False
@@ -70,7 +70,7 @@ def add(obj, connection, notarg):
 
 
 @piqueargs.option('not', 'notarg')
-@trigger.group('set', usage='Usage: /trigger {} [not] <press distance track height>', usageargs=['set'])
+@trigger.group('set', usage='Usage: /trigger {} [not] <press distance height timer>', usageargs=['set'])
 @piqueargs.pass_obj
 def set_(obj, connection, notarg):
     obj.clear_others = True
@@ -97,6 +97,21 @@ def height(obj, connection, height_):
     connection.state_stack.set(PlatformAddTriggerState(obj.negate, obj.clear_others, TriggerType.HEIGHT, height_))
 
 
+@piqueargs.argument('amount', default='forever', required=False)
+@piqueargs.argument('time', type=piqueargs.FloatRange(1.0, 86400.0))
+@piqueargs.command(usage='/trigger {} [not] timer <time> [amount|forever]')
+@piqueargs.pass_obj
+def timer(obj, connection, time, amount):
+    if amount != 'forever':
+        try:
+            amount = piqueargs.IntRange.check_value('amount', int(amount), 1, 86400.0)
+        except ValueError:
+            piqueargs.stop_parsing(timer.usage)
+    else:
+        amount = None
+    connection.state_stack.set(AddTriggerState(obj.negate, obj.clear_others, TriggerType.TIMER, time, amount))
+
+
 @trigger.command('list', usage='Usage: /trigger list')
 def list_(connection):
     connection.state_stack.set(TriggerListState())
@@ -114,6 +129,6 @@ def logic(connection, andor):
     connection.state_stack.set(TriggerLogicState(andor))
 
 
-for command in (press, distance, height):
+for command in (press, distance, height, timer):
     add.add_command(command)
     set_.add_command(command)
