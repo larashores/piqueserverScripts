@@ -1,5 +1,5 @@
-from src.piqueargs.basecommand import BaseCommand
-from src.piqueargs.piqueargsexception import PiqueArgsException
+from argparse.basecommand import BaseCommand
+from argparse.piqueargsexception import PiqueArgsException
 
 
 class Command(BaseCommand):

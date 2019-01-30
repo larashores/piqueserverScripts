@@ -1,5 +1,5 @@
+from argparse.piqueargsexception import PiqueArgsException, StopParsingException
 from abc import abstractmethod, ABCMeta
-from src.piqueargs.piqueargsexception import PiqueArgsException, StopParsingException
 
 
 class BaseCommand(metaclass=ABCMeta):

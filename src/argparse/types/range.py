@@ -1,4 +1,4 @@
-from src.piqueargs.piqueargsexception import StopParsingException
+from argparse.piqueargsexception import StopParsingException
 
 
 def range_class(numeic_type):

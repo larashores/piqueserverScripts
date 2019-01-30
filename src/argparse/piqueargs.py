@@ -1,5 +1,5 @@
-from src.piqueargs.group import Group
-from src.piqueargs.argument import Argument
+from argparse.group import Group
+from argparse.argument import Argument
 
 
 def group(usage='', name=None, required=None):

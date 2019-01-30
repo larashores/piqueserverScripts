@@ -1,4 +1,4 @@
-from src.piqueargs.piqueargsexception import PiqueArgsException
+from argparse.piqueargsexception import PiqueArgsException
 
 
 class Argument:
