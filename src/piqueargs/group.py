@@ -1,75 +1,74 @@
-from src.piqueargs.context import Context
+from src.piqueargs.basecommand import BaseCommand
+from src.piqueargs.command import Command
+from src.piqueargs.piqueargsexception import PiqueArgsException
 
 
-class Group:
-    name = property(lambda self: self._name)
-
+class Group(BaseCommand):
     def __init__(self, function, usage, name=None, required=None):
-        self._name = name if name is not None else function.__name__
-        self._function = function
+        BaseCommand.__init__(self, function, usage, name)
         self._required = required
-        self._usage = usage
         self._options = {}
         self._subgroups = {}
         self._return_args = []
-        self._arguments = []
 
     def __call__(self, *args, **kwargs):
         self._function(*args, **kwargs)
 
-    def _check_option_or_group(self, name):
-        return name in self._subgroups or self._options
-
-    def add_return_args(self, *args):
-        self._return_args.extend(args)
-
-    def add_option(self, name, code_name):
-        if self._check_option_or_group(name):
-            raise ValueError('Option or group {} already exists'.format(name))
-        if code_name in self._options.values():
-            raise ValueError('Option codename {} already exists'.format(code_name))
-        self._options[name] = code_name
-
-    def add_argument(self, argument):
-        self._arguments.append(argument)
-
     def group(self, usage='', name=None, required=None):
         def decorator(function):
             group = Group(function, usage, name, required)
-            self._subgroups[group.name] = group
+            self.add_group(group)
             return group
         return decorator
 
+    def command(self, usage='', name=None):
+        def decorator(function):
+            cmd = Command(function, usage, name)
+            self.add_group(cmd)
+            return cmd
+        return decorator
+
+    def add_return_args(self, *args):
+        if any(arg in self._return_args for arg in args):
+            raise PiqueArgsException('Duplicate return args', self)
+        self._return_args.extend(args)
+
+    def add_option(self, name, code_name):
+        if name in self._options:
+            raise PiqueArgsException('Option {} already exists'.format(name), self)
+        if code_name in self._options.values():
+            raise PiqueArgsException('Option code_name {} already exists'.format(code_name), self)
+        if name in self._subgroups:
+            raise PiqueArgsException('Option {} already exists as group'.format(name), self)
+        self._options[name] = code_name
+
+    def add_group(self, group):
+        if group.name in self._subgroups:
+            raise PiqueArgsException('Group {} already exits'.format(group.name), self)
+        self._subgroups[group.name] = group
+
     def parse_args(self, connection, args, context):
         for option in self._options:
-            context.kwargs[self._options[option]] = False
+            context[self._options[option]] = False
         if args and args[0] in self._options:
             option = args.pop(0)
-            context.kwargs[self._options[option]] = True
-
-        for argument in self._arguments:
-            new_context = Context()
-            argument.parse_args(args, new_context)
-            context.kwargs.update(new_context.kwargs)
-
+            context[self._options[option]] = True
+        if not args and self._required is not False:
+            raise PiqueArgsException('Command required for group {}'.format(args), self)
         if self._required is not None:
-            context.kwargs['end'] = (len(args) == 0)
-
-        result = self._function(connection, **context.kwargs)
+            context['end'] = (len(args) == 0)
+        result = self._function(connection, **context)
         if not args:
             return result
-
-        new_context = Context()
-        if self._return_args:
-            if not isinstance(result, tuple):
-                result = [result]
-            new_context.kwargs.update(dict(zip(self._return_args, result)))
-        command = args.pop(0)
-        print('command', command)
-        if command in self._subgroups:
-            return self._subgroups[command].parse_args(connection, args, new_context)
-        print('here')
-        return self._usage
-
-    def run(self, connection, args):
-        return self.parse_args(connection, args, Context())
+        else:
+            new_context = {}
+            if self._return_args:
+                if not isinstance(result, tuple):
+                    result = [result]
+                new_context.update(dict(zip(self._return_args, result)))
+            command = args[0]
+            if command in self._subgroups:
+                args.pop(0)
+                result = self._subgroups[command].parse_args(connection, args, new_context)
+                return result
+            raise PiqueArgsException('Done parsing {} and still args {}'.format(self, args), self)

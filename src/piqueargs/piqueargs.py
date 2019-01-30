@@ -15,9 +15,9 @@ def returns(*names):
     return decorator
 
 
-def argument(name, *, default='', type=str, nargs=1, required=False):
-    def decorator(group):
-        group.add_argument(Argument(name, default=default, type=type, nargs=nargs, required=required))
+def argument(name, *, default='', type=str, nargs=1, required=True):
+    def decorator(command):
+        command.add_argument(Argument(name, default=default, type=type, nargs=nargs, required=required))
         return group
     return decorator
 
