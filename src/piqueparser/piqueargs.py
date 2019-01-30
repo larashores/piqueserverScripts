@@ -7,7 +7,10 @@ from piqueserver import commands
 
 
 def add_server_command(function, *args, **kwargs):
-    return commands.command(*args, **kwargs)(function)
+    @commands.command(*args, **kwargs)
+    def command(connection, *arg):
+        return function(connection, *arg)
+    return command
 
 
 def stop_parsing(message=None):

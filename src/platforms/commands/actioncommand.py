@@ -76,7 +76,7 @@ def add(connection):
 
 @piqueargs.returns('clear_others')
 @action.group('Usage: /action add|set <height raise lower elevator teleport chat damage>', name='set')
-def set_(obj, connection):
+def set_(connection):
     return True
 
 
@@ -147,7 +147,7 @@ def chat(connection, clear_others, text):
 @piqueargs.argument('amount', type=IntRange(-100, 100))
 @piqueargs.command('Usage: /action add|set damage <amount>')
 def damage(connection, clear_others, amount):
-    connection.state_stack.set(PlayerAddActionState(clear_others, ActionType.DAMAGE,
+    connection.state_stack.set(PlayerAddActionState(clear_others, ActionType.DAMAGE, amount,
                                                     kill_type=WEAPON_KILL if amount > 0 else FALL_KILL))
 
 

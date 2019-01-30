@@ -38,7 +38,7 @@ class TriggerDeleteState(_TriggerCommandState):
             return "Deleted all triggers in button '{}'".format(self._button.label)
         try:
             trigger = self._button.pop_trigger(self._number)
-            return "{} trigger {} deleted from button '{}'".format(trigger.type.capitalize(),
+            return "{} trigger {} deleted from button '{}'".format(trigger.NAME.upper(),
                                                                    self._number, self._button.label)
         except IndexError:
             return "Invalid trigger number! Use '/trigger list' to check"

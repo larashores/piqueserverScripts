@@ -41,4 +41,4 @@ class TimerTrigger(Trigger):
 
     def __str__(self):
         return "{}timer:{}s".format(
-            'NOT ' if self._negate else '', self._interva)
+            'NOT ' if self._negate else '', self._interval)

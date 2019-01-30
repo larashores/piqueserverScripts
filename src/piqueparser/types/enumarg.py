@@ -13,6 +13,6 @@ class EnumArg:
     @staticmethod
     def check_value(enum_type, value):
         try:
-            return enum_type(value.upper())
+            return enum_type[value.upper()]
         except KeyError:
             raise PiqueArgsException('Invalid enum {}'.format(value))
