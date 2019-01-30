@@ -18,11 +18,6 @@
                 distance [radius=3]
                     True when a player gets within <radius> blocks of the
                     button (note: box distance, not sphere).
-                track [radius=3]
-                    Same as distance, but tracks one player and only one player.
-
-                    Useful for creating a button that requires a specific number
-                    of nearby players.
                 height <height>
                     True when the platforms is exactly the specified height.
         list
@@ -93,13 +88,6 @@ def press(obj, connection):
 @piqueargs.pass_obj
 def distance(obj, connection, radius):
     connection.state_stack.set(PlayerAddTriggerState(obj.negate, obj.clear_others, TriggerType.DISTANCE, radius))
-
-
-@piqueargs.argument('radius', default=3.0, type=POS_FLOAT, required=False)
-@piqueargs.command(usage='Usage: /trigger {} [not] track [radius=3]')
-@piqueargs.pass_obj
-def track(obj, connection, radius):
-    connection.state_stack.set(PlayerAddTriggerState(obj.negate, obj.clear_others, TriggerType.TRACK, radius))
 
 
 @piqueargs.argument('height_', type=piqueargs.IntRange(0, 62))

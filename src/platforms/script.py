@@ -39,10 +39,17 @@ from platforms.core.platformconnection import platform_connection
 from cbc.core import cbc
 
 
-piqueargs.add_server_command(button, 'button', 'b')
-piqueargs.add_server_command(platform, 'platform', 'p')
-piqueargs.add_server_command(trigger, 'trigger', 'tr')
-piqueargs.add_server_command(action, 'action', 'ac')
+piqueargs.server_command(button, 'button', 'b')
+piqueargs.server_command(platform, 'platform', 'p')
+piqueargs.server_command(trigger, 'trigger', 'tr')
+piqueargs.server_command(action, 'action', 'ac')
+
+
+@piqueargs.server_command('save')
+@piqueargs.command(usage=r'Usage: \save')
+def save(connection):
+    connection.protocol.dump_platform_json()
+    return 'Platforms saved'
 
 
 def apply_script(protocol, connection, config):

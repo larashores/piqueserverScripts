@@ -18,9 +18,6 @@
         cooldown <seconds>
             The button will be able to be activated only once in the specified
             interval. Default is 0.5 seconds.
-        logic <and|or>
-            "AND" will make the button activate when ALL its triggers yield true.
-            "OR" will make the button activate when ANY of its triggers fire.
         quiet
             Makes a button either become silent or resume playing animation and
             sound when it activates.

@@ -4,7 +4,6 @@ from platforms.states.needsplatformstate import NeedsPlatformState
 from platforms.states.needsbuttonstate import NeedsButtonState
 from platforms.worldobjects.trigger.presstrigger import PressTrigger
 from platforms.worldobjects.trigger.distancetrigger import DistanceTrigger
-from platforms.worldobjects.trigger.tracktrigger import TrackTrigger
 from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
 from platforms.util.strings import S_COMMAND_CANCEL
 import enum
@@ -13,7 +12,6 @@ import enum
 class TriggerType(enum.Enum):
     PRESS = PressTrigger
     DISTANCE = DistanceTrigger
-    TRACK = TrackTrigger
     HEIGHT = HeightTrigger
 
     def __str__(self):

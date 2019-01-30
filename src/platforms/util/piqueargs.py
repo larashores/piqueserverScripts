@@ -8,7 +8,7 @@ argument = click.argument
 pass_obj = click.pass_obj
 
 
-def add_server_command(func, *args, **kwargs):
+def server_command(func, *args, **kwargs):
     @piqueserver.commands.command(*args, **kwargs)
     def command(connection, *arg):
         return func.run(connection, list(arg))
