@@ -68,8 +68,9 @@ def add(connection, notarg):
     return False, notarg
 
 
+@piqueargs.returns('clear_others', 'negate')
 @piqueargs.option('not', 'notarg')
-@trigger.group('set', usage='Usage: /trigger add|set [not] <press distance height timer>')
+@trigger.group('Usage: /trigger add|set [not] <press distance height timer>', name='set')
 def set_(connection, notarg):
     return True, notarg
 

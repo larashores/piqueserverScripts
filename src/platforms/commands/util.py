@@ -12,7 +12,9 @@ def base_command(connection, end, state_type, usage_message):
     return usage_message
 
 
-def id_or_all(value):
+def id_or_all(value=None):
+    if value is None:
+        return 'all'
     if value == 'all':
         return value
     try:
