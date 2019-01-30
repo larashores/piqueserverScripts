@@ -1,4 +1,5 @@
 from argparse.group import Group
+from argparse.command import Command
 from argparse.argument import Argument
 from argparse.piqueargsexception import StopParsingException
 
@@ -10,6 +11,12 @@ def stop_parsing(message=None):
 def group(usage='', name=None, required=None):
     def decorator(function):
         return Group(function, usage, name, required)
+    return decorator
+
+
+def command(usage='', name=None):
+    def decorator(function):
+        return Command(function, usage, name)
     return decorator
 
 

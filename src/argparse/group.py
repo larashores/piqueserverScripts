@@ -21,7 +21,7 @@ class Group(BaseCommand):
     def command(self, usage='', name=None):
         def decorator(function):
             cmd = Command(function, usage, name)
-            self.add_group(cmd)
+            self.add_command(cmd)
             return cmd
         return decorator
 
@@ -43,6 +43,11 @@ class Group(BaseCommand):
         if group.name in self._subgroups:
             raise PiqueArgsException('Group {} already exits'.format(group.name), self)
         self._subgroups[group.name] = group
+
+    def add_command(self, command):
+        if command.name in self._subgroups:
+            raise PiqueArgsException('Command {} already exits'.format(command.name), self)
+        self._subgroups[command.name] = command
 
     def parse_args(self, connection, args, context):
         for option in self._options:
