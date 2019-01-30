@@ -20,11 +20,12 @@ class Platform(BaseObject):
         self._triggers = set()
         self._location1 = location1
         self._location2 = location2
-        self._start_z = self._z = self._target_z = z
-        self._build_plane(self._start_z)
+        self._start_z = z
+        self._z = self._target_z = self._start_z - 1
+        self._build_plane(self._z)
         self._cycle_loop = LoopingCall(self._cycle)
         self._cycle_start_call = None
-        self._original_height = None
+        self._original_z = None
         self._speed = 0.0
         self._wait = 0.0
 
@@ -35,7 +36,15 @@ class Platform(BaseObject):
         self._triggers.remove(trigger)
 
     def contains(self, location):
-        return aabb_collision(*location, *self._location1, self._z, *self._location2, self._start_z)
+        if self._z < self._start_z:
+            z1 = self._z + 1
+            z2 = self._start_z
+        elif self._z > self._start_z:
+            z1 = self._start_z + 1
+            z2 = self._z
+        else:
+            return False
+        return aabb_collision(*location, *self._location1, z1, *self._location2, z2)
 
     def raise_(self, amount, speed=0.0, delay=0.0):
         self.set_height(self.height + amount, speed, delay)
@@ -48,8 +57,8 @@ class Platform(BaseObject):
             return
         self._speed = speed
         self._wait = wait
-        self._original_height = self._z if go_back_at_end else None
-        self._target_z = self._start_z - height + 1
+        self._original_z = self._z if go_back_at_end else None
+        self._target_z = self._start_z - height
         self._cycle_later(delay)
 
     def destroy(self):
@@ -61,27 +70,32 @@ class Platform(BaseObject):
     def _cycle(self):
         if self.frozen:
             return
-        if self._z > self._target_z:
-            self._z -= 1
-            self._build_plane(self._z)
-            self._unstick()
-        elif self._z < self._target_z:
-            self._destroy_plane(self._z)
+        if self._target_z > self._z:          # Going down
+            if self._z < self._start_z:       # Above zero
+                self._destroy_plane(self._z)
+            else:                             # Below or at zero
+                self._build_plane(self._z)
             self._z += 1
+        elif self._target_z < self._z:        # Going up
+            self._z -= 1
+            if self._z < self._start_z:      # Above or at zero
+                self._build_plane(self._z)
+            else:
+                self._destroy_plane(self._z)
         if self._z == self._target_z:
             self._cycle_loop.stop()
-            if self._original_height is not None:
-                self._target_z, self._original_height = self._original_height, None
+            if self._original_z is not None:
+                self._target_z, self._original_z = self._original_z, None
                 self._cycle_later(self._wait)
             else:
                 self._cycle_start_call = None
         self._update_triggers()
 
     def _build_plane(self, z):
-        build_filled(self._protocol, *self._location1, z, *self._location2, z, self._color)
+        build_filled(self._protocol, *self._location1, z + 1, *self._location2, z + 1, self._color)
 
     def _destroy_plane(self, z):
-        clear_solid(self._protocol, *self._location1, z, *self._location2, z)
+        clear_solid(self._protocol, *self._location1, z + 1, *self._location2, z + 1)
 
     def _unstick(self):
         for player in self._protocol.players.values():

@@ -52,7 +52,7 @@ def name(connection, label):
     connection.state_stack.set(ButtonNameState(label))
 
 
-@piqueargs.argument('seconds', type=FloatRange(0.1, 86400))
+@piqueargs.argument('seconds', type=FloatRange(0.1, 60*60*24))
 @button.command('Usage: /button cooldown <seconds>')
 def cooldown(connection, seconds):
     connection.state_stack.set(ButtonCooldownState(seconds))

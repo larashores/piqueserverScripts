@@ -53,8 +53,6 @@ from platforms.states.trigger.triggeraddstate import *
 from platforms.states.trigger.triggercommandstate import *
 from platforms.worldobjects.button import LogicType
 
-POS_FLOAT = FloatRange(0.0, 64.0)
-
 
 @piqueargs.group('Usage: /trigger [add set list del logic]', required=False)
 def trigger(connection, end=False):
@@ -80,20 +78,20 @@ def press(connection, clear_others, negate):
     connection.state_stack.set(PlayerAddTriggerState(negate, clear_others, TriggerType.PRESS))
 
 
-@piqueargs.argument('radius', default=3.0, type=POS_FLOAT, required=False)
+@piqueargs.argument('radius', default=3.0, type=FloatRange(1, 64), required=False)
 @piqueargs.command('Usage: /trigger add|set [not] distance [radius=3]')
 def distance(connection, clear_others, negate, radius):
     connection.state_stack.set(PlayerAddTriggerState(negate, clear_others, TriggerType.DISTANCE, radius))
 
 
-@piqueargs.argument('height_', type=IntRange(0, 62))
+@piqueargs.argument('height_', type=IntRange(-62, 62))
 @piqueargs.command('/trigger add|set [not] height <height>')
 def height(connection, clear_others, negate, height_):
     connection.state_stack.set(PlatformAddTriggerState(negate, clear_others, TriggerType.HEIGHT, height_))
 
 
 @piqueargs.argument('amount', default='forever', required=False)
-@piqueargs.argument('time', type=FloatRange(1.0, 86400.0))
+@piqueargs.argument('time', type=FloatRange(1.0, 60 * 60 * 24))
 @piqueargs.command('/trigger add|set [not] timer <time> [amount|forever]')
 def timer(connection, clear_others, negate, time, amount):
     if amount != 'forever':

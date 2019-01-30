@@ -60,7 +60,7 @@ from platforms.states.action.actioncommandstate import ActionListState, ActionDe
 from pyspades.constants import WEAPON_KILL, FALL_KILL
 
 
-POS_FLOAT = FloatRange(0.0, 86400.0)
+POS_FLOAT = FloatRange(0.0, 60*60*24)
 
 
 @piqueargs.group('Usage: /action <add set list del>', required=False)
@@ -82,7 +82,7 @@ def set_(connection):
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('height', type=IntRange(0, 62))
+@piqueargs.argument('height', type=IntRange(-62, 62))
 @piqueargs.command('Usage: /action add|set height <height> [speed=0.15] [delay]')
 def height(connection, clear_others, height, speed, delay):
     connection.state_stack.set(PlatformAddActionState(clear_others, ActionType.HEIGHT, height, speed, delay))
@@ -90,7 +90,7 @@ def height(connection, clear_others, height, speed, delay):
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('amount', type=IntRange(0, 62))
+@piqueargs.argument('amount', type=IntRange(1, 62))
 @piqueargs.command(usage='Usage: /action add|set raise <amount> [speed=0.15] [delay]', name='raise')
 def raise_(connection, clear_others, amount, speed, delay):
     connection.state_stack.set(PlatformAddActionState(clear_others, ActionType.RAISE, amount, speed, delay))
@@ -98,7 +98,7 @@ def raise_(connection, clear_others, amount, speed, delay):
 
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('amount', type=IntRange(0, 62))
+@piqueargs.argument('amount', type=IntRange(1, 62))
 @piqueargs.command('Usage: /action add|set lower <amount> [speed=0.15] [delay]')
 def lower(connection, clear_others, amount, speed, delay):
     connection.state_stack.set(PlatformAddActionState(clear_others, ActionType.LOWER, lower, amount, speed, delay))
@@ -107,17 +107,17 @@ def lower(connection, clear_others, amount, speed, delay):
 @piqueargs.argument('wait', default=3.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('delay', default=0.0, type=POS_FLOAT, required=False)
 @piqueargs.argument('speed', default=.15, type=POS_FLOAT, required=False)
-@piqueargs.argument('height', type=IntRange(0, 62))
+@piqueargs.argument('height', type=IntRange(-62, 62))
 @piqueargs.command('Usage: /action add|set elevator <height> [speed=0.25] [delay] [wait=3.0]')
 def elevator(connection, clear_others, height, speed, delay, wait):
     connection.state_stack.set(PlatformAddActionState(clear_others, ActionType.ELEVATOR,
                                                       height, speed, delay, True, wait))
 
 
-@piqueargs.argument('z', type=FloatRange(0.0, 62.0), required=False)
-@piqueargs.argument('y', type=FloatRange(511.0, 511.0), required=False)
+@piqueargs.argument('z', type=FloatRange(0, 62), required=False)
+@piqueargs.argument('y', type=FloatRange(-511, 511), required=False)
 @piqueargs.argument('first')
-@piqueargs.command('Usage: /action add|set teleport <x y _z|where>')
+@piqueargs.command('Usage: /action add|set teleport <x y z|where>')
 def teleport(connection, clear_others, first, y, z):
     if first == 'where':
         if not connection.where_location:
@@ -128,7 +128,7 @@ def teleport(connection, clear_others, first, y, z):
         z = round(z) + 0.5
     elif y is not None and z is not None:
         try:
-            x = FloatRange.check_value('x', float(first), 0.0, 511.0)
+            x = FloatRange.check_value('x', float(first), -511.0, 511.0)
         except ValueError:
             piqueargs.stop_parsing(teleport.usage)
     else:

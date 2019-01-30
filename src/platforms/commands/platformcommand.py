@@ -46,7 +46,7 @@ def name(connection, label):
     connection.state_stack.set(PlatformNameState(label))
 
 
-@piqueargs.argument('height_', type=IntRange(1, 63))
+@piqueargs.argument('height_', type=IntRange(-62, 62))
 @platform.command('Usage: /platform height <height>')
 def height(connection, height_):
     connection.state_stack.set(PlatformHeightState(height_))
