@@ -13,6 +13,9 @@ class PlatformAction(Action):
     def run(self, players):
         self._platform_function(self._platform, *self._args, **self._kwargs)
 
+    def __str__(self):
+        return 'platform {}'.format(self._args)
+
     def serialize(self):
         return {
             'type': self.type,

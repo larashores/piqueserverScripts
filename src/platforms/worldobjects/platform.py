@@ -44,6 +44,8 @@ class Platform(BaseObject):
         self.height(self._z + amount, speed, delay)
 
     def set_height(self, height, speed=0.0, delay=0.0, go_back_at_end=False, wait=0.0):
+        if self._cycle_start_call is not None:
+            return
         self._speed = speed
         self._wait = wait
         self._original_height = self._z if go_back_at_end else None
@@ -59,19 +61,20 @@ class Platform(BaseObject):
     def _cycle(self):
         if self.frozen:
             return
-        if self._z == self._target_z:
-            self._cycle_loop.stop()
-            if self._original_height is not None:
-                self._target_z, self._original_height = self._original_height, None
-                self._cycle_later(self._wait)
-            return
-        elif self._z > self._target_z:
+        if self._z > self._target_z:
             self._z -= 1
             self._build_plane(self._z)
             self._unstick()
         elif self._z < self._target_z:
             self._destroy_plane(self._z)
             self._z += 1
+        if self._z == self._target_z:
+            self._cycle_loop.stop()
+            if self._original_height is not None:
+                self._target_z, self._original_height = self._original_height, None
+                self._cycle_later(self._wait)
+            else:
+                self._cycle_start_call = None
         self._update_triggers()
 
     def _build_plane(self, z):
