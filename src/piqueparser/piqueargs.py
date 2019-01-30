@@ -33,10 +33,10 @@ def returns(*names):
     return decorator
 
 
-def argument(name, *, default='', type=str, nargs=1, required=True):
-    def decorator(command):
-        command.add_argument(Argument(name, default=default, type=type, nargs=nargs, required=required))
-        return group
+def argument(name, *, default=None, type=str, nargs=1, required=True):
+    def decorator(cmd):
+        cmd.add_argument(Argument(name, default=default, type=type, nargs=nargs, required=required))
+        return cmd
     return decorator
 
 

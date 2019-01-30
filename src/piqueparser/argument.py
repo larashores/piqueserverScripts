@@ -2,12 +2,14 @@ from piqueparser.piqueargsexception import PiqueArgsException
 
 
 class Argument:
-    def __init__(self, name, *, default='', type=str, nargs=1, required=True):
+    name = property(lambda self: self._name)
+
+    def __init__(self, name, *, default=None, type=str, nargs=1, required=True):
         self._name = name
-        self._default = type(default)
         self._type = type
         self._nargs = nargs
         self._required = required
+        self._default = type(default) if default is not None else type()
 
     def parse_args(self, args, context):
         if self._nargs < 1:

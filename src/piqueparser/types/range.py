@@ -1,16 +1,18 @@
 from piqueparser.piqueargsexception import StopParsingException
 
 
-def range_class(numeic_type):
+def range_class(numeric_type):
     class Range:
         def __init__(self, min=None, max=None, clamp=False, name='parameter'):
-            self._min = numeic_type(min)
-            self._max = numeic_type(max)
+            self._min = numeric_type(min) if min else None
+            self._max = numeric_type(max) if max else None
             self._clamp = clamp
             self._name = name
 
-        def __call__(self, value):
-            value = numeic_type(value)
+        def __call__(self, value=None):
+            if value is None:
+                return numeric_type()
+            value = numeric_type(value)
             return Range.check_value(self._name, value, self._min, self._max, self._clamp)
 
         @staticmethod

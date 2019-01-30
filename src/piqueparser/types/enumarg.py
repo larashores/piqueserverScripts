@@ -5,7 +5,9 @@ class EnumArg:
     def __init__(self, enum_type):
         self._enum_type = enum_type
 
-    def __call__(self, value):
+    def __call__(self, value=None):
+        if value is None:
+            return list(self._enum_type.__members__.values())[0]
         return self.check_value(self._enum_type, value)
 
     @staticmethod
