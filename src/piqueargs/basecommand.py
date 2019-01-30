@@ -11,12 +11,8 @@ class BaseCommand(metaclass=ABCMeta):
         self._function = function
         self._usage = usage
 
-    def __call__(self, *args, **kwargs):
-        self._function(*args, **kwargs)
-
-    @abstractmethod
-    def parse_args(self, connection, args, context):
-        pass
+    def __call__(self, connection, *args):
+        return self.run(connection, args)
 
     def run(self, connection, args):
         try:
@@ -25,3 +21,7 @@ class BaseCommand(metaclass=ABCMeta):
             return e.cls.usage
         except StopParsingException as e:
             return e.msg
+
+    @abstractmethod
+    def parse_args(self, connection, args, context):
+        pass

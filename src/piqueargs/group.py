@@ -11,9 +11,6 @@ class Group(BaseCommand):
         self._subgroups = {}
         self._return_args = []
 
-    def __call__(self, *args, **kwargs):
-        self._function(*args, **kwargs)
-
     def group(self, usage='', name=None, required=None):
         def decorator(function):
             group = Group(function, usage, name, required)
