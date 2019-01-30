@@ -48,9 +48,6 @@
         logic <and|or>
             "AND" will make the button activate when ALL its triggers yield true.
             "OR" will make the button activate when ANY of its triggers fire.
-        quiet
-            Makes a button either become silent or resume playing animation and
-            sound when it activates.
 """
 
 import click
@@ -64,7 +61,7 @@ from platforms.states.trigger.triggercommandstate import *
 POS_FLOAT = piqueargs.FloatRange(0.0, 64.0)
 
 
-@piqueargs.group(usage='Usage: /trigger add set list del logic quiet', required=False)
+@piqueargs.group(usage='Usage: /trigger [add set list del logic]', required=False)
 def trigger(connection, end=False):
     return base_command(connection, end, TriggerState, trigger.usage)
 
@@ -123,15 +120,10 @@ def delete(connection, what):
     connection.state_stack.set(TriggerDeleteState(what))
 
 
-@piqueargs.argument('andor', type=click.Choice('and', 'or'))
+@piqueargs.argument('andor', type=click.Choice(['and', 'or']))
 @trigger.command(usage='Usage: /trigger logic <and|or>')
 def logic(connection, andor):
     connection.state_stack.set(TriggerLogicState(andor))
-
-
-@trigger.command(usage='Usage: /trigger quiet')
-def quiet(connection):
-    connection.state_stack.set(TriggerQuietState())
 
 
 for command in (press, distance, track, height):

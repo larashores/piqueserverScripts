@@ -6,11 +6,11 @@ class Trigger(metaclass=ABCMeta):
     NAME = abstractattribute
     ONE_PER_BUTTON = False
 
-    def __init__(self, protocol, button, negate=False):
+    def __init__(self, protocol, negate):
         self.signal_fire = Signal()
         self._protocol = protocol
         self._negate = negate
-        self._button = button
+        print('negate!', negate)
 
     def status(self):
         return self._status() ^ self._negate

@@ -71,9 +71,9 @@ class PlatformAddTriggerState(NeedsPlatformState, _AddTriggerState):
             self.player.send_chat("Platform '{}' selected".format(self._platform.label))
 
     def _make_trigger(self):
-        return self._trigger_type.value(self.player.protocol, self._button, self._platform, *self._args, **self._kwargs)
+        return self._trigger_type.value(self.player.protocol, self._negate, self._platform, *self._args, **self._kwargs)
 
 
 class PlayerAddTriggerState(_AddTriggerState):
     def _make_trigger(self):
-        return self._trigger_type.value(self.player.protocol, self._button, *self._args, **self._kwargs)
+        return self._trigger_type.value(self.player.protocol, self._negate, self._button, *self._args, **self._kwargs)

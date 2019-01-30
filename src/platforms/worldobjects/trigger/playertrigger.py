@@ -5,8 +5,9 @@ from abc import ABCMeta
 class PlayerTrigger(Trigger, metaclass=ABCMeta):
     ONE_PER_BUTTON = True
 
-    def __init__(self, protocol, button, negate=False):
-        Trigger.__init__(self, protocol, button, negate)
+    def __init__(self, protocol, negate, button):
+        Trigger.__init__(self, protocol, negate)
+        self._button = button
         self.affected_players = set()
 
     def _status(self):

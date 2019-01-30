@@ -5,8 +5,8 @@ from platforms.worldobjects.trigger.playertrigger import PlayerTrigger
 class DistanceTrigger(PlayerTrigger):
     NAME = 'distance'
 
-    def __init__(self, protocol, button, radius, negate=False):
-        PlayerTrigger.__init__(self, protocol, button, negate)
+    def __init__(self, protocol, negate, button, radius):
+        PlayerTrigger.__init__(self, protocol, negate, button)
         self._radius = radius
         self._protocol.add_distance_trigger(self)
 

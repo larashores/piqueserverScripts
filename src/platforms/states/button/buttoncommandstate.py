@@ -55,3 +55,12 @@ class ButtonCooldownState(_ButtonCommandState):
     def _on_activate_command(self):
         self._button.cooldown = self._cooldown
         return "Cooldown for button '{}' set to {:.2f} seconds".format(self._button.label, self._cooldown)
+
+
+class ButtonQuietState(_ButtonCommandState):
+    COMMAND_NAME = 'button quiet'
+
+    def _on_activate_command(self):
+        self._button.silent = not self._button.silent
+        return "Button {} will {}".format(
+            self._button.label, 'activate quietly' if self._button.silent else 'animate when activated')

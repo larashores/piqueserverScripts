@@ -18,6 +18,12 @@
         cooldown <seconds>
             The button will be able to be activated only once in the specified
             interval. Default is 0.5 seconds.
+        logic <and|or>
+            "AND" will make the button activate when ALL its triggers yield true.
+            "OR" will make the button activate when ANY of its triggers fire.
+        quiet
+            Makes a button either become silent or resume playing animation and
+            sound when it activates.
         destroy
             Destroys a button, removing the block.
         last
@@ -31,7 +37,7 @@ from platforms.states.button.buttoncommandstate import *
 from platforms.states.button.newbuttonstate import NewButtonState
 
 
-@piqueargs.group(usage="Usage: /button [new name destroy toggle cooldown last]", required=False)
+@piqueargs.group(usage="Usage: /button [new name toggle cooldown quiet destroy last]", required=False)
 def button(connection, end=False):
     return base_command(connection, end, ButtonState, button.usage)
 
@@ -66,6 +72,6 @@ def last(connection):
         state.select_button(connection.last_button)
 
 
-if __name__ == '__main__':
-    result = button.run(None, ['new'])
-    print(result)
+@button.command(usage='Usage: /trigger quiet')
+def quiet(connection):
+    connection.state_stack.set(ButtonQuietState())

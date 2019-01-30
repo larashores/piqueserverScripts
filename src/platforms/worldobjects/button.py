@@ -65,7 +65,7 @@ class Button(BaseObject):
             for trigger in to_remove:
                 self._remove_trigger(trigger)
         self._triggers.append(new_trigger)
-        new_trigger.signal_fire.connect(self._trigger_check)
+        new_trigger.signal_fire.connect(self.trigger_check)
 
     def add_action(self, action):
         self._actions.append(action)
@@ -86,10 +86,10 @@ class Button(BaseObject):
     def _remove_trigger(self, trigger):
         """Removes a trigger and stops it from activating the trigger check"""
         trigger.unbind()
-        trigger.signal_fire.disconnect(self._trigger_check)
+        trigger.signal_fire.disconnect(self.trigger_check)
         self._triggers.remove(trigger)
 
-    def _trigger_check(self):
+    def trigger_check(self):
         """
         Checks to see if any or all trigger conditions have been met and activates the button if so.
 
@@ -138,7 +138,7 @@ class Button(BaseObject):
         if not self.silent:
             self._build_block(self._color)
         if self._action_pending:
-            self._trigger_check()
+            self.trigger_check()
 
     def _build_block(self, color):
         """

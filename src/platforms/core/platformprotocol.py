@@ -50,7 +50,7 @@ def platform_protocol(protocol):
             if location in self._buttons:
                 return None
             button = Button(self, self._next_id, location, color, label)
-            button.add_trigger(PressTrigger(self, button))
+            button.add_trigger(PressTrigger(self, False, button))
             self._buttons[(self._next_id, location)] = button
             self._next_id += 1
             return button

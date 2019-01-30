@@ -38,10 +38,10 @@ class Platform(BaseObject):
         return aabb_collision(*location, *self._location1, self._z, *self._location2, self._start_z)
 
     def raise_(self, amount, speed=0.0, delay=0.0):
-        self.height(self._z - amount, speed, delay)
+        self.set_height(self.height + amount, speed, delay)
 
     def lower(self, amount, speed=0.0, delay=0.0):
-        self.height(self._z + amount, speed, delay)
+        self.set_height(self.height - amount, speed, delay)
 
     def set_height(self, height, speed=0.0, delay=0.0, go_back_at_end=False, wait=0.0):
         if self._cycle_start_call is not None:

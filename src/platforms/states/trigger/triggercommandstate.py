@@ -1,6 +1,7 @@
 from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 from platforms.states.trigger.triggerstate import TriggerState
 from platforms.states.needsbuttonstate import NeedsButtonState
+from platforms.worldobjects.button import LogicType
 from platforms.util.strings import *
 
 
@@ -48,19 +49,10 @@ class TriggerLogicState(_TriggerCommandState):
 
     def __init__(self, logic):
         _TriggerCommandState.__init__(self)
-        self._logic = logic
+        self._logic = LogicType.AND if logic == 'and' else LogicType.OR
 
     def _on_activate_command(self):
         self._button.logic = self._logic
         self._button.trigger_check()
         return "Button '{}' will activate when {}".format(
             self._button.label, 'ALL its triggers yield true' if self._logic == 'and' else 'ANY of its triggers fire')
-
-
-class TriggerQuietState(_TriggerCommandState):
-    COMMAND_NAME = 'quiet'
-
-    def _on_activate_command(self):
-        self._button.silent = not self._button.silent
-        return "Button {} will {}".format(
-            self._button.label, 'activate quietly' if self._button.silent else 'animate when activated')
