@@ -1,6 +1,5 @@
 from pyspades.collision import collision_3d
 from platforms.worldobjects.trigger.trigger import Trigger
-from platforms.strings import *
 
 
 class TrackTrigger(Trigger):
@@ -48,5 +47,4 @@ class TrackTrigger(Trigger):
     #     }
     #
     # def __str__(self):
-    #     s = 'track distance={}'.format(self.radius)
-    #     return S_TRIGGER_LIST_NOT + s if self.negate else s
+    #     return 'track distance={}'.format('NOT ' if self._negate else '', self.radius)

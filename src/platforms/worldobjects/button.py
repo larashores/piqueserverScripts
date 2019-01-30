@@ -37,8 +37,7 @@ class Button(BaseObject):
                                                                    self.label, self.cooldown, self.logic.name)
 
     def destroy(self):
-        if self._protocol.map.destroy_point(*self._location):
-            send_block(self, *self._location, DESTROY_BLOCK)
+        send_block(self._protocol, *self._location, DESTROY_BLOCK)
         self.clear_triggers()
         if self._cooldown_call and self._cooldown_call.active():
             self._cooldown_call.cancel()

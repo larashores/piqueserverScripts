@@ -50,40 +50,30 @@
 
             Specifying 'all' instead of a number erases all the actions.
 """
-from pyspades.constants import WEAPON_KILL, FALL_KILL
-from platforms import piqueargs
-from platforms.strings import S_EXIT_BLOCKING_STATE, S_WHERE_FIRST
+from platforms.util import piqueargs
+from platforms.commands.util import base_command
+from platforms.commands.util import IDENTIFIER
 from platforms.states.action.actionstate import ActionState
 from platforms.states.action.addactionstate import PlatformAddActionState, PlayerAddActionState, ActionType
 from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
-from platforms.commands.util import IDENTIFIER
+
+from pyspades.constants import WEAPON_KILL, FALL_KILL
 
 POS_FLOAT = piqueargs.FloatRange(0.0, 86400.0)
 
 
 @piqueargs.group(usage='Usage: /action <add set list del>', required=False)
 def action(connection, end=False):
-    if not end:
-        return
-
-    if connection not in connection.protocol.players:
-        raise ValueError()
-    state = connection.state_stack.top()
-    if state and isinstance(state, ActionState):
-        connection.state_stack.exit()  # cancel action command
-    elif state and state.blocking:
-        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
+    return base_command(connection, end, ActionState, action.usage)
 
 
-@action.group(usage='Usage: /action {} <height raise lower elevator teleport chat damage>',
-              usageargs=['add'])
+@action.group(usage='Usage: /action {} <height raise lower elevator teleport chat damage>', usageargs=['add'])
 @piqueargs.pass_obj
 def add(obj, connection):
     obj.clear_others = False
 
 
-@action.group('set', usage='Usage: /action {} <height raise lower elevator teleport chat damage>',
-              usageargs=['set'])
+@action.group('set', usage='Usage: /action {} <height raise lower elevator teleport chat damage>', usageargs=['set'])
 @piqueargs.pass_obj
 def set_(obj, connection):
     obj.clear_others = True
@@ -135,7 +125,7 @@ def elevator(obj, connection, height, speed, delay, wait):
 def teleport(obj, connection, first, y, z):
     if first == 'where':
         if not connection.where_location:
-            piqueargs.stop_parsing(S_WHERE_FIRST)
+            piqueargs.stop_parsing('ERROR: use /where first to remember your position')
         x, y, z = connection.where_location
         x = round(x * 2.0) / 2.0 - 0.5
         y = round(y * 2.0) / 2.0 - 0.5
@@ -152,11 +142,11 @@ def teleport(obj, connection, first, y, z):
     connection.state_stack.set(PlayerAddActionState(obj.clear_others, ActionType.TELEPORT, (x, y, z)))
 
 
-@piqueargs.argument('text')
+@piqueargs.argument('text',  nargs=-1)
 @piqueargs.command(usage='Usage: /action {} chat <text>')
 @piqueargs.pass_obj
 def chat(obj, connection, text):
-    connection.state_stack.set(PlayerAddActionState(obj.clear_others, ActionType.CHAT, text))
+    connection.state_stack.set(PlayerAddActionState(obj.clear_others, ActionType.CHAT, ' '.join(text)))
 
 
 @piqueargs.argument('amount', type=piqueargs.IntRange(-100, 100))

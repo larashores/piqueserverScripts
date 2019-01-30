@@ -1,6 +1,5 @@
 from pyspades.collision import collision_3d
 from platforms.worldobjects.trigger.playertrigger import PlayerTrigger
-from platforms.strings import *
 
 
 class DistanceTrigger(PlayerTrigger):
@@ -35,5 +34,4 @@ class DistanceTrigger(PlayerTrigger):
         }
 
     def __str__(self):
-        s = 'player distance={}'.format(self._radius)
-        return S_TRIGGER_LIST_NOT + s if self._negate else s
+        return '{}player distance={}'.format('NOT ' if self._negate else '', self._radius)

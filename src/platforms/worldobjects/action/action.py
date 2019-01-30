@@ -1,4 +1,4 @@
-from platforms.abstractattribute import abstractattribute, abstractmethod, ABCMeta
+from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
 
 class Action(metaclass=ABCMeta):

@@ -1,5 +1,5 @@
-from pyspades.contained import BlockAction
 from pyspades.constants import DESTROY_BLOCK
+from platforms.util.packets import send_block
 from platforms.states.platform.platformstate import PlatformState
 from playerstates.buildingstate import BuildingState
 
@@ -7,8 +7,6 @@ import operator
 
 
 class NewPlatformState(BuildingState, PlatformState):
-    BLOCKING = True
-
     def __init__(self, label=None):
         super().__init__()
         self._label = label
@@ -26,15 +24,6 @@ class NewPlatformState(BuildingState, PlatformState):
         y1, y2 = min(ys), max(ys)
         z1, z2 = min(zs), max(zs)
         if z1 != z2:                                    # undo placed blocks if the design is invalid
-            block_action = BlockAction()
-            block_action.value = DESTROY_BLOCK
-            block_action.player_id = self.player.player_id
-            for x, y, z in self._blocks:
-                if self.player.protocol.map.destroy_point(x, y, z):
-                    block_action.x = x
-                    block_action.y = y
-                    block_action.z = z
-                    self.player.protocol.send_contained(block_action, save=True)
             return 'Bad platforms. Floor can be incomplete but must be flat'
 
         # get averaged color
@@ -58,3 +47,7 @@ class NewPlatformState(BuildingState, PlatformState):
 
     def on_block_removed(self, x, y, z):
         self._blocks.discard((x, y, z))
+
+    def _cancel_platform(self):
+        for x, y, z in self._blocks:
+            send_block(self.player.protocol, x, y, z, DESTROY_BLOCK)

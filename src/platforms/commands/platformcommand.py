@@ -22,27 +22,15 @@
             When you get asked to select a platforms, you can use this command
             to automatically choose the last platforms you selected or created.
 """
-from platforms import piqueargs
-from platforms.strings import S_EXIT_BLOCKING_STATE
+from platforms.util import piqueargs
+from platforms.commands.util import base_command
 from platforms.states.platform.newplatformstate import NewPlatformState
 from platforms.states.platform.platformcommandstate import *
 
 
 @piqueargs.group(usage='Usage: /platform [new name height freeze destroy last]', required=False)
 def platform(connection, end=False):
-    print('platform', end)
-    if not end:
-        return
-
-    if connection not in connection.protocol.players:
-        raise ValueError()
-    state = connection.state_stack.top()
-    if isinstance(state, (NewPlatformState, PlatformCommandState)):
-        connection.state_stack.clear()  # cancel platform creation
-        return
-    elif state and state.blocking:
-        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
-    return platform.usage
+    return base_command(connection, end, PlatformState, platform.usage)
 
 
 @piqueargs.argument('label', required=False)
@@ -59,8 +47,8 @@ def name(connection, label):
 
 @piqueargs.argument('height', type=piqueargs.IntRange(1, 63))
 @platform.command(usage='Usage: /platform height <height>')
-def height(connection, height):
-    connection.state_stack.set(PlatformHeightState(height))
+def height(connection, height_):
+    connection.state_stack.set(PlatformHeightState(height_))
 
 
 @platform.command(usage='Usage: /platform freeze')

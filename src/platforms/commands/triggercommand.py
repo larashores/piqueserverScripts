@@ -55,7 +55,8 @@
 
 import click
 
-from platforms import piqueargs
+from platforms.util import piqueargs
+from platforms.commands.util import base_command
 from platforms.commands.util import IDENTIFIER
 from platforms.states.trigger.triggeraddstate import TriggerAddState, TriggerType
 from platforms.states.trigger.triggercommandstate import *
@@ -65,18 +66,7 @@ POS_FLOAT = piqueargs.FloatRange(0.0, 64.0)
 
 @piqueargs.group(usage='Usage: /trigger add set list del logic quiet', required=False)
 def trigger(connection, end=False):
-    if not end:
-        return
-
-    if connection not in connection.protocol.players:
-        raise ValueError()
-    state = connection.state_stack.top()
-    if state and isinstance(state, TriggerState):
-        connection.state_stack.exit()  # cancel action command
-        return
-    elif state and state.blocking:
-        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
-    return trigger.usage
+    return base_command(connection, end, TriggerState, trigger.usage)
 
 
 @piqueargs.option('not', 'notarg')

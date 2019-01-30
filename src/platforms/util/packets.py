@@ -1,6 +1,6 @@
 from pyspades.contained import BlockAction, BlockLine, SetColor, PositionData, OrientationData
 from pyspades.common import make_color
-from pyspades.constants import BUILD_BLOCK
+from pyspades.constants import BUILD_BLOCK, DESTROY_BLOCK
 
 
 def send_color(protocol, color):
@@ -11,6 +11,8 @@ def send_color(protocol, color):
 
 
 def send_block(protocol, x, y, z, value=BUILD_BLOCK):
+    if value == DESTROY_BLOCK and not protocol.map.destroy_point(x, y, z):
+        return
     block_action_packet = BlockAction()
     block_action_packet.value = value
     block_action_packet.player_id = 32

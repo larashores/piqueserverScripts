@@ -1,7 +1,7 @@
-from platforms.abstractattribute import abstractattribute, ABCMeta
+from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 from platforms.states.needsplatformstate import NeedsPlatformState
 from platforms.states.platform.platformstate import PlatformState
-from platforms.strings import S_COMMAND_CANCEL
+from platforms.util.strings import S_COMMAND_CANCEL
 
 
 class PlatformCommandState(NeedsPlatformState, PlatformState, metaclass=ABCMeta):
@@ -9,23 +9,24 @@ class PlatformCommandState(NeedsPlatformState, PlatformState, metaclass=ABCMeta)
 
     def on_exit(self):
         if not self._platform:
-            return S_COMMAND_CANCEL.format(command='platform {}'.format(self.COMMAND_NAME))
+            return S_COMMAND_CANCEL.format(self.COMMAND_NAME)
         return self._on_activate_command()
 
+    @abstractmethod
     def _on_activate_command(self):
         pass
 
 
 class PlatformNameState(PlatformCommandState):
-    COMMAND_NAME = 'name'
+    COMMAND_NAME = 'platform name'
 
     def __init__(self, label):
         PlatformCommandState.__init__(self)
-        self.label = label
+        self._label = label
 
     def _on_activate_command(self):
-        old, self._platform.label = self._platform.label, self.label
-        return "Platform '{}' renamed to '{}'".format(old, self.label)
+        old, self._platform.label = self._platform.label, self._label
+        return "Platform '{}' renamed to '{}'".format(old, self._label)
 
 
 class PlatformHeightState(PlatformCommandState):
@@ -33,14 +34,14 @@ class PlatformHeightState(PlatformCommandState):
 
     def __init__(self, height):
         PlatformCommandState.__init__(self)
-        self.height = height
+        self._height = height
 
     def _on_activate_command(self):
-        self._platform.height(self.height, .1)
+        self._platform.height(self._height, .1)
 
 
 class PlatformFreezeState(PlatformCommandState):
-    COMMAND_NAME = 'freeze'
+    COMMAND_NAME = 'platform freeze'
 
     def _on_activate_command(self):
         self._platform.frozen = not self._platform.frozen
@@ -48,7 +49,7 @@ class PlatformFreezeState(PlatformCommandState):
 
 
 class PlatformDestroyState(PlatformCommandState):
-    COMMAND_NAME = 'destroy'
+    COMMAND_NAME = 'platform destroy'
 
     def _on_activate_command(self):
         self.player.protocol.destroy_platform(self._platform)

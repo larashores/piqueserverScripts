@@ -1,46 +1,45 @@
 from platforms.states.action.actionstate import ActionState
 from platforms.states.needsbuttonstate import NeedsButtonState
-from platforms.strings import S_COMMAND_CANCEL
-from platforms.abstractattribute import abstractattribute, abstractmethod, ABCMeta
+from platforms.util.strings import S_COMMAND_CANCEL
+from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
 
-class ActionCommandState(NeedsButtonState, ActionState, metaclass=ABCMeta):
+class _ActionCommandState(NeedsButtonState, ActionState, metaclass=ABCMeta):
     COMMAND_NAME = abstractattribute
 
     def on_exit(self):
-        if not self.button:
-            return S_COMMAND_CANCEL.format(command='action {}'.format(self.COMMAND_NAME))
-        self._on_activate_command()
+        if not self._button:
+            return S_COMMAND_CANCEL.format(self.COMMAND_NAME)
+        return self._on_activate_command()
 
     @abstractmethod
     def _on_activate_command(self):
         pass
 
 
-class ActionListState(ActionCommandState):
-    COMMAND_NAME = 'list'
+class ActionListState(_ActionCommandState):
+    COMMAND_NAME = 'action list'
 
     def _on_activate_command(self):
-        if not self.button.actions:
-            return "Button '{}' has no actions".format(self.button.label)
-        items = ' -- '.join('#{} {}'.format(i, action) for i, action in enumerate(self.button.actions))
-        return "Actions in '{}': ".format(self.button.label) + items
+        if not self._button.actions:
+            return "Button '{}' has no actions".format(self._button.label)
+        items = ' -- '.join('#{} {}'.format(i, action) for i, action in enumerate(self._button.actions))
+        return "Actions in '{}': ".format(self._button.label) + items
 
 
-class ActionDelState(ActionCommandState):
-    COMMAND_NAME = 'del'
+class ActionDelState(_ActionCommandState):
+    COMMAND_NAME = 'action del'
 
     def __init__(self, number):
-        ActionCommandState.__init__(self)
-        self.number = number
+        _ActionCommandState.__init__(self)
+        self._number = number
 
     def _on_activate_command(self):
-        if self.number == 'all':
-            self.button.actions.clear()
-            return "Deleted all actions in button '{}'".format(self.button.label)
+        if self._number == 'all':
+            self._button.actions.clear()
+            return "Deleted all actions in button '{}'".format(self._button.label)
         try:
-            index = self.number % len(self.button.actions)
-            action = self.button.actions.pop(self.number)
-            return "{} action {} deleted from button '{}'".format(action.type.capitalize(), index, self.button.label)
+            action = self._button.pop_action(self._number)
+            return "{} action {} deleted from button '{}'".format(action.NAME.upper(), self._number, self._button.label)
         except IndexError:
             return "Invalid action number! Use '/action list' to check"

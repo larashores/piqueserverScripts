@@ -1,0 +1,1 @@
+S_COMMAND_CANCEL = "Aborting {command} command"

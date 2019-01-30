@@ -1,5 +1,4 @@
 from platforms.worldobjects.trigger.trigger import Trigger
-from platforms.strings import *
 
 
 class HeightTrigger(Trigger):
@@ -34,5 +33,5 @@ class HeightTrigger(Trigger):
         }
 
     def __str__(self):
-        s = "platforms '{}' height={}".format(self.platform.label, self.target_height)
-        return S_TRIGGER_LIST_NOT + s if self.negate else s
+        return "{}platforms '{}' height={}".format(
+            'NOT ' if self._negate else '', self.platform.label, self.target_height)

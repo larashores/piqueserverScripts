@@ -25,26 +25,15 @@
             to automatically choose the last button you selected or created.
 """
 
-from platforms import piqueargs
-from platforms.strings import S_EXIT_BLOCKING_STATE
+from platforms.util import piqueargs
+from platforms.commands.util import base_command
 from platforms.states.button.buttoncommandstate import *
 from platforms.states.button.newbuttonstate import NewButtonState
 
 
 @piqueargs.group(usage="Usage: /button [new name destroy toggle cooldown last]", required=False)
 def button(connection, end=False):
-    if not end:
-        return
-
-    if connection not in connection.protocol.players:
-        raise ValueError()
-    state = connection.state_stack.top()
-    if isinstance(state, (NewButtonState, ButtonCommandState)):
-        connection.state_stack.clear()  # cancel button creation
-        return
-    elif state and state.BLOCKING:
-        return S_EXIT_BLOCKING_STATE.format(state=state.name)  # can't switch from a blocking mode
-    return button.usage
+    return base_command(connection, end, ButtonState, button.usage)
 
 
 @piqueargs.argument('label', required=False)

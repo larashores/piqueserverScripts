@@ -29,7 +29,7 @@ Maintainer: hompy
 # Platforms crushing players
 # Stop platforms action?
 
-from platforms import piqueargs
+from platforms.util import piqueargs
 from platforms.commands.buttoncommand import button
 from platforms.commands.platformcommand import platform
 from platforms.commands.triggercommand import trigger
