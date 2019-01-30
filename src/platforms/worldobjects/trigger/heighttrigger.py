@@ -4,8 +4,8 @@ from platforms.worldobjects.trigger.trigger import Trigger
 class HeightTrigger(Trigger):
     type = 'height'
 
-    def __init__(self, protocol, platform_id, height, negate=False):
-        Trigger.__init__(self, protocol, negate)
+    def __init__(self, protocol, button, platform_id, height, negate=False):
+        Trigger.__init__(self, protocol, button, negate)
         platform = protocol.platforms[platform_id]
         self.platform = platform
         self.target_height = height

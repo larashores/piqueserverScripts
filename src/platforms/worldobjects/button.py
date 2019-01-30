@@ -2,6 +2,7 @@ from pyspades.constants import DESTROY_BLOCK, BUILD_BLOCK
 from platforms.worldobjects.baseobject import BaseObject
 from platforms.worldobjects.trigger.presstrigger import PressTrigger
 from platforms.util.packets import send_block, send_color
+from platforms.states.needsbuttonstate import NeedsButtonState
 
 from itertools import chain
 from twisted.internet.reactor import callLater
@@ -26,18 +27,28 @@ class Button(BaseObject):
         self._location = location
         self._triggers = []
         self._actions = []
-        self._triggers = []
         self._action_pending = False
         self._color = color
         self._color_triggered = tuple(int(c * 0.2) for c in color)
         self._cooldown_call = None
+        protocol.map.set_point(*location, self._color)
 
     def __str__(self):
         return "[{}] Button '{}' cooldown {:.2f}s logic '{}'".format('OFF' if self.disabled else 'ON',
-                                                                   self.label, self.cooldown, self.logic.name)
+                                                                     self.label, self.cooldown, self.logic.name)
+
+    def get_trigger_info(self):
+        if not self._triggers:
+            return "Button '{}' has no triggers".format(self.label)
+
+        item_list = ['#{} {}{}'.format(i, trigger, ' [CHECK]' if trigger.get_status() else '')
+                     for i, trigger in enumerate(self._triggers)]
+        separator = self.logic.name
+        return "Triggers in '{}': {}".format(self.label, separator.join(item_list))
 
     def destroy(self):
-        send_block(self._protocol, *self._location, DESTROY_BLOCK)
+        if self._protocol.map.destroy_point(*self._location):
+            send_block(self._protocol, *self._location, DESTROY_BLOCK)
         self.clear_triggers()
         if self._cooldown_call and self._cooldown_call.active():
             self._cooldown_call.cancel()
@@ -94,7 +105,11 @@ class Button(BaseObject):
         Runs all actions if it is not disabled. If the button is disabled, notifies all affected players. If it is not
         silent, changes the color.
         """
-        affected_players = set(chain.from_iterable(trigger.affected_players for trigger in self._triggers))
+        affected_players = set()
+        for trigger in self._triggers:  # Don't activate if editing buttons
+            for player in trigger.affected_players:
+                if not isinstance(player.state_stack.top(), NeedsButtonState):
+                    affected_players.add(player)
         if self.disabled:
             if not self.silent:
                 for player in affected_players:

@@ -6,8 +6,7 @@ class DistanceTrigger(PlayerTrigger):
     type = 'distance'
 
     def __init__(self, protocol, button, radius, negate=False):
-        PlayerTrigger.__init__(self, protocol, negate)
-        self._button = button
+        PlayerTrigger.__init__(self, protocol, button, negate)
         self._radius = radius
         self._protocol.add_distance_trigger(self)
 

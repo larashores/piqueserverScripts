@@ -50,4 +50,5 @@ class NewPlatformState(BuildingState, PlatformState):
 
     def _cancel_platform(self):
         for x, y, z in self._blocks:
-            send_block(self.player.protocol, x, y, z, DESTROY_BLOCK)
+            if self.player.protocol.map.destroy_point(x, y, z):
+                send_block(self.player.protocol, x, y, z, DESTROY_BLOCK)

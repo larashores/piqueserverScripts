@@ -21,7 +21,7 @@ class TriggerType(enum.Enum):
 
 
 class TriggerAddState(NeedsButtonState, TriggerState):
-    def __init__(self, trigger_type, negate, clear_others, *args, **kwargs):
+    def __init__(self, negate, clear_others, trigger_type, *args, **kwargs):
         super().__init__()
         self._trigger_type = trigger_type
         self._negate = negate
@@ -33,7 +33,7 @@ class TriggerAddState(NeedsButtonState, TriggerState):
         if not self._button:
             return S_COMMAND_CANCEL.format(command='trigger {}'.format(self._trigger_type))
 
-        trigger = self._trigger_type.value(self.player.protocol, *self._args, **self._kwargs)
+        trigger = self._trigger_type.value(self.player.protocol, self._button, *self._args, **self._kwargs)
         if trigger is None:
             return
         trigger.negate = self._negate

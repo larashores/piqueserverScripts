@@ -21,13 +21,7 @@ class TriggerListState(_TriggerCommandState):
     COMMAND_NAME = 'trigger list'
 
     def _on_activate_command(self):
-        if not self._button.triggers:
-            return "Button '{}' has no triggers".format(self._button.label)
-
-        item_list = ['#{} {}{}'.format(i, trigger, ' [CHECK]' if trigger.status else '')
-                     for i, trigger in enumerate(self._button.triggers)]
-        separator = ' AND ' if self._button.logic == 'and' else ' OR '
-        return "Triggers in '{}': {}".format(self._button.label, separator.join(item_list))
+        return self._button.get_trigger_info()
 
 
 class TriggerDeleteState(_TriggerCommandState):
