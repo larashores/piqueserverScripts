@@ -1,5 +1,10 @@
 from argparse.group import Group
 from argparse.argument import Argument
+from argparse.piqueargsexception import StopParsingException
+
+
+def stop_parsing(message=None):
+    raise StopParsingException(message)
 
 
 def group(usage='', name=None, required=None):
