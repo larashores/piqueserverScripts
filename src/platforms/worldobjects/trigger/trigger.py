@@ -1,9 +1,9 @@
 from playerstates.signal import Signal
-from abc import abstractmethod, ABCMeta
+from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
 
 class Trigger(metaclass=ABCMeta):
-    NAME = None
+    NAME = abstractattribute
     ONE_PER_BUTTON = False
 
     def __init__(self, protocol, button, negate=False):
@@ -12,17 +12,22 @@ class Trigger(metaclass=ABCMeta):
         self._negate = negate
         self._button = button
 
+    def status(self):
+        return self._status() ^ self._negate
+
+    @abstractmethod
+    def _status(self):
+        return False
+
+    def _fire_if_active(self):
+        if self.status():
+            self.signal_fire()
+
     def update(self, *args, **kwargs):
         pass
 
     def unbind(self):
         pass
 
-    def get_status(self):
-        return self._status() ^ self._negate
-
     def serialize(self):
         return {'type': self.NAME, 'negate': self._negate}
-
-    def _status(self):
-        return False

@@ -13,10 +13,10 @@ import enum
 
 #  The must be in a list or else enum will count them as functions not enumerations
 class ActionType(enum.Enum):
-    HEIGHT = [Platform.height]
+    HEIGHT = [Platform.set_height]
     RAISE = [Platform.raise_]
     LOWER = [Platform.lower]
-    ELEVATOR = [Platform.height]
+    ELEVATOR = [Platform.set_height]
     CHAT = [FeatureConnection.send_chat]
     TELEPORT = [FeatureConnection.set_location]
     DAMAGE = [FeatureConnection.hit]

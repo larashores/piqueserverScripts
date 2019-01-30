@@ -3,7 +3,7 @@ from platforms.worldobjects.trigger.trigger import Trigger
 
 
 class TrackTrigger(Trigger):
-    type = 'track'
+    NAME = 'track'
     tracked_player = None
 
     # def __init__(self, protocol, button, radius, negate=False):

@@ -58,7 +58,7 @@ import click
 from platforms.util import piqueargs
 from platforms.commands.util import base_command
 from platforms.commands.util import IDENTIFIER
-from platforms.states.trigger.triggeraddstate import TriggerAddState, TriggerType
+from platforms.states.trigger.triggeraddstate import *
 from platforms.states.trigger.triggercommandstate import *
 
 POS_FLOAT = piqueargs.FloatRange(0.0, 64.0)
@@ -88,28 +88,28 @@ def set_(obj, connection, notarg):
 @piqueargs.command(usage='Usage: /trigger {} [not] press')
 @piqueargs.pass_obj
 def press(obj, connection):
-    connection.state_stack.set(TriggerAddState(obj.negate, obj.clear_others, TriggerType.PRESS))
+    connection.state_stack.set(PlayerAddTriggerState(obj.negate, obj.clear_others, TriggerType.PRESS))
 
 
 @piqueargs.argument('radius', default=3.0, type=POS_FLOAT, required=False)
 @piqueargs.command(usage='Usage: /trigger {} [not] distance [radius=3]')
 @piqueargs.pass_obj
 def distance(obj, connection, radius):
-    connection.state_stack.set(TriggerAddState(obj.negate, obj.clear_others, TriggerType.DISTANCE, radius))
+    connection.state_stack.set(PlayerAddTriggerState(obj.negate, obj.clear_others, TriggerType.DISTANCE, radius))
 
 
 @piqueargs.argument('radius', default=3.0, type=POS_FLOAT, required=False)
 @piqueargs.command(usage='Usage: /trigger {} [not] track [radius=3]')
 @piqueargs.pass_obj
 def track(obj, connection, radius):
-    connection.state_stack.set(TriggerAddState(obj.negate, obj.clear_others, TriggerType.TRACK, radius))
+    connection.state_stack.set(PlayerAddTriggerState(obj.negate, obj.clear_others, TriggerType.TRACK, radius))
 
 
-@piqueargs.argument('height', type=piqueargs.IntRange(0, 62))
+@piqueargs.argument('height_', type=piqueargs.IntRange(0, 62))
 @piqueargs.command(usage='/trigger {} [not] height <height>')
 @piqueargs.pass_obj
 def height(obj, connection, height_):
-    connection.state_stack.set(TriggerAddState(obj.negate, obj.clear_others, TriggerType.HEIGHT, height_))
+    connection.state_stack.set(PlatformAddTriggerState(obj.negate, obj.clear_others, TriggerType.HEIGHT, height_))
 
 
 @trigger.command('list', usage='Usage: /trigger list')

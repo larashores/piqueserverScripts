@@ -1,6 +1,6 @@
 from pyspades.constants import DESTROY_BLOCK, BUILD_BLOCK
 from platforms.worldobjects.baseobject import BaseObject
-from platforms.worldobjects.trigger.presstrigger import PressTrigger
+from platforms.worldobjects.trigger.presstrigger import PressTrigger, PlayerTrigger
 from platforms.util.packets import send_block, send_color
 from platforms.states.needsbuttonstate import NeedsButtonState
 
@@ -40,11 +40,16 @@ class Button(BaseObject):
     def get_trigger_info(self):
         if not self._triggers:
             return "Button '{}' has no triggers".format(self.label)
+        separator = ' {} '.format(self.logic.name)
+        items = separator.join('#{}({}{})'.format(i, '[ON]' if trigger.status() else '', trigger)
+                               for i, trigger in enumerate(self._triggers))
+        return "Triggers in '{}': {}".format(self.label, items)
 
-        item_list = ['#{} {}{}'.format(i, trigger, ' [CHECK]' if trigger.get_status() else '')
-                     for i, trigger in enumerate(self._triggers)]
-        separator = self.logic.name
-        return "Triggers in '{}': {}".format(self.label, separator.join(item_list))
+    def get_action_info(self):
+        if not self._actions:
+            return "Button '{}' has no actions".format(self.label)
+        items = ', '.join('#{}({})'.format(i, action) for i, action in enumerate(self._actions))
+        return "Actions in '{}': {}".format(self.label, items)
 
     def destroy(self):
         if self._protocol.map.destroy_point(*self._location):
@@ -92,7 +97,7 @@ class Button(BaseObject):
         """
         self._action_pending = False
         check = all if self.logic == LogicType.AND else any
-        if check(trigger.get_status() for trigger in self._triggers):
+        if check(trigger.status() for trigger in self._triggers):
             if self._cooldown_call:
                 self._action_pending = True
             else:
@@ -107,9 +112,10 @@ class Button(BaseObject):
         """
         affected_players = set()
         for trigger in self._triggers:  # Don't activate if editing buttons
-            for player in trigger.affected_players:
-                if not isinstance(player.state_stack.top(), NeedsButtonState):
-                    affected_players.add(player)
+            if isinstance(trigger, PlayerTrigger):
+                for player in trigger.affected_players:
+                    if not isinstance(player.state_stack.top(), NeedsButtonState):
+                        affected_players.add(player)
         if self.disabled:
             if not self.silent:
                 for player in affected_players:

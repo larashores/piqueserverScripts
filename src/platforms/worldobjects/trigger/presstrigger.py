@@ -6,8 +6,8 @@ class PressTrigger(PlayerTrigger):
 
     def update(self, player):
         self.affected_players.add(player)
-        self.signal_fire()
+        self._fire_if_active()
         self.affected_players.discard(player)
 
     def __str__(self):
-        return "{}player press".format('NOT ' if self._negate else '')
+        return "{}press".format('NOT ' if self._negate else '')

@@ -21,10 +21,7 @@ class ActionListState(_ActionCommandState):
     COMMAND_NAME = 'action list'
 
     def _on_activate_command(self):
-        if not self._button.actions:
-            return "Button '{}' has no actions".format(self._button.label)
-        items = ' -- '.join('#{} {}'.format(i, action) for i, action in enumerate(self._button.actions))
-        return "Actions in '{}': ".format(self._button.label) + items
+        return self._button.get_action_info()
 
 
 class ActionDelState(_ActionCommandState):

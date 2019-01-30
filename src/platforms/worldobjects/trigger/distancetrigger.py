@@ -3,7 +3,7 @@ from platforms.worldobjects.trigger.playertrigger import PlayerTrigger
 
 
 class DistanceTrigger(PlayerTrigger):
-    type = 'distance'
+    NAME = 'distance'
 
     def __init__(self, protocol, button, radius, negate=False):
         PlayerTrigger.__init__(self, protocol, button, negate)
@@ -18,12 +18,12 @@ class DistanceTrigger(PlayerTrigger):
             return
         location1 = [coord + 0.5 for coord in self._button.location]
         location2 = player.world_object.position.get()
-        if collision_3d(*location1, *location2, self._radius):
-            if player not in self.affected_players:
-                self.affected_players.add(player)
-                self.signal_fire()
-        else:
-            self.affected_players.discard(player)
+        if collision_3d(*location1, *location2, self._radius) and player not in self.affected_players:
+            self.affected_players.add(player)
+            self._fire_if_active()
+        elif self.affected_players in self.affected_players:
+            self.affected_players.remove(player)
+            self._fire_if_active()
 
     def serialize(self):
         return {
@@ -33,4 +33,4 @@ class DistanceTrigger(PlayerTrigger):
         }
 
     def __str__(self):
-        return '{}player distance={}'.format('NOT ' if self._negate else '', self._radius)
+        return '{}distance={}'.format('NOT ' if self._negate else '', self._radius)

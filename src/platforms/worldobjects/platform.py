@@ -9,12 +9,15 @@ from cbc.core.clearbox import clear_solid
 
 
 class Platform(BaseObject):
+    height = property(lambda self: self._start_z - self._z + 1)
+
     def __init__(self, protocol, id_, location1, location2, z, color, label=None):
         BaseObject.__init__(self, protocol, id_)
         self.label = label or str(self._id)
         self.frozen = False
         self._protocol = protocol
         self._color = color
+        self._triggers = set()
         self._location1 = location1
         self._location2 = location2
         self._start_z = self._z = self._target_z = z
@@ -25,6 +28,12 @@ class Platform(BaseObject):
         self._speed = 0.0
         self._wait = 0.0
 
+    def add_trigger(self, trigger):
+        self._triggers.add(trigger)
+
+    def remove_trigger(self, trigger):
+        self._triggers.remove(trigger)
+
     def contains(self, location):
         return aabb_collision(*location, *self._location1, self._z, *self._location2, self._start_z)
 
@@ -34,7 +43,7 @@ class Platform(BaseObject):
     def lower(self, amount, speed=0.0, delay=0.0):
         self.height(self._z + amount, speed, delay)
 
-    def height(self, height, speed=0.0, delay=0.0, go_back_at_end=False, wait=0.0):
+    def set_height(self, height, speed=0.0, delay=0.0, go_back_at_end=False, wait=0.0):
         self._speed = speed
         self._wait = wait
         self._original_height = self._z if go_back_at_end else None
@@ -50,18 +59,20 @@ class Platform(BaseObject):
     def _cycle(self):
         if self.frozen:
             return
-        if self._z > self._target_z:
+        if self._z == self._target_z:
+            self._cycle_loop.stop()
+            if self._original_height is not None:
+                self._target_z, self._original_height = self._original_height, None
+                self._cycle_later(self._wait)
+            return
+        elif self._z > self._target_z:
             self._z -= 1
             self._build_plane(self._z)
             self._unstick()
         elif self._z < self._target_z:
             self._destroy_plane(self._z)
             self._z += 1
-        if self._z == self._target_z:
-            self._cycle_loop.stop()
-            if self._original_height is not None:
-                self._target_z, self._original_height = self._original_height, None
-                self._cycle_later(self._wait)
+        self._update_triggers()
 
     def _build_plane(self, z):
         build_filled(self._protocol, *self._location1, z, *self._location2, z, self._color)
@@ -79,6 +90,10 @@ class Platform(BaseObject):
                 location[2] -= 1.4 if not obj.crouch else -2.4
                 send_position(player, *location)
                 obj.position.z = location[2]
+
+    def _update_triggers(self):
+        for trigger in self._triggers:
+            trigger.update()
 
     #     self.label = str(self.id)
     #     self.x1, self.y1, self.x2, self.y2 = x1, y1, x2, y2

@@ -8,7 +8,7 @@ def base_command(connection, end, state_type, usage_message):
     if connection not in connection.protocol.players:
         raise ValueError()
     if isinstance(connection.state_stack.top(), state_type):
-        connection.state_stack.exit()  # cancel command
+        connection.state_stack.clear()  # cancel command
         return
     return usage_message
 
