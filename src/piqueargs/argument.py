@@ -3,26 +3,26 @@ from src.piqueargs.piqueargsexception import PiqueArgsException
 
 class Argument:
     def __init__(self, name, *, default='', type=str, nargs=1, required=True):
-        self.name = name
-        self.default = type(default)
-        self.type = type
-        self.nargs = nargs
-        self.required = required
+        self._name = name
+        self._default = type(default)
+        self._type = type
+        self._nargs = nargs
+        self._required = required
 
     def parse_args(self, args, context):
-        if self.nargs < 1:
-            self.nargs = len(args)
-        if self.nargs > len(args):
-            if not self.required:
-                context[self.name] = self.default
+        if self._nargs < 1:
+            self._nargs = len(args)
+        if self._nargs > len(args):
+            if not self._required:
+                context[self._name] = self._default
             else:
                 raise PiqueArgsException('Not enough arguments!')
         else:
-            parsed_args = ' '.join(args[:self.nargs])
+            parsed_args = ' '.join(args[:self._nargs])
             try:
-                context[self.name] = self.type(parsed_args)
+                context[self._name] = self._type(parsed_args)
             except ValueError as e:
                 raise PiqueArgsException(e.args, self)
-            for _ in range(self.nargs):
+            for _ in range(self._nargs):
                 args.pop(0)
 
