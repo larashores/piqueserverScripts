@@ -22,46 +22,47 @@
             When you get asked to select a platforms, you can use this command
             to automatically choose the last platforms you selected or created.
 """
-from platforms.util import piqueargs
+from argparse import piqueargs
+from argparse.types.range import IntRange, FloatRange
 from platforms.commands.util import base_command
 from platforms.states.platform.newplatformstate import NewPlatformState
 from platforms.states.platform.platformcommandstate import *
 
 
-@piqueargs.group(usage='Usage: /platform [new name height freeze destroy last]', required=False)
+@piqueargs.group('Usage: /platform [new name height freeze destroy last]', required=False)
 def platform(connection, end=False):
     return base_command(connection, end, PlatformState, platform.usage)
 
 
 @piqueargs.argument('label', required=False)
-@platform.command(usage='Usage: /platform new <label>')
+@platform.command('Usage: /platform new <label>')
 def new(connection, label):
     connection.state_stack.set(NewPlatformState(label))
 
 
 @piqueargs.argument('label')
-@platform.command(usage='Usage: /platform name <label>')
+@platform.command('Usage: /platform name <label>')
 def name(connection, label):
     connection.state_stack.set(PlatformNameState(label))
 
 
-@piqueargs.argument('height_', type=piqueargs.IntRange(1, 63))
-@platform.command(usage='Usage: /platform height <height>')
+@piqueargs.argument('height_', type=IntRange(1, 63))
+@platform.command('Usage: /platform height <height>')
 def height(connection, height_):
     connection.state_stack.set(PlatformHeightState(height_))
 
 
-@platform.command(usage='Usage: /platform freeze')
+@platform.command('Usage: /platform freeze')
 def freeze(connection):
     connection.state_stack.set(PlatformFreezeState())
 
 
-@platform.command(usage='Usage: /platform destroy')
+@platform.command('Usage: /platform destroy')
 def destroy(connection):
     connection.state_stack.set(PlatformDestroyState())
 
 
-@platform.command(usage='Usage: /platform last')
+@platform.command('Usage: /platform last')
 def last(connection):
     state = connection.state_stack.top()
     if state and isinstance(state, NeedsPlatformState) and connection.last_platform:

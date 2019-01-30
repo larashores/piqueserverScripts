@@ -49,10 +49,12 @@ class TriggerLogicState(_TriggerCommandState):
 
     def __init__(self, logic):
         _TriggerCommandState.__init__(self)
-        self._logic = LogicType.AND if logic == 'and' else LogicType.OR
+        self._logic = logic
 
     def _on_activate_command(self):
         self._button.logic = self._logic
         self._button.trigger_check()
-        return "Button '{}' will activate when {}".format(
-            self._button.label, 'ALL its triggers yield true' if self._logic == 'and' else 'ANY of its triggers fire')
+        return "Button '{}' will activate when {}".format(self._button.label,
+                                                          'ALL its triggers yield true'
+                                                          if self._logic == LogicType.AND
+                                                          else 'ANY of its triggers fire')

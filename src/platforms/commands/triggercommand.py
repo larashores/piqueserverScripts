@@ -45,86 +45,80 @@
             "OR" will make the button activate when ANY of its triggers fire.
 """
 
-import click
-
-from platforms.util import piqueargs
+from argparse import piqueargs
+from argparse.types.range import IntRange, FloatRange
+from argparse.types.enumarg import EnumArg
 from platforms.commands.util import base_command
 from platforms.commands.util import IDENTIFIER
 from platforms.states.trigger.triggeraddstate import *
 from platforms.states.trigger.triggercommandstate import *
+from platforms.worldobjects.button import LogicType
 
-POS_FLOAT = piqueargs.FloatRange(0.0, 64.0)
+POS_FLOAT = FloatRange(0.0, 64.0)
 
 
-@piqueargs.group(usage='Usage: /trigger [add set list del logic]', required=False)
+@piqueargs.group('Usage: /trigger [add set list del logic]', required=False)
 def trigger(connection, end=False):
     return base_command(connection, end, TriggerState, trigger.usage)
 
 
+@piqueargs.returns('clear_others', 'negate')
 @piqueargs.option('not', 'notarg')
-@trigger.group(usage='Usage: /trigger {} [not] <press distance height timer>', usageargs=['add'])
-@piqueargs.pass_obj
-def add(obj, connection, notarg):
-    obj.clear_others = False
-    obj.negate = notarg
+@trigger.group('Usage: /trigger add|set [not] <press distance height timer>')
+def add(connection, notarg):
+    return False, notarg
 
 
 @piqueargs.option('not', 'notarg')
-@trigger.group('set', usage='Usage: /trigger {} [not] <press distance height timer>', usageargs=['set'])
-@piqueargs.pass_obj
-def set_(obj, connection, notarg):
-    obj.clear_others = True
-    obj.negate = notarg
+@trigger.group('set', usage='Usage: /trigger add|set [not] <press distance height timer>')
+def set_(connection, notarg):
+    return True, notarg
 
 
-@piqueargs.command(usage='Usage: /trigger {} [not] press')
-@piqueargs.pass_obj
-def press(obj, connection):
-    connection.state_stack.set(PlayerAddTriggerState(obj.negate, obj.clear_others, TriggerType.PRESS))
+@piqueargs.command('Usage: /trigger add|set [not] press')
+def press(connection, clear_others, negate):
+    connection.state_stack.set(PlayerAddTriggerState(negate, clear_others, TriggerType.PRESS))
 
 
 @piqueargs.argument('radius', default=3.0, type=POS_FLOAT, required=False)
-@piqueargs.command(usage='Usage: /trigger {} [not] distance [radius=3]')
-@piqueargs.pass_obj
-def distance(obj, connection, radius):
-    connection.state_stack.set(PlayerAddTriggerState(obj.negate, obj.clear_others, TriggerType.DISTANCE, radius))
+@piqueargs.command('Usage: /trigger add|set [not] distance [radius=3]')
+def distance(connection, clear_others, negate, radius):
+    connection.state_stack.set(PlayerAddTriggerState(negate, clear_others, TriggerType.DISTANCE, radius))
 
 
-@piqueargs.argument('height_', type=piqueargs.IntRange(0, 62))
-@piqueargs.command(usage='/trigger {} [not] height <height>')
-@piqueargs.pass_obj
-def height(obj, connection, height_):
-    connection.state_stack.set(PlatformAddTriggerState(obj.negate, obj.clear_others, TriggerType.HEIGHT, height_))
+@piqueargs.argument('height_', type=IntRange(0, 62))
+@piqueargs.command('/trigger add|set [not] height <height>')
+def height(connection, clear_others, negate, height_):
+    connection.state_stack.set(PlatformAddTriggerState(negate, clear_others, TriggerType.HEIGHT, height_))
 
 
 @piqueargs.argument('amount', default='forever', required=False)
-@piqueargs.argument('time', type=piqueargs.FloatRange(1.0, 86400.0))
-@piqueargs.command(usage='/trigger {} [not] timer <time> [amount|forever]')
-@piqueargs.pass_obj
-def timer(obj, connection, time, amount):
+@piqueargs.argument('time', type=FloatRange(1.0, 86400.0))
+@piqueargs.command('/trigger add|set [not] timer <time> [amount|forever]')
+def timer(connection, clear_others, negate, time, amount):
     if amount != 'forever':
         try:
-            amount = piqueargs.IntRange.check_value('amount', int(amount), 1, 86400.0)
+            amount = IntRange.check_value('amount', int(amount), 1, 86400.0)
         except ValueError:
             piqueargs.stop_parsing(timer.usage)
     else:
         amount = None
-    connection.state_stack.set(AddTriggerState(obj.negate, obj.clear_others, TriggerType.TIMER, time, amount))
+    connection.state_stack.set(AddTriggerState(negate, clear_others, TriggerType.TIMER, time, amount))
 
 
-@trigger.command('list', usage='Usage: /trigger list')
+@trigger.command('Usage: /trigger list', name='list')
 def list_(connection):
     connection.state_stack.set(TriggerListState())
 
 
 @piqueargs.argument('what', type=IDENTIFIER)
-@trigger.command('del', usage='Usage: /trigger del <#|all>')
+@trigger.command('Usage: /trigger del <#|all>', name='del')
 def delete(connection, what):
     connection.state_stack.set(TriggerDeleteState(what))
 
 
-@piqueargs.argument('andor', type=click.Choice(['and', 'or']))
-@trigger.command(usage='Usage: /trigger logic <and|or>')
+@piqueargs.argument('andor', type=EnumArg(LogicType))
+@trigger.command('Usage: /trigger logic <and|or>')
 def logic(connection, andor):
     connection.state_stack.set(TriggerLogicState(andor))
 
