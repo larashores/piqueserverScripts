@@ -18,12 +18,14 @@ class DistanceTrigger(PlayerTrigger):
             return
         location1 = [coord + 0.5 for coord in self._button.location]
         location2 = player.world_object.position.get()
-        if collision_3d(*location1, *location2, self._radius) and player not in self.affected_players:
-            self.affected_players.add(player)
-            self._fire_if_active()
-        elif self.affected_players in self.affected_players:
-            self.affected_players.remove(player)
-            self._fire_if_active()
+        if collision_3d(*location1, *location2, self._radius):
+            if player not in self.affected_players:
+                self.affected_players.add(player)
+                self._fire_if_active()
+        else:
+            if player in self.affected_players:
+                self.affected_players.remove(player)
+                self._fire_if_active()
 
     def serialize(self):
         return {

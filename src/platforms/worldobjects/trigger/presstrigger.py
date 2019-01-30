@@ -2,6 +2,7 @@ from platforms.worldobjects.trigger.playertrigger import PlayerTrigger
 
 
 class PressTrigger(PlayerTrigger):
+    ONE_PER_BUTTON = True
     NAME = 'press'
 
     def update(self, player):

@@ -114,6 +114,6 @@ def logic(connection, andor):
     connection.state_stack.set(TriggerLogicState(andor))
 
 
-for command in (press, distance, track, height):
+for command in (press, distance, height):
     add.add_command(command)
     set_.add_command(command)

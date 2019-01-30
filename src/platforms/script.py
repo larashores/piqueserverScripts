@@ -45,7 +45,6 @@ piqueargs.server_command(trigger, 'trigger', 'tr')
 piqueargs.server_command(action, 'action', 'ac')
 
 
-@piqueargs.server_command('save')
 @piqueargs.command(usage=r'Usage: \save')
 def save(connection):
     connection.protocol.dump_platform_json()

@@ -10,7 +10,6 @@ class Trigger(metaclass=ABCMeta):
         self.signal_fire = Signal()
         self._protocol = protocol
         self._negate = negate
-        print('negate!', negate)
 
     def status(self):
         return self._status() ^ self._negate

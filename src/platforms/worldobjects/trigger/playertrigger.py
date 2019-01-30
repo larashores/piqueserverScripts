@@ -3,8 +3,6 @@ from abc import ABCMeta
 
 
 class PlayerTrigger(Trigger, metaclass=ABCMeta):
-    ONE_PER_BUTTON = True
-
     def __init__(self, protocol, negate, button):
         Trigger.__init__(self, protocol, negate)
         self._button = button

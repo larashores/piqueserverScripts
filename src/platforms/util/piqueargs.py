@@ -120,7 +120,6 @@ class _PiqueArgsBaseCommand(BaseCommand):
                 result = self.invoke(ctx)
                 return result
         except click.exceptions.UsageError as e:
-            print(e.ctx.command.name, e.ctx.command._usage.args, e.ctx.command._usage.kwargs, e.ctx.command._usage.text)
             return e.ctx.command.usage
         except _InvokeEarlyException as e:
             e.context.params['connection'] = connection
