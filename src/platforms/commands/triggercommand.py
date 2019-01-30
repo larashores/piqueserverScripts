@@ -45,11 +45,10 @@
             "OR" will make the button activate when ANY of its triggers fire.
 """
 
-from argparse import piqueargs
-from argparse.types.range import IntRange, FloatRange
-from argparse.types.enumarg import EnumArg
-from platforms.commands.util import base_command
-from platforms.commands.util import IDENTIFIER
+from piqueparser import piqueargs
+from piqueparser.types.range import IntRange, FloatRange
+from piqueparser.types.enumarg import EnumArg
+from platforms.commands.util import base_command, id_or_all
 from platforms.states.trigger.triggeraddstate import *
 from platforms.states.trigger.triggercommandstate import *
 from platforms.worldobjects.button import LogicType
@@ -111,7 +110,7 @@ def list_(connection):
     connection.state_stack.set(TriggerListState())
 
 
-@piqueargs.argument('what', type=IDENTIFIER)
+@piqueargs.argument('what', type=id_or_all)
 @trigger.command('Usage: /trigger del <#|all>', name='del')
 def delete(connection, what):
     connection.state_stack.set(TriggerDeleteState(what))

@@ -22,8 +22,8 @@
             When you get asked to select a platforms, you can use this command
             to automatically choose the last platforms you selected or created.
 """
-from argparse import piqueargs
-from argparse.types.range import IntRange, FloatRange
+from piqueparser import piqueargs
+from piqueparser.types.range import IntRange, FloatRange
 from platforms.commands.util import base_command
 from platforms.states.platform.newplatformstate import NewPlatformState
 from platforms.states.platform.platformcommandstate import *

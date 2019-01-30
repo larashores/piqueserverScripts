@@ -1,7 +1,13 @@
-from argparse.group import Group
-from argparse.command import Command
-from argparse.argument import Argument
-from argparse.piqueargsexception import StopParsingException
+from piqueparser.group import Group
+from piqueparser.command import Command
+from piqueparser.argument import Argument
+from piqueparser.piqueargsexception import StopParsingException
+
+from piqueserver import commands
+
+
+def add_server_command(function, *args, **kwargs):
+    return commands.command(*args, **kwargs)(function)
 
 
 def stop_parsing(message=None):

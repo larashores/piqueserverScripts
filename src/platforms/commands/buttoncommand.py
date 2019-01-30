@@ -28,8 +28,8 @@
             to automatically choose the last button you selected or created.
 """
 
-from argparse import piqueargs
-from argparse.types.range import IntRange, FloatRange
+from piqueparser import piqueargs
+from piqueparser.types.range import IntRange, FloatRange
 from platforms.commands.util import base_command
 from platforms.states.button.buttoncommandstate import *
 from platforms.states.button.newbuttonstate import NewButtonState

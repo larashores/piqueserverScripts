@@ -29,7 +29,7 @@ Maintainer: hompy
 # Platforms crushing players
 # Stop platforms action?
 
-from platforms.util import piqueargs
+from piqueparser import piqueargs
 from platforms.commands.buttoncommand import button
 from platforms.commands.platformcommand import platform
 from platforms.commands.triggercommand import trigger
@@ -39,10 +39,10 @@ from platforms.core.platformconnection import platform_connection
 from cbc.core import cbc
 
 
-piqueargs.server_command(button, 'button', 'b')
-piqueargs.server_command(platform, 'platform', 'p')
-piqueargs.server_command(trigger, 'trigger', 'tr')
-piqueargs.server_command(action, 'action', 'ac')
+piqueargs.add_server_command(button, 'button', 'b')
+piqueargs.add_server_command(platform, 'platform', 'p')
+piqueargs.add_server_command(trigger, 'trigger', 'tr')
+piqueargs.add_server_command(action, 'action', 'ac')
 
 
 @piqueargs.command(usage=r'Usage: \save')

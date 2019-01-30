@@ -1,6 +1,6 @@
-from argparse.basecommand import BaseCommand
-from argparse.command import Command
-from argparse.piqueargsexception import PiqueArgsException
+from piqueparser.basecommand import BaseCommand
+from piqueparser.command import Command
+from piqueparser.piqueargsexception import PiqueArgsException
 
 
 class Group(BaseCommand):

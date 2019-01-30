@@ -50,10 +50,9 @@
 
             Specifying 'all' instead of a number erases all the actions.
 """
-from argparse import piqueargs
-from argparse.types.range import FloatRange, IntRange
-from platforms.commands.util import base_command
-from platforms.commands.util import IDENTIFIER
+from piqueparser import piqueargs
+from piqueparser.types.range import FloatRange, IntRange
+from platforms.commands.util import base_command, id_or_all
 from platforms.states.action.actionstate import ActionState
 from platforms.states.action.addactionstate import PlatformAddActionState, PlayerAddActionState, ActionType
 from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
@@ -129,7 +128,7 @@ def teleport(connection, clear_others, first, y, z):
         z = round(z) + 0.5
     elif y is not None and z is not None:
         try:
-            x = piqueargs.FloatRange.check_value('x', float(first), 0.0, 511.0)
+            x = FloatRange.check_value('x', float(first), 0.0, 511.0)
         except ValueError:
             piqueargs.stop_parsing(teleport.usage)
     else:
@@ -157,7 +156,7 @@ def list_(connection):
     connection.state_stack.set(ActionListState())
 
 
-@piqueargs.argument('what', type=IDENTIFIER)
+@piqueargs.argument('what', type=id_or_all)
 @action.command('Usage: /action del <#|all>', name='del')
 def delete(connection, what):
     connection.state_stack.set(ActionDelState(what))

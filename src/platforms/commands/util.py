@@ -1,5 +1,4 @@
-import click
-from platforms.util import piqueargs
+from piqueparser import piqueargs
 
 
 def base_command(connection, end, state_type, usage_message):
@@ -13,17 +12,10 @@ def base_command(connection, end, state_type, usage_message):
     return usage_message
 
 
-class _Identifier(click.ParamType):
-    name = 'platform'
-
-    def convert(self, value, param, ctx):
-        if value == 'all':
-            return value
-        try:
-            return int(value)
-        except ValueError:
-            piqueargs.stop_parsing(param.usage)
-        piqueargs.stop_parsing(param.usage)
-
-
-IDENTIFIER = _Identifier()
+def id_or_all(value):
+    if value == 'all':
+        return value
+    try:
+        return int(value)
+    except ValueError:
+        piqueargs.stop_parsing("Value '{}' must be 'all' or int".format(value))

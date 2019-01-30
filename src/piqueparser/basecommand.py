@@ -1,4 +1,4 @@
-from argparse.piqueargsexception import PiqueArgsException, StopParsingException
+from piqueparser.piqueargsexception import PiqueArgsException, StopParsingException
 from abc import abstractmethod, ABCMeta
 
 
