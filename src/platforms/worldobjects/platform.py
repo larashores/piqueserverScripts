@@ -2,7 +2,7 @@ from platforms.worldobjects.baseobject import BaseObject
 from platforms.util.geometry import aabb_collision
 from platforms.util.packets import send_position
 
-from twisted.internet.reactor import callLater
+from twisted.internet.reactor import callLater, seconds
 from twisted.internet.task import LoopingCall
 from cbc.core.buildbox import build_filled
 from cbc.core.clearbox import clear_solid
@@ -14,7 +14,7 @@ class Platform(BaseObject):
     def __init__(self, protocol, id_, location1, location2, z, color, label=None):
         BaseObject.__init__(self, protocol, id_)
         self.label = label or str(self._id)
-        self.frozen = False
+        self._frozen = False
         self._protocol = protocol
         self._color = color
         self._triggers = set()
@@ -24,10 +24,25 @@ class Platform(BaseObject):
         self._z = self._target_z = self._start_z - 1
         self._build_plane(self._z)
         self._cycle_loop = LoopingCall(self._cycle)
+        self._cycle_loop_deferred = None
         self._cycle_start_call = None
+        self._cycle_start_remaining = None
         self._original_z = None
+        self._cycle_loop_paused = False
         self._speed = 0.0
         self._wait = 0.0
+
+    @property
+    def frozen(self):
+        return self._frozen
+
+    @frozen.setter
+    def frozen(self, value):
+        self._frozen = value
+        if self._frozen:
+            self._pause_cycle()
+        else:
+            self._unpause_cycle()
 
     def add_trigger(self, trigger):
         self._triggers.add(trigger)
@@ -65,7 +80,28 @@ class Platform(BaseObject):
         clear_solid(self._protocol, *self._location1, self._z, *self._location2, self._start_z)
 
     def _cycle_later(self, delay):
-        self._cycle_start_call = callLater(delay, self._cycle_loop.start, self._speed)
+        self._cycle_start_call = callLater(delay, self._start_cycle)
+
+    def _start_cycle(self):
+        self._cycle_loop_deferred = self._cycle_loop.start(self._speed)
+
+    def _stop_cycle(self):
+        self._cycle_loop.stop()
+        self._cycle_loop_deferred = None
+
+    def _pause_cycle(self):
+        if self._cycle_start_call is not None and self._cycle_start_call.active():
+            time = self._cycle_start_call.getTime()
+            self._cycle_start_call.cancel()
+            self._cycle_start_remaining = time - seconds()
+        elif self._cycle_loop_deferred is not None:
+            self._cycle_loop_deferred.pause()
+
+    def _unpause_cycle(self):
+        if self._cycle_start_remaining is not None:
+            self._cycle_later(self._cycle_start_remaining)
+        elif self._cycle_loop_deferred is not None:
+            self._cycle_loop_deferred.unpause()
 
     def _cycle(self):
         if self.frozen:
@@ -78,12 +114,12 @@ class Platform(BaseObject):
             self._z += 1
         elif self._target_z < self._z:        # Going up
             self._z -= 1
-            if self._z < self._start_z:      # Above or at zero
+            if self._z < self._start_z:       # Above or at zero
                 self._build_plane(self._z)
             else:
                 self._destroy_plane(self._z)
         if self._z == self._target_z:
-            self._cycle_loop.stop()
+            self._stop_cycle()
             if self._original_z is not None:
                 self._target_z, self._original_z = self._original_z, None
                 self._cycle_later(self._wait)
@@ -112,19 +148,6 @@ class Platform(BaseObject):
         for trigger in self._triggers:
             trigger.update()
 
-    #     self.label = str(self.id)
-    #     self.x1, self.y1, self.x2, self.y2 = x1, y1, x2, y2
-    #     self.z, self.start_z = z1, z2
-    #     self.height = self.start_z - self.z
-    #     self.color = color
-    #     for x, y, z in prism(x1, y1, z1, x2, y2, z2):
-    #         protocol.map.set_point(x, y, z, color)
-    #
-    # def overlaps(self, p):
-    #     return (self.x1 <= p.x2 and self.y1 <= p.y2 and self.z <= p.start_z and
-    #             self.x2 >= p.x1 and self.y2 >= p.y1 and self.start_z >= p.z)
-    #
-    #
     # def release(self):
     #     BaseObject.release(self)
     #     if self.bound_triggers:
@@ -137,10 +160,6 @@ class Platform(BaseObject):
     #     if self.delay_call and self.delay_call.active():
     #         self.delay_call.cancel()
     #     self.delay_call = None
-    #
-    # def run(self):
-    #     self.running = True
-    #     self.protocol.running_platforms.add(self)
     #
     # def serialize(self):
     #     z = self.last_z if self.mode == 'elevator' else self.target_z
