@@ -87,7 +87,7 @@ class Platform(BaseObject):
         self._speed = speed
         self._wait = wait
         self._original_z = self._z if go_back_at_end else None
-        self._target_z = self._start_z - height
+        self._target_z = min(max(0, self._start_z - height), 62)
         self._cycle_later(delay)
 
     def _cycle_later(self, delay):
@@ -127,7 +127,7 @@ class Platform(BaseObject):
             self._z -= 1
             if self._z < self._start_z:       # Above or at zero
                 self._build_plane(self._z)
-            else:
+            else:                             # Below zero
                 self._destroy_plane(self._z)
         if self._z == self._target_z:
             self._stop_cycle()
