@@ -39,9 +39,7 @@ def platform_protocol(protocol):
 
         def add_distance_trigger(self, trigger):
             self._distance_triggers.add(trigger)
-
-        def remove_distance_trigger(self, trigger):
-            self._distance_triggers.remove(trigger)
+            trigger.signal_remove.connect(self._distance_triggers.remove)
 
         def on_world_update(self):
             for player in self.players.values():

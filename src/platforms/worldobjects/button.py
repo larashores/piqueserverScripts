@@ -37,6 +37,14 @@ class Button(BaseObject):
         return "[{}] Button '{}' cooldown {:.2f}s logic '{}'".format('OFF' if self.disabled else 'ON',
                                                                      self.label, self.cooldown, self.logic.name)
 
+    def destroy(self):
+        if self._protocol.map.destroy_point(*self._location):
+            send_block(self._protocol, *self._location, DESTROY_BLOCK)
+        self.clear_triggers()
+        if self._cooldown_call and self._cooldown_call.active():
+            self._cooldown_call.cancel()
+            self._cooldown_call = None
+
     def get_trigger_info(self):
         if not self._triggers:
             return "Button '{}' has no triggers".format(self.label)
@@ -51,51 +59,41 @@ class Button(BaseObject):
         items = ', '.join('#{}({})'.format(i, action) for i, action in enumerate(self._actions))
         return "Actions in '{}': {}".format(self.label, items)
 
-    def destroy(self):
-        if self._protocol.map.destroy_point(*self._location):
-            send_block(self._protocol, *self._location, DESTROY_BLOCK)
-        self.clear_triggers()
-        if self._cooldown_call and self._cooldown_call.active():
-            self._cooldown_call.cancel()
-            self._cooldown_call = None
-
     def add_trigger(self, new_trigger):
         if new_trigger.ONE_PER_BUTTON:  # ensure there is only one trigger of this type
             to_remove = [t for t in self._triggers if isinstance(t, type(new_trigger))]
             for trigger in to_remove:
-                self._remove_trigger(trigger)
+                trigger.destroy()
         self._triggers.append(new_trigger)
         new_trigger.signal_fire.connect(self.trigger_check)
+        new_trigger.signal_remove.connect(self._triggers.remove)
 
     def add_action(self, action):
         self._actions.append(action)
+        action.signal_remove.connect(self._actions.remove)
 
     def pop_trigger(self, index):
         trigger = self._triggers[index]
-        self._remove_trigger(trigger)
+        trigger.destroy()
         return trigger
 
     def pop_action(self, index):
         action = self._actions.pop(index)
+        action.destroy()
         return action
 
     def clear_triggers(self):
-        for trigger in self._triggers:
-            self._remove_trigger(trigger)
+        for trigger in self._triggers.copy():
+            trigger.destroy()
 
     def clear_actions(self):
-        self._actions.clear()
+        for action in self._actions.copy():
+            action.destroy()
 
     def press(self, player):
         for trigger in self._triggers:
             if isinstance(trigger, PressTrigger):
                 trigger.update(player)
-
-    def _remove_trigger(self, trigger):
-        """Removes a trigger and stops it from activating the trigger check"""
-        trigger.unbind()
-        trigger.signal_fire.disconnect(self.trigger_check)
-        self._triggers.remove(trigger)
 
     def trigger_check(self):
         """

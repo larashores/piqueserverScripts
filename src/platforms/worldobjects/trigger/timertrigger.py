@@ -25,8 +25,9 @@ class TimerTrigger(Trigger):
         if self._target_amount is not None:
             self._amount += 1
 
-    def unbind(self):
+    def destroy(self):
         self._timer_loop.stop()
+        Trigger.destroy(self)
 
     def _status(self):
         return self._firing

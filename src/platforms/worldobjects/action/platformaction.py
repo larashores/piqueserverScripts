@@ -5,6 +5,7 @@ class PlatformAction(Action):
     NAME = 'platform'
 
     def __init__(self, platform, function, *args, **kwargs):
+        Action.__init__(self)
         self._platform_function = function
         self._platform = platform
         self._args = args

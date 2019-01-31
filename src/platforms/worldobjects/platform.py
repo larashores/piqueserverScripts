@@ -9,7 +9,7 @@ from cbc.core.clearbox import clear_solid
 
 
 class Platform(BaseObject):
-    height = property(lambda self: self._start_z - self._z + 1)
+    height = property(lambda self: self._start_z - self._z)
 
     def __init__(self, protocol, id_, location1, location2, z, color, label=None):
         BaseObject.__init__(self, protocol, id_)
@@ -18,6 +18,7 @@ class Platform(BaseObject):
         self._protocol = protocol
         self._color = color
         self._triggers = set()
+        self._actions = set()
         self._location1 = location1
         self._location2 = location2
         self._start_z = z
@@ -31,6 +32,17 @@ class Platform(BaseObject):
         self._cycle_loop_paused = False
         self._speed = 0.0
         self._wait = 0.0
+
+    def destroy(self):
+        if self._cycle_start_call is not None and self._cycle_start_call.active():
+            self._cycle_start_call.cancel()
+        if self._cycle_loop.running:
+            self._cycle_loop.stop()
+        for trigger in self._triggers.copy():
+            trigger.destroy()
+        for action in self._actions.copy():
+            action.destroy()
+        clear_solid(self._protocol, *self._location1, self._z, *self._location2, self._start_z)
 
     @property
     def frozen(self):
@@ -46,9 +58,11 @@ class Platform(BaseObject):
 
     def add_trigger(self, trigger):
         self._triggers.add(trigger)
+        trigger.signal_remove.connect(self._triggers.remove)
 
-    def remove_trigger(self, trigger):
-        self._triggers.remove(trigger)
+    def add_action(self, action):
+        self._actions.add(action)
+        action.signal_remove.connect(self._actions.remove)
 
     def contains(self, location):
         if self._z < self._start_z:
@@ -75,9 +89,6 @@ class Platform(BaseObject):
         self._original_z = self._z if go_back_at_end else None
         self._target_z = self._start_z - height
         self._cycle_later(delay)
-
-    def destroy(self):
-        clear_solid(self._protocol, *self._location1, self._z, *self._location2, self._start_z)
 
     def _cycle_later(self, delay):
         self._cycle_start_call = callLater(delay, self._start_cycle)
@@ -148,19 +159,6 @@ class Platform(BaseObject):
         for trigger in self._triggers:
             trigger.update()
 
-    # def release(self):
-    #     BaseObject.release(self)
-    #     if self.bound_triggers:
-    #         bound_buttons = set()
-    #         for trigger in self.bound_triggers[:]:
-    #             bound_buttons.add(trigger.parent)
-    #             trigger.unbind()
-    #         for button in bound_buttons:
-    #             button.trigger_check()
-    #     if self.delay_call and self.delay_call.active():
-    #         self.delay_call.cancel()
-    #     self.delay_call = None
-    #
     # def serialize(self):
     #     z = self.last_z if self.mode == 'elevator' else self.target_z
     #     return {

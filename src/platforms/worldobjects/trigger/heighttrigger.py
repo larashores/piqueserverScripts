@@ -10,9 +10,6 @@ class HeightTrigger(Trigger):
         self._height = height
         self._platform.add_trigger(self)
 
-    def unbind(self):
-        self._platform.remove_trigger(self)
-
     def _status(self):
         return self._platform.height == self._height
 

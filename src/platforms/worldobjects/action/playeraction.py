@@ -5,6 +5,7 @@ class PlayerAction(Action):
     NAME = 'player'
 
     def __init__(self, function, *args, **kwargs):
+        Action.__init__(self)
         self._player_function = function
         self._args = args
         self._kwargs = kwargs

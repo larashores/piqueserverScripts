@@ -70,7 +70,9 @@ class PlatformAddActionState(NeedsPlatformState, _AddActionState):
             self.player.send_chat("Platform '{}' selected".format(self._platform.label))
 
     def _make_action(self):
-        return PlatformAction(self._platform, self._action_type.value[0], *self._args, **self._kwargs)
+        action = PlatformAction(self._platform, self._action_type.value[0], *self._args, **self._kwargs)
+        self._platform.add_action(action)
+        return action
 
 
 class PlayerAddActionState(_AddActionState):

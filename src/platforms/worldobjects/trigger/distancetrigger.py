@@ -10,9 +10,6 @@ class DistanceTrigger(PlayerTrigger):
         self._radius = radius
         self._protocol.add_distance_trigger(self)
 
-    def unbind(self):
-        self._protocol.remove_distance_trigger(self)
-
     def update(self, player):
         if not player.world_object:
             return

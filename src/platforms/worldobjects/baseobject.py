@@ -1,11 +1,13 @@
-from abc import ABCMeta
+from abc import abstractmethod, ABCMeta
 
 
 class BaseObject(metaclass=ABCMeta):
+    id = property(lambda self: self._id)
+
     def __init__(self, protocol, id_):
         self._protocol = protocol
         self._id = id_
 
-    def release(self):
-        """Remove an object from the world"""
+    @abstractmethod
+    def destroy(self):
         pass
