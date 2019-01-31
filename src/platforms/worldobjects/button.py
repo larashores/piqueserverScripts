@@ -4,7 +4,6 @@ from platforms.worldobjects.trigger.presstrigger import PressTrigger, PlayerTrig
 from platforms.util.packets import send_block, send_color
 from platforms.states.needsbuttonstate import NeedsButtonState
 
-from itertools import chain
 from twisted.internet.reactor import callLater
 import enum
 
@@ -109,6 +108,20 @@ class Button(BaseObject):
             else:
                 self._activate_button()
 
+    def serialize(self):
+        return {
+            'id': self._id,
+            'location': self._location,
+            'label': self.label,
+            'color': self._color,
+            'actions': [action.serialize() for action in self._actions],
+            'triggers': [trigger.serialize() for trigger in self._triggers],
+            'logic': self.logic.name.lower(),
+            'cooldown': self.cooldown,
+            'disabled': self.disabled,
+            'silent': self.silent
+        }
+
     def _activate_button(self):
         """
         Puts a button in its activated state if it is not disabled.
@@ -155,18 +168,3 @@ class Button(BaseObject):
         send_block(self._protocol, *self._location, DESTROY_BLOCK)
         send_color(self._protocol, color)
         send_block(self._protocol, *self._location, BUILD_BLOCK)
-
-    #
-    # def serialize(self):
-    #     return {
-    #         'id': self._id,
-    #         'location': self._location,
-    #         'label': self.label,
-    #         'color': self._color,
-    #         'actions': [action.serialize() for action in self._actions],
-    #         'triggers': [trigger.serialize() for trigger in self._triggers],
-    #         'logic': self.logic,
-    #         'cooldown': self.cooldown,
-    #         'disabled': self.disabled,
-    #         'silent': self.silent
-    #     }

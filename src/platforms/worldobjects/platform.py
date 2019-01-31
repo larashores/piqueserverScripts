@@ -90,6 +90,16 @@ class Platform(BaseObject):
         self._target_z = min(max(0, self._start_z - height), 62)
         self._cycle_later(delay)
 
+    def serialize(self):
+        return {
+            'id': self._id,
+            'start': (*self._location1, self._start_z),
+            'end': (*self._location2, self._target_z),
+            'label': self.label,
+            'color': self._color,
+            'frozen': self.frozen
+        }
+
     def _cycle_later(self, delay):
         self._cycle_start_call = callLater(delay, self._start_cycle)
 
@@ -159,14 +169,3 @@ class Platform(BaseObject):
     def _update_triggers(self):
         for trigger in self._triggers:
             trigger.update()
-
-    # def serialize(self):
-    #     z = self.last_z if self.mode == 'elevator' else self.target_z
-    #     return {
-    #         'id' : self.id,
-    #         'start' : (self.x1, self.y1, z or self.z),
-    #         'end' : (self.x2, self.y2, self.start_z),
-    #         'label' : self.label,
-    #         'color' : self.color,
-    #         'frozen' : self.frozen
-    #     }
