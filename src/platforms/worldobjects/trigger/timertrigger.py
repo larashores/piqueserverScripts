@@ -11,19 +11,18 @@ class TimerTrigger(Trigger):
         Trigger.__init__(self, protocol, negate)
         self._firing = False
         self._timer_loop = LoopingCall(self._on_timer)
-        self._target_amount = amount
-        self._amount = 0
+        self._amount_left = amount
         self._interval = interval
         self._timer_loop.start(interval)
 
     def _on_timer(self):
-        if self._amount == self._target_amount:
+        if self._amount_left == 0:
             self._timer_loop.stop()
         self._firing = True
         self.signal_fire()
         self._firing = False
-        if self._target_amount is not None:
-            self._amount += 1
+        if self._amount_left > 0:
+            self._amount_left -= 1
 
     def destroy(self):
         self._timer_loop.stop()
@@ -34,10 +33,10 @@ class TimerTrigger(Trigger):
 
     def serialize(self):
         return {
-            'type': self.type,
-            'negate': self.negate,
-            'platform_id': self.platform.id,
-            'height': self.target_height
+            'type': Trigger.NAME,
+            'negate': self._negate,
+            'interval': self._interval,
+            'amount_left': self._amount_left
         }
 
     def __str__(self):

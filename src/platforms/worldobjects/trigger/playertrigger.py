@@ -10,3 +10,4 @@ class PlayerTrigger(Trigger, metaclass=ABCMeta):
 
     def _status(self):
         return len(self.affected_players) != 0
+

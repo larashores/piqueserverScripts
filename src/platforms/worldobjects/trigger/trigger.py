@@ -31,5 +31,6 @@ class Trigger(metaclass=ABCMeta):
         if self.status():
             self.signal_fire()
 
+    @abstractmethod
     def serialize(self):
-        return {'type': self.NAME, 'negate': self._negate}
+        pass

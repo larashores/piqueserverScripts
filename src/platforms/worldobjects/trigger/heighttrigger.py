@@ -18,10 +18,10 @@ class HeightTrigger(Trigger):
 
     def serialize(self):
         return {
-            'type': self.type,
-            'negate': self.negate,
-            'platform_id': self.platform.id,
-            'height': self.target_height
+            'type': HeightTrigger.NAME,
+            'negate': self._negate,
+            'platform_id': self._platform.id,
+            'height': self._height
         }
 
     def __str__(self):
