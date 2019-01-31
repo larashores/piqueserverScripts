@@ -1,6 +1,14 @@
 from playerstates.signal import Signal
 from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
+from platforms.worldobjects.trigger.presstrigger import PressTrigger
+from platforms.worldobjects.trigger.distancetrigger import DistanceTrigger
+from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
+from platforms.worldobjects.trigger.timertrigger import TimerTrigger
+
+
+TRIGGER_CLASSES = {cls.NAME: cls for cls in (PressTrigger, DistanceTrigger, HeightTrigger, TimerTrigger)}
+
 
 class Trigger(metaclass=ABCMeta):
     NAME = abstractattribute
@@ -23,6 +31,9 @@ class Trigger(metaclass=ABCMeta):
     def status(self):
         return self._status() ^ self._negate
 
+    def serialize(self):
+        return {'type': self.NAME, 'negate': self._negate}
+
     @abstractmethod
     def _status(self):
         return False
@@ -30,7 +41,3 @@ class Trigger(metaclass=ABCMeta):
     def _fire_if_active(self):
         if self.status():
             self.signal_fire()
-
-    @abstractmethod
-    def serialize(self):
-        pass

@@ -6,7 +6,7 @@ S_WRONG_PARAMETER_TYPE = 'ERROR: wrong parameter type'
 
 
 def invalid_range(x, y, z):
-    return (x < 0) or (x >= 512) or (y < 0 or y >= 512) or (z < 0) or (z > 64)
+    return (x < 0) or (x > 512) or (y < 0 or y > 512) or (z < 0) or (z > 64)
 
 
 def sign(x):

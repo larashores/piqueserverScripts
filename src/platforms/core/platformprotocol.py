@@ -31,10 +31,11 @@ def platform_protocol(protocol):
         _next_id = 0
 
         def __init__(self, *args, **kwargs):
-            protocol.__init__(self, *args, **kwargs)
             self._buttons = MultikeyDict()
             self._platforms = {}
             self._distance_triggers = set()
+            self._autosave_loop = LoopingCall(self.dump_platform_json)
+            protocol.__init__(self, *args, **kwargs)
 
         def add_distance_trigger(self, trigger):
             self._distance_triggers.add(trigger)
@@ -94,32 +95,20 @@ def platform_protocol(protocol):
             return self.get_platform(location) or location in self._buttons
 
         # def on_map_change(self, map):
-        #     self.highest_id = -1
-        #     self.platforms = {}
-        #     self.running_platforms = set()
-        #     self.buttons = MultikeyDict()
-        #     self.position_triggers = []
-        #     self.platform_json_dirty = False
+        #     self._next_id = 0
+        #     self._platforms.clear()
+        #     self._buttons.clear()
+        #     self._distance_triggers.clear()
         #     self.load_platform_json()
         #     if AUTOSAVE_EVERY:
-        #         self.autosave_loop = LoopingCall(self.dump_platform_json)
-        #         self.autosave_loop.start(AUTOSAVE_EVERY * 60.0, now=False)
+        #         self._autosave_loop.start(AUTOSAVE_EVERY * 60.0, now=False)
         #     protocol.on_map_change(self, map)
         #
         # def on_map_leave(self):
         #     if SAVE_ON_MAP_CHANGE:
         #         self.dump_platform_json()
-        #     if self.autosave_loop and self.autosave_loop.running:
-        #         self.autosave_loop.stop()
-        #     self.autosave_loop = None
-        #     for platform in self.platforms.itervalues():
-        #         platform.release()
-        #     for button in self.buttons.itervalues():
-        #         button.release()
-        #     self.platforms = None
-        #     self.running_platforms = None
-        #     self.buttons = None
-        #     self.position_triggers = None
+        #     if self._autosave_loop.running:
+        #         self._autosave_loop.stop()
         #     protocol.on_map_leave(self)
         #
         # def get_platform_json_path(self):
@@ -137,55 +126,47 @@ def platform_protocol(protocol):
         #         x1, y1, z1 = platform_data['start']
         #         x2, y2, z2 = platform_data['end']
         #         color = tuple(platform_data['color'])
-        #         id = platform_data['id']
-        #         ids.append(id)
-        #         platform = Platform(self, id, x1, y1, z1, x2, y2, z2, color)
-        #         platform.label = platform_data['label']
+        #         label = platform_data['label']
+        #         id_ = platform_data['id']
+        #         ids.append(id_)
+        #         platform = Platform(self, id_, (x1, y1), (x2, y2), z1, color, label)
+        #         platform.set_height(z2 - z1)
         #         platform.frozen = platform_data['frozen']
-        #         self.platforms[id] = platform
+        #         self._platforms[id_] = platform
         #     for button_data in data['buttons']:
-        #         x, y, z = button_data['location']
+        #         location = button_data['location']
         #         color = tuple(button_data['color'])
-        #         id = button_data['id']
-        #         ids.append(id)
-        #         button = Button(self, id, x, y, z, color)
-        #         button.label = button_data['label']
+        #         label = button_data['label']
+        #         id_ = button_data['id']
+        #         ids.append(id_)
+        #         button = Button(self, id_, location, color, label)
         #         button.logic = button_data['logic']
         #         button.cooldown = button_data['cooldown']
         #         button.disabled = button_data['disabled']
         #         button.silent = button_data['silent']
         #         for trigger_data in button_data['triggers']:
-        #             cls = trigger_data.pop('type')
-        #             new_trigger = TRIGGER_CLASSES[cls](self, **trigger_data)
-        #             new_trigger.parent = button
-        #             button.triggers.append(new_trigger)
+        #             cls = TRIGGER_CLASSES[trigger_data.pop('type')]
+        #             new_trigger = cls(self, button, **trigger_data)
+        #             button.add_trigger(new_trigger)
         #         for action_data in button_data['actions']:
-        #             cls = action_data.pop('type')
-        #             new_action = ACTION_CLASSES[cls](self, **action_data)
-        #             button.actions.append(new_action)
-        #         self.buttons[(id, (x, y, z))] = button
-        #     ids.sort()
-        #     self.highest_id = ids[-1] if ids else -1
-        #     self.platform_json_dirty = True
-        #     for button in self.buttons.itervalues():
+        #             cls = ACTION_CLASSES[action_data.pop('type')]
+        #             new_action = cls(self, **action_data)
+        #             button.add_action(new_action)
+        #             self._platforms[id_].add_action(action_data)
+        #         self._buttons[(id_, location)] = button
+        #     self._next_id = max(ids) + 1 if ids else 0
+        #     for button in self.buttons.values():
         #         button.trigger_check()
         #
         # def dump_platform_json(self):
-        #     if (not self.platforms and not self.buttons and
-        #             not self.platform_json_dirty):
+        #     if not self._platforms and not self._buttons:
         #         return
         #     data = {
-        #         'platforms': [platform.serialize() for platform in
-        #                       self.platforms.values()],
-        #         'buttons': [button.serialize() for button in
-        #                     self.buttons.values()]
+        #         'platforms': [platform.serialize() for platform in self.platforms.values()],
+        #         'buttons': [button.serialize() for button in self.buttons.values()]
         #     }
         #     path = self.get_platform_json_path()
         #     with open(path, 'w') as file:
-        #         json.dump(data, file, indent=4)
-        #     self.platform_json_dirty = True
-        #
-        #
-        #
+        #        json.dump(data, file, indent=4)
 
     return PlatformProtocol

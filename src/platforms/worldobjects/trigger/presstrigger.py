@@ -10,11 +10,5 @@ class PressTrigger(PlayerTrigger):
         self._fire_if_active()
         self.affected_players.discard(player)
 
-    def serialize(self):
-        return {
-            'type': PressTrigger.NAME,
-            'negate': self._negate,
-        }
-
     def __str__(self):
         return "{}press".format('NOT ' if self._negate else '')

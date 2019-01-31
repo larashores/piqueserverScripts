@@ -80,11 +80,10 @@ def apply_script(protocol, connection, config):
             FINISHED = 2
         
         def __init__(self, *args, **kwargs):
-            protocol.__init__(self, *args, **kwargs)
-            
             self._cbc_running = False
             self._cbc_generators = {}
             self._cbc_call = LoopingCall(self._cbc_cycle)
+            protocol.__init__(self, *args, **kwargs)
         
         def cbc_add(self, generator, update_time=10.0, callback=None, *args):
             info = _CbcInfo(generator, update_time, callback, args)

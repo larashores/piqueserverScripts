@@ -26,8 +26,7 @@ class DistanceTrigger(PlayerTrigger):
 
     def serialize(self):
         return {
-            'type': DistanceTrigger.NAME,
-            'negate': self._negate,
+            **PlayerTrigger.serialize(self),
             'radius': self._radius
         }
 

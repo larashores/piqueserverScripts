@@ -33,8 +33,7 @@ class TimerTrigger(Trigger):
 
     def serialize(self):
         return {
-            'type': Trigger.NAME,
-            'negate': self._negate,
+            **Trigger.serialize(self),
             'interval': self._interval,
             'amount_left': self._amount_left
         }
