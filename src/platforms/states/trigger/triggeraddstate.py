@@ -1,7 +1,6 @@
-from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 from platforms.states.trigger.triggerstate import TriggerState
-from platforms.states.needsplatformstate import NeedsPlatformState
 from platforms.states.needsbuttonstate import NeedsButtonState
+from platforms.states.needsbothstate import NeedsBothState
 from platforms.worldobjects.trigger.presstrigger import PressTrigger
 from platforms.worldobjects.trigger.distancetrigger import DistanceTrigger
 from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
@@ -46,27 +45,11 @@ class AddTriggerState(NeedsButtonState, TriggerState):
         return self._trigger_type.value(self.player.protocol, self._negate, *self._args, **self._kwargs)
 
 
-class PlatformAddTriggerState(NeedsPlatformState, AddTriggerState):
+class PlatformAddTriggerState(NeedsBothState, AddTriggerState):
     def on_exit(self):
         if not self._platform:
             return S_COMMAND_CANCEL.format(command='action {} '.format(self._trigger_type))
         return AddTriggerState.on_exit(self)
-
-    def on_enter(self):
-        self.player.send_chat(NeedsButtonState.on_enter(self))
-        self.player.send_chat(NeedsPlatformState.on_enter(self))
-
-    def _on_button_selected(self):
-        if self._platform:
-            self.signal_exit(self)
-        else:
-            self.player.send_chat("Button '{}' selected".format(self._button.label))
-
-    def _on_platform_selected(self):
-        if self._button:
-            self.signal_exit(self)
-        else:
-            self.player.send_chat("Platform '{}' selected".format(self._platform.label))
 
     def _make_trigger(self):
         return self._trigger_type.value(self.player.protocol, self._negate, self._platform, *self._args, **self._kwargs)
