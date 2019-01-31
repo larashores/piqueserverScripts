@@ -13,6 +13,10 @@ def state_connection(connection):
             connection.__init__(self, *args, **kwargs)
             self.state_stack = StateStack(self)
 
+        def respawn(self):
+            self.state_stack.clear()
+            connection.respawn(self)
+
         def on_block_removed(self, x, y, z):
             state = self.state_stack.top()
             if isinstance(state, BuildingState):

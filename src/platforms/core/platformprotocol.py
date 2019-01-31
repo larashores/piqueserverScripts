@@ -9,8 +9,7 @@ from platforms.worldobjects.trigger.presstrigger import PressTrigger
 # from platforms.worldobjects.action.playeraction import PlayerAction
 from platforms.worldobjects.platform import Platform
 from platforms.worldobjects.button import Button
-from platforms.util.packets import send_block
-from pyspades.constants import DESTROY_BLOCK
+from platforms.util.geometry import prism_range
 from playerstates.stateprotocol import state_protocol
 
 import json
@@ -41,14 +40,17 @@ def platform_protocol(protocol):
             self._distance_triggers.add(trigger)
             trigger.signal_remove.connect(self._distance_triggers.remove)
 
+        def update_distance_triggers(self, player):
+            for trigger in self._distance_triggers:
+                trigger.update(player)
+
         def on_world_update(self):
             for player in self.players.values():
-                for trigger in self._distance_triggers:
-                    trigger.update(player)
+                self.update_distance_triggers(player)
             protocol.on_world_update(self)
 
         def create_button(self, location, color, label):
-            if location in self._buttons:
+            if self.is_platform_or_button(location):
                 return None
             button = Button(self, self._next_id, location, color, label)
             button.add_trigger(PressTrigger(self, False, button))
@@ -64,6 +66,9 @@ def platform_protocol(protocol):
                     player.last_button = None
 
         def create_platform(self, location1, location2, z, color, label):
+            for location in prism_range(*location1, z, *location2, z+1):
+                if self.is_platform_or_button(location):
+                    return None
             platform = Platform(self, self._next_id, location1, location2, z, color, label)
             self._platforms[self._next_id] = platform
             self._next_id += 1
@@ -88,16 +93,6 @@ def platform_protocol(protocol):
         def is_platform_or_button(self, location):
             return self.get_platform(location) or location in self._buttons
 
-        # def __init__(self, *args, **kwargs):
-        #     protocol.__init__(self, *args, **kwargs)
-        #     self.highest_id = None
-        #     self.platforms = {}
-        #     self.platform_json_dirty = False
-        #     self.running_platforms = None
-        #     self.buttons = MultikeyDict()
-        #     self.position_triggers = None
-        #     self.autosave_loop = None
-        #
         # def on_map_change(self, map):
         #     self.highest_id = -1
         #     self.platforms = {}
@@ -192,6 +187,5 @@ def platform_protocol(protocol):
         #
         #
         #
-
 
     return PlatformProtocol

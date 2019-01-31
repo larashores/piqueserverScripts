@@ -127,6 +127,7 @@ class Platform(BaseObject):
             self._z -= 1
             if self._z < self._start_z:       # Above or at zero
                 self._build_plane(self._z)
+                self._unstick()
             else:                             # Below zero
                 self._destroy_plane(self._z)
         if self._z == self._target_z:

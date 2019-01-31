@@ -64,24 +64,14 @@ def platform_connection(connection):
                 self.where_orientation = self.world_object.orientation.get()
             connection.on_command(self, command, parameters)
 
+        def on_disconnect(self):
+            self.protocol.update_distance_triggers(self)
+            connection.on_disconnect(self)
+
         def _get_button_or_platform_if_within_reach(self):
             location = self.world_object.cast_ray(ACTION_RAY_LENGTH)
             if location is None:
                 return None, None
             return self.protocol.get_button(location), self.protocol.get_platform(location)
-
-        #
-        # def on_reset(self):
-        #     self.where_location = None
-        #     self.where_orientation = None
-        #     self.last_action = None
-        #     self.previous_button = None
-        #     self.previous_platform = None
-        #     connection.on_reset(self)
-        #
-        # def on_disconnect(self):
-        #     for trigger in self.protocol.position_triggers:
-        #         trigger.callback(self)
-        #     connection.on_disconnect(self)
 
     return PlatformConnection
