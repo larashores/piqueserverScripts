@@ -1,28 +1,10 @@
 from platforms.util.abstractattribute import abstractmethod, ABCMeta
 from platforms.worldobjects.action.platformaction import PlatformAction
 from platforms.worldobjects.action.playeraction import PlayerAction
-from platforms.worldobjects.platform import Platform
 from platforms.states.action.actionstate import ActionState
 from platforms.states.needsbuttonstate import NeedsButtonState
 from platforms.states.needsbothstate import NeedsBothState
 from platforms.util.strings import *
-from piqueserver.player import FeatureConnection
-
-import enum
-
-
-#  The must be in a list or else enum will count them as functions not enumerations
-class ActionType(enum.Enum):
-    HEIGHT = [Platform.set_height]
-    RAISE = [Platform.raise_]
-    LOWER = [Platform.lower]
-    ELEVATOR = [Platform.set_height]
-    CHAT = [FeatureConnection.send_chat]
-    TELEPORT = [FeatureConnection.set_location]
-    DAMAGE = [FeatureConnection.hit]
-
-    def __str__(self):
-        return self.name.lower()
 
 
 class _AddActionState(NeedsButtonState, ActionState, metaclass=ABCMeta):
@@ -54,11 +36,11 @@ class PlatformAddActionState(NeedsBothState, _AddActionState):
         return _AddActionState.on_exit(self)
 
     def _make_action(self):
-        action = PlatformAction(self._platform, self._action_type.value[0], *self._args, **self._kwargs)
+        action = PlatformAction(self._platform, self._action_type, *self._args, **self._kwargs)
         self._platform.add_action(action)
         return action
 
 
 class PlayerAddActionState(_AddActionState):
     def _make_action(self):
-        return PlayerAction(self._action_type.value[0], *self._args, **self._kwargs)
+        return PlayerAction(self._action_type, *self._args, **self._kwargs)

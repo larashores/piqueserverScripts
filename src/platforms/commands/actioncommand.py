@@ -2,8 +2,9 @@ from piqueparser import piqueargs
 from piqueparser.types.range import FloatRange, IntRange
 from platforms.commands.util import base_command, id_or_all
 from platforms.states.action.actionstate import ActionState
-from platforms.states.action.addactionstate import PlatformAddActionState, PlayerAddActionState, ActionType
+from platforms.states.action.addactionstate import PlatformAddActionState, PlayerAddActionState
 from platforms.states.action.actioncommandstate import ActionListState, ActionDelState
+from platforms.worldobjects.action.action import ActionType
 
 from pyspades.constants import WEAPON_KILL, FALL_KILL
 
