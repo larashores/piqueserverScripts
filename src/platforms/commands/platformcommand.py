@@ -1,29 +1,5 @@
-"""
-/p /platforms [command]
-    Starts a new platforms or enables you to edit them by specifying a command.
-    To build a platforms, put down blocks delimiting the size of the floor--
-    two blocks in opposite corners is sufficient.
-
-    Press the SNEAK key (V) while in any platforms mode to get information
-    about the platforms you're looking at.  Must be holding spade tool.
-
-    command:
-        new <label>
-            Starts a new platforms with a label already attached.
-        name <label>
-            Labels a platforms.  It's recommended you name things to avoid mistakes.
-        height <height>
-            Forces the platforms to grow or shrink to the specified height.
-        freeze
-            Freezes or unfreezes a platforms.  A frozen platforms won't move.
-        destroy
-            Destroys a platforms, removing all its blocks.
-        last
-            When you get asked to select a platforms, you can use this command
-            to automatically choose the last platforms you selected or created.
-"""
 from piqueparser import piqueargs
-from piqueparser.types.range import IntRange, FloatRange
+from piqueparser.types.range import IntRange
 from platforms.commands.util import base_command
 from platforms.states.platform.newplatformstate import NewPlatformState
 from platforms.states.platform.platformcommandstate import *
