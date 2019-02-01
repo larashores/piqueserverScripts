@@ -38,6 +38,11 @@ class TimerTrigger(Trigger):
             'amount_left': self._amount_left
         }
 
+    @staticmethod
+    def _unserialize(protocol, button, data):
+        platform = protocol.get_platform(data['platform_id'])
+        return TimerTrigger(protocol, data['negate'], data['interval'], data['amount'])
+
     def __str__(self):
         return "{}timer:{}s".format(
             'NOT ' if self._negate else '', self._interval)

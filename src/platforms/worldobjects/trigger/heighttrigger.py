@@ -23,6 +23,11 @@ class HeightTrigger(Trigger):
             'height': self._height
         }
 
+    @staticmethod
+    def _unserialize(protocol, button, data):
+        platform = protocol.get_platform(data['platform_id'])
+        return HeightTrigger(protocol, data['negate'], platform, data['height'])
+
     def __str__(self):
         return "{}platform:'{}'={}".format(
             'NOT ' if self._negate else '', self._platform.label, self._height)

@@ -30,5 +30,9 @@ class DistanceTrigger(PlayerTrigger):
             'radius': self._radius
         }
 
+    @staticmethod
+    def _unserialize(protocol, button, data):
+        return DistanceTrigger(protocol, data['negate'], button, data['radius'])
+
     def __str__(self):
         return '{}distance={}'.format('NOT ' if self._negate else '', self._radius)

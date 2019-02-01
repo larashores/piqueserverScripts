@@ -1,8 +1,11 @@
 from pyspades.constants import DESTROY_BLOCK, BUILD_BLOCK
 from platforms.worldobjects.baseobject import BaseObject
 from platforms.worldobjects.trigger.presstrigger import PressTrigger, PlayerTrigger
+from platforms.worldobjects.trigger.trigger import Trigger
+from platforms.worldobjects.action.action import Action
 from platforms.util.packets import send_block, send_color
 from platforms.states.needsbuttonstate import NeedsButtonState
+
 
 from twisted.internet.reactor import callLater
 import enum
@@ -121,6 +124,23 @@ class Button(BaseObject):
             'disabled': self.disabled,
             'silent': self.silent
         }
+
+    @staticmethod
+    def unserialize(protocol, data):
+        id_ = data['id']
+        location = tuple(data['location'])
+        color = tuple(data['color'])
+        label = data['label']
+        button = Button(protocol, id_, location, color, label)
+        button.logic = LogicType[data['logic'].upper()]
+        button.cooldown = data['cooldown']
+        button.disabled = data['disabled']
+        button.silent = data['silent']
+        for action_data in data['actions']:
+            button.add_action(Action.unserialize(protocol, action_data))
+        for trigger_data in data['triggers']:
+            button.add_trigger(Trigger.unserialize(protocol, button, trigger_data))
+        return button
 
     def _activate_button(self):
         """

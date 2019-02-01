@@ -36,3 +36,20 @@ class Action(metaclass=ABCMeta):
     @abstractmethod
     def run(self, *args, **kwargs):
         pass
+
+    def serialize(self):
+        return {
+            'type': self.NAME,
+            'action': str(self._action_type),
+            'args': self._args,
+            'kwargs': self._kwargs
+        }
+
+    @staticmethod
+    def unserialize(protocol, data):
+        from platforms.worldobjects.action.platformaction import PlatformAction
+        from platforms.worldobjects.action.playeraction import PlayerAction
+
+        action_classes = {cls.NAME: cls for cls in (PlatformAction, PlayerAction)}
+        cls = action_classes[data.pop('type')]
+        return cls.unserialize(protocol, data)

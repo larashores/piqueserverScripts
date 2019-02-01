@@ -12,3 +12,7 @@ class PressTrigger(PlayerTrigger):
 
     def __str__(self):
         return "{}press".format('NOT ' if self._negate else '')
+
+    @staticmethod
+    def _unserialize(protocol, button, data):
+        return PressTrigger(protocol, data['negate'], button)

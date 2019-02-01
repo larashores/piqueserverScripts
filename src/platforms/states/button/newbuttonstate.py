@@ -1,5 +1,6 @@
 from platforms.states.button.buttonstate import ButtonState
 from playerstates.buildingstate import BuildingState
+from platforms.worldobjects.button import Button
 
 
 class NewButtonState(BuildingState, ButtonState):

@@ -100,6 +100,19 @@ class Platform(BaseObject):
             'frozen': self.frozen
         }
 
+    @staticmethod
+    def unserialize(protocol, data):
+        id_ = data['id']
+        x1, y1, z1 = data['start']
+        x2, y2, z2 = data['end']
+        label = data['label']
+        color = tuple(data['color'])
+        frozen = data['frozen']
+        platform = Platform(protocol, id_, (x1, y1), (x2, y2), z1, color, label)
+        platform.set_height(z2 - z1)
+        platform.frozen = frozen
+        return platform
+
     def _cycle_later(self, delay):
         self._cycle_start_call = callLater(delay, self._start_cycle)
 

@@ -1,5 +1,5 @@
 from pyspades.types import MultikeyDict
-# from piqueserver.config import config
+from piqueserver.config import config
 
 from platforms.worldobjects.trigger.presstrigger import PressTrigger
 # from platforms.worldobjects.trigger.tracktrigger import TrackTrigger
@@ -16,7 +16,7 @@ import json
 import os
 from twisted.internet.task import LoopingCall
 
-# DEFAULT_LOAD_DIR = os.path.join(config.config_dir, 'maps')
+DEFAULT_LOAD_DIR = os.path.join(config.config_dir, 'maps')
 # SAVE_ON_MAP_CHANGE = True
 # AUTOSAVE_EVERY = 0.0  # minutes, 0 = disabled
 #
@@ -34,7 +34,7 @@ def platform_protocol(protocol):
             self._buttons = MultikeyDict()
             self._platforms = {}
             self._distance_triggers = set()
-            self._autosave_loop = LoopingCall(self.dump_platform_json)
+            #self._autosave_loop = LoopingCall(self.dump_platform_json)
             protocol.__init__(self, *args, **kwargs)
 
         def add_distance_trigger(self, trigger):
@@ -49,6 +49,14 @@ def platform_protocol(protocol):
             for player in self.players.values():
                 self.update_distance_triggers(player)
             protocol.on_world_update(self)
+
+        def assign_id(self):
+            id_ = self._next_id
+            self._next_id += 1
+            return id_
+
+        def add_button(self, button):
+            self._buttons[(button.id, button.location)] = button
 
         def create_button(self, location, color, label):
             if self.is_platform_or_button(location):
@@ -82,81 +90,61 @@ def platform_protocol(protocol):
                 if player.last_platform is platform:
                     player.last_platform = None
 
-        def get_platform(self, location):
+        def get_platform(self, location_or_id):
+            if location_or_id in self._platforms:
+                return self._platforms[location_or_id]
             for platform in self._platforms.values():
-                if platform.contains(location):
+                if platform.contains(location_or_id):
                     return platform
 
-        def get_button(self, location):
-            if location in self._buttons:
-                return self._buttons[location]
+        def get_button(self, location_or_id):
+            if location_or_id in self._buttons:
+                return self._buttons[location_or_id]
 
         def is_platform_or_button(self, location):
             return self.get_platform(location) or location in self._buttons
 
-        # def on_map_change(self, map):
-        #     self._next_id = 0
-        #     self._platforms.clear()
-        #     self._buttons.clear()
-        #     self._distance_triggers.clear()
-        #     self.load_platform_json()
-        #     if AUTOSAVE_EVERY:
-        #         self._autosave_loop.start(AUTOSAVE_EVERY * 60.0, now=False)
-        #     protocol.on_map_change(self, map)
+        def on_map_change(self, map):
+            self._next_id = 0
+            self._platforms.clear()
+            self._buttons.clear()
+            self._distance_triggers.clear()
+            self.load_platform_json()
+            # if AUTOSAVE_EVERY:
+            #     self._autosave_loop.start(AUTOSAVE_EVERY * 60.0, now=False)
+            protocol.on_map_change(self, map)
+
+        def on_map_leave(self):
+            # if SAVE_ON_MAP_CHANGE:
+            #     self.dump_platform_json()
+            # if self._autosave_loop.running:
+            #     self._autosave_loop.stop()
+            protocol.on_map_leave(self)
+
+        def get_platform_json_path(self):
+            filename = self.map_info.rot_info.full_name + '_platform.txt'
+            return os.path.join(DEFAULT_LOAD_DIR, filename)
         #
-        # def on_map_leave(self):
-        #     if SAVE_ON_MAP_CHANGE:
-        #         self.dump_platform_json()
-        #     if self._autosave_loop.running:
-        #         self._autosave_loop.stop()
-        #     protocol.on_map_leave(self)
-        #
-        # def get_platform_json_path(self):
-        #     filename = self.map_info.rot_info.full_name + '_platform.txt'
-        #     return os.path.join(DEFAULT_LOAD_DIR, filename)
-        #
-        # def load_platform_json(self):
-        #     path = self.get_platform_json_path()
-        #     if not os.path.isfile(path):
-        #         return
-        #     with open(path, 'r') as file:
-        #         data = json.load(file)
-        #     ids = []
-        #     for platform_data in data['platforms']:
-        #         x1, y1, z1 = platform_data['start']
-        #         x2, y2, z2 = platform_data['end']
-        #         color = tuple(platform_data['color'])
-        #         label = platform_data['label']
-        #         id_ = platform_data['id']
-        #         ids.append(id_)
-        #         platform = Platform(self, id_, (x1, y1), (x2, y2), z1, color, label)
-        #         platform.set_height(z2 - z1)
-        #         platform.frozen = platform_data['frozen']
-        #         self._platforms[id_] = platform
-        #     for button_data in data['buttons']:
-        #         location = button_data['location']
-        #         color = tuple(button_data['color'])
-        #         label = button_data['label']
-        #         id_ = button_data['id']
-        #         ids.append(id_)
-        #         button = Button(self, id_, location, color, label)
-        #         button.logic = button_data['logic']
-        #         button.cooldown = button_data['cooldown']
-        #         button.disabled = button_data['disabled']
-        #         button.silent = button_data['silent']
-        #         for trigger_data in button_data['triggers']:
-        #             cls = TRIGGER_CLASSES[trigger_data.pop('type')]
-        #             new_trigger = cls(self, button, **trigger_data)
-        #             button.add_trigger(new_trigger)
-        #         for action_data in button_data['actions']:
-        #             cls = ACTION_CLASSES[action_data.pop('type')]
-        #             new_action = cls(self, **action_data)
-        #             button.add_action(new_action)
-        #             self._platforms[id_].add_action(action_data)
-        #         self._buttons[(id_, location)] = button
-        #     self._next_id = max(ids) + 1 if ids else 0
-        #     for button in self.buttons.values():
-        #         button.trigger_check()
+        def load_platform_json(self):
+            path = self.get_platform_json_path()
+            if not os.path.isfile(path):
+                return
+            with open(path, 'r') as file:
+                data = json.load(file)
+            ids = []
+            for platform_data in data['platforms']:
+                id_ = platform_data['id']
+                self._platforms[id_] = Platform.unserialize(self, platform_data)
+                ids.append(id_)
+            for button_data in data['buttons']:
+                id_ = button_data['id']
+                location = tuple(button_data['location'])
+                button = Button.unserialize(self, button_data)
+                self._buttons[(id_, location)] = button
+                ids.append(id_)
+            self._next_id = max(ids) + 1 if ids else 0
+            for button in self._buttons.values():
+                button.trigger_check()
         #
         # def dump_platform_json(self):
         #     if not self._platforms and not self._buttons:

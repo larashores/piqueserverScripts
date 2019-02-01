@@ -1,4 +1,4 @@
-from platforms.worldobjects.action.action import Action
+from platforms.worldobjects.action.action import Action, ActionType
 
 
 class PlayerAction(Action):
@@ -11,10 +11,9 @@ class PlayerAction(Action):
     def __str__(self):
         return 'player {}'.format(self._args)
 
-    def serialize(self):
-        return {
-            'type': self.NAME,
-            'action': str(self._action_type),
-            'args': self._args,
-            'kwargs': self._kwargs
-        }
+    @staticmethod
+    def unserialize(protocol, data):
+        action = ActionType[data['action'].upper()]
+        args = data['args'] if 'args' in data else []
+        kwargs = data['kwargs']
+        return PlayerAction(action, *args, **kwargs)

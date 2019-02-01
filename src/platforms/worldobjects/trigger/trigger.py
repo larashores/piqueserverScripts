@@ -1,14 +1,6 @@
 from playerstates.signal import Signal
 from platforms.util.abstractattribute import abstractattribute, abstractmethod, ABCMeta
 
-from platforms.worldobjects.trigger.presstrigger import PressTrigger
-from platforms.worldobjects.trigger.distancetrigger import DistanceTrigger
-from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
-from platforms.worldobjects.trigger.timertrigger import TimerTrigger
-
-
-TRIGGER_CLASSES = {cls.NAME: cls for cls in (PressTrigger, DistanceTrigger, HeightTrigger, TimerTrigger)}
-
 
 class Trigger(metaclass=ABCMeta):
     NAME = abstractattribute
@@ -33,6 +25,22 @@ class Trigger(metaclass=ABCMeta):
 
     def serialize(self):
         return {'type': self.NAME, 'negate': self._negate}
+
+    @staticmethod
+    def unserialize(protocol, button, data):
+        from platforms.worldobjects.trigger.distancetrigger import DistanceTrigger
+        from platforms.worldobjects.trigger.heighttrigger import HeightTrigger
+        from platforms.worldobjects.trigger.presstrigger import PressTrigger
+        from platforms.worldobjects.trigger.timertrigger import TimerTrigger
+
+        trigger_classes = {cls.NAME: cls for cls in (DistanceTrigger, HeightTrigger, PressTrigger, TimerTrigger)}
+        trigger_classes['track'] = DistanceTrigger
+        cls = trigger_classes[data.pop('type')]
+        return cls._unserialize(protocol, button, data)
+
+    @staticmethod
+    def _unserialize(protocol, button, data):
+        pass
 
     @abstractmethod
     def _status(self):
