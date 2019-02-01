@@ -90,7 +90,7 @@ def teleport(connection, clear_others, first, y, z):
 @piqueargs.argument('text',  nargs=-1)
 @piqueargs.command('Usage: /action add|set chat <text>')
 def chat(connection, clear_others, text):
-    connection.state_stack.set(PlayerAddActionState(clear_others, ActionType.CHAT, ' '.join(text)))
+    connection.state_stack.set(PlayerAddActionState(clear_others, ActionType.CHAT, text))
 
 
 @piqueargs.argument('amount', type=IntRange(-100, 100))
