@@ -181,6 +181,7 @@ from platforms.commands.triggercommand import trigger
 from platforms.commands.actioncommand import action
 from platforms.core.platformprotocol import platform_protocol
 from platforms.core.platformconnection import platform_connection
+from piqueserver.commands import command
 from cbc.core import cbc
 
 
@@ -190,6 +191,7 @@ piqueargs.add_server_command(trigger, 'trigger', 'tr')
 piqueargs.add_server_command(action, 'action', 'ac')
 
 
+@command('save')
 @piqueargs.command(usage=r'Usage: \save')
 def save(connection):
     connection.protocol.dump_platform_json()

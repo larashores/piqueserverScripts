@@ -76,12 +76,18 @@ class Platform(BaseObject):
         return aabb_collision(*location, *self._location1, z1, *self._location2, z2)
 
     def raise_(self, amount, speed=0.0, delay=0.0):
-        self.set_height(self.height + amount, speed, delay)
+        self._set_height(self.height + amount, speed, delay)
 
     def lower(self, amount, speed=0.0, delay=0.0):
-        self.set_height(self.height - amount, speed, delay)
+        self._set_height(self.height - amount, speed, delay)
 
-    def set_height(self, height, speed=0.0, delay=0.0, go_back_at_end=False, wait=0.0):
+    def elevator(self, height, speed=0.0, delay=0.0,  wait=0.0):
+        self._set_height(height, speed, delay, True, wait)
+
+    def height_action(self, height, speed=0.0, delay=0.0):
+        self._set_height(height, speed, delay)
+
+    def _set_height(self, height, speed=0.0, delay=0.0, go_back_at_end=False, wait=0.0):
         if self._cycle_start_call is not None:
             return
         self._speed = speed
@@ -94,7 +100,7 @@ class Platform(BaseObject):
         return {
             'id': self._id,
             'start': (*self._location1, self._start_z),
-            'end': (*self._location2, self._target_z),
+            'end': (self._location2[0]+1, self._location2[1]+1, self._target_z),
             'label': self.label,
             'color': self._color,
             'frozen': self.frozen
@@ -108,8 +114,8 @@ class Platform(BaseObject):
         label = data['label']
         color = tuple(data['color'])
         frozen = data['frozen']
-        platform = Platform(protocol, id_, (x1, y1), (x2, y2), z1, color, label)
-        platform.set_height(z2 - z1)
+        platform = Platform(protocol, id_, (x1, y1), (x2-1, y2-1), z1, color, label)
+        platform._set_height(z2 - z1)
         platform.frozen = frozen
         return platform
 
