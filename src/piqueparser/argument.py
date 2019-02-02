@@ -12,14 +12,14 @@ class Argument:
         self._default = type(default) if default is not None else type()
 
     def parse_args(self, args, context):
-        if self._nargs < 1:
-            self._nargs = len(args)
-        if self._nargs > len(args):
+        if abs(self._nargs) > len(args):
             if not self._required:
                 context[self._name] = self._default
             else:
                 raise PiqueArgsException('Not enough arguments!')
         else:
+            if self._nargs <= 0:
+                self._nargs = len(args)
             parsed_args = ' '.join(args[:self._nargs])
             try:
                 context[self._name] = self._type(parsed_args)
